@@ -1,0 +1,220 @@
+'use client';
+
+import { use } from 'react';
+import Link from 'next/link';
+import Navbar from '@/components/layout/Navbar';
+import InnerPageHero from '@/components/sections/InnerPageHero';
+import { blogData } from '@/data/siteData';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
+import FadeIn from '@/components/animation/FadeIn';
+import ImageReveal from '@/components/animation/ImageReveal';
+
+interface PageProps {
+  params: Promise<{ slug: string }>;
+}
+
+export default function BlogDetailPage({ params }: PageProps) {
+  const resolvedParams = use(params);
+  const slug = resolvedParams.slug.toLowerCase();
+
+  // Find active blog post or fallback
+  const postIndex = blogData.findIndex((p) => p.slug === slug);
+  const post = postIndex !== -1 ? blogData[postIndex] : blogData[0];
+
+  // Previous post link
+  const prevPost =
+    blogData[(postIndex - 1 + blogData.length) % blogData.length];
+
+  // Comment submission handler
+  const handleCommentSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    alert('Thank you! Your comment has been submitted for approval.');
+  };
+
+  return (
+    <>
+      <Navbar variant="hero" />
+      <InnerPageHero
+        title={post.title}
+        breadcrumb={`News • ${post.category} • ${post.title}`}
+        description="Read detailed analysis, market updates, and expert real estate commentary."
+        image={post.image}
+      />
+
+      <section className="bg-white px-6 py-16 sm:px-8 lg:px-12 lg:py-24">
+        <div className="mx-auto max-w-[1400px]">
+
+          {/* =========================================================
+              SCREENSHOT 3: CATEGORY PILL, DATE & ARTICLE TITLE
+          ========================================================= */}
+          <FadeIn direction="up" className="text-center space-y-6">
+            <div className="inline-flex items-center gap-3">
+              <span className="rounded-full bg-[#f12131] px-6 py-2 text-xs font-extrabold text-white shadow-md">
+                {post.category}
+              </span>
+              <span className="text-sm font-bold text-slate-400">
+                {post.date}
+              </span>
+            </div>
+
+            <h1 className="mx-auto max-w-4xl text-4xl font-black leading-tight tracking-tight text-[#29247c] sm:text-5xl lg:text-[54px]">
+              {post.title}
+            </h1>
+          </FadeIn>
+
+          {/* Featured Cover Banner Image */}
+          <FadeIn direction="up" delay={0.15}>
+            <ImageReveal className="mx-auto my-12 max-w-5xl overflow-hidden rounded-[32px] border border-slate-100 shadow-xl">
+              <img
+                src={post.image}
+                alt={post.title}
+                className="h-[450px] w-full object-cover sm:h-[550px] transition-transform duration-700 hover:scale-105"
+              />
+            </ImageReveal>
+          </FadeIn>
+
+          {/* =========================================================
+              SCREENSHOT 4: ARTICLE BODY & 2-COLUMN IMAGE GALLERY
+          ========================================================= */}
+          <FadeIn direction="up" delay={0.2} className="mx-auto max-w-4xl space-y-8 text-lg font-medium leading-relaxed text-slate-600">
+            <p>
+              {post.content[0] ||
+                'It’s no secret that access to quality education and housing is vital. Many buyers in underserved or growing communities lack proper developer guidance, qualified legal advisory, and transparent property options.'}
+            </p>
+
+            {/* 2-Column Side-by-Side Image Gallery */}
+            <div className="my-12 grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="overflow-hidden rounded-[28px] border border-slate-100 shadow-md">
+                <img
+                  src={
+                    post.galleryImages?.[0] || '/images/projects/project_1.jpg'
+                  }
+                  alt="Gallery 1"
+                  className="h-[320px] w-full object-cover transition-transform duration-500 hover:scale-105"
+                />
+              </div>
+
+              <div className="overflow-hidden rounded-[28px] border border-slate-100 shadow-md">
+                <img
+                  src={
+                    post.galleryImages?.[1] || '/images/projects/project_2.jpg'
+                  }
+                  alt="Gallery 2"
+                  className="h-[320px] w-full object-cover transition-transform duration-500 hover:scale-105"
+                />
+              </div>
+            </div>
+
+            <p>
+              {post.content[1] ||
+                'Education empowers families to dream beyond their circumstances and envision a world of possibilities. Investing in real estate is more than just acquiring property; it is about establishing a lasting legacy for your family.'}
+            </p>
+
+            <p>
+              {post.content[2] ||
+                'In a world brimming with opportunities, supporting sustainable residential developments lays the cornerstone of long-term wealth, security, and peace of mind.'}
+            </p>
+          </FadeIn>
+
+          <hr className="mx-auto my-16 max-w-4xl border-t border-slate-200/80" />
+
+          {/* =========================================================
+              SCREENSHOT 5: PREVIOUS POST LINK
+          ========================================================= */}
+          <FadeIn direction="up" className="mx-auto max-w-4xl">
+            <Link
+              href={`/blogs/${prevPost.slug}`}
+              className="group flex flex-col space-y-2 cursor-pointer"
+            >
+              <span className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-400">
+                <ArrowLeft className="h-3.5 w-3.5 text-[#f12131] transition-transform group-hover:-translate-x-1" />
+                PREVIOUS POST
+              </span>
+              <h4 className="text-2xl font-extrabold text-[#29247c] transition-colors duration-300 group-hover:text-[#f12131]">
+                {prevPost.title}
+              </h4>
+            </Link>
+          </FadeIn>
+
+          <hr className="mx-auto my-16 max-w-4xl border-t border-slate-200/80" />
+
+          {/* =========================================================
+              SCREENSHOT 5: LEAVE A REPLY / COMMENT FORM
+          ========================================================= */}
+          <FadeIn direction="up" className="mx-auto max-w-4xl space-y-8">
+            <div>
+              <h3 className="text-3xl font-extrabold text-[#29247c]">
+                Leave a Reply
+              </h3>
+              <p className="mt-2 text-sm font-semibold text-slate-500">
+                Your email address will not be published. Required fields are
+                marked *
+              </p>
+            </div>
+
+            <form onSubmit={handleCommentSubmit} className="space-y-6">
+              {/* Comment Textarea */}
+              <textarea
+                required
+                rows={6}
+                placeholder="Comment"
+                className="w-full resize-none rounded-[28px] border-0 bg-slate-100/80 p-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30 transition-all"
+              />
+
+              {/* 3-Column Inputs Row */}
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+                <input
+                  type="text"
+                  required
+                  placeholder="Your Name *"
+                  className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30 transition-all"
+                />
+                <input
+                  type="email"
+                  required
+                  placeholder="Email Address *"
+                  className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30 transition-all"
+                />
+                <input
+                  type="text"
+                  placeholder="Your Website"
+                  className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30 transition-all"
+                />
+              </div>
+
+              {/* Save info Checkbox */}
+              <div className="flex items-center gap-3 pt-2">
+                <input
+                  type="checkbox"
+                  id="save-info"
+                  className="h-4 w-4 rounded border-slate-300 text-[#f12131] focus:ring-[#f12131]"
+                />
+                <label
+                  htmlFor="save-info"
+                  className="text-xs font-semibold text-slate-500 cursor-pointer"
+                >
+                  Save my name, email, and website in this browser for the next
+                  time I comment.
+                </label>
+              </div>
+
+              {/* Submit Button */}
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="group flex h-14 items-center gap-5 rounded-full border border-slate-200 bg-white pl-8 pr-2 text-sm font-extrabold text-slate-900 shadow-md transition hover:shadow-lg active:scale-98"
+                >
+                  <span>Post Comment</span>
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f12131] text-white transition-transform duration-300 group-hover:translate-x-1">
+                    <ArrowRight className="h-5 w-5" />
+                  </span>
+                </button>
+              </div>
+            </form>
+          </FadeIn>
+
+        </div>
+      </section>
+    </>
+  );
+}

@@ -1,0 +1,237 @@
+@import "tailwindcss";
+
+/* =========================================================
+   FONTS
+========================================================= */
+
+@font-face {
+  font-family: "Switzer";
+  src:
+    url("/fonts/Switzer-Regular.woff2") format("woff2"),
+    url("/fonts/Switzer-Regular.woff") format("woff"),
+    url("/fonts/Switzer-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Switzer";
+  src:
+    url("/fonts/Switzer-Semibold.woff2") format("woff2"),
+    url("/fonts/Switzer-Semibold.woff") format("woff"),
+    url("/fonts/Switzer-Semibold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Involve";
+  src:
+    url("/fonts/Involve-SemiBold.woff2") format("woff2"),
+    url("/fonts/Involve-SemiBold.woff") format("woff"),
+    url("/fonts/Involve-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Involve";
+  src:
+    url("/fonts/URWGothicL-Demi.woff2") format("woff2"),
+    url("/fonts/URWGothicL-Demi.woff") format("woff"),
+    url("/fonts/URWGothicL-Demi.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+/* =========================================================
+   ROOT VARIABLES
+========================================================= */
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+
+  --font-switzer:
+    "Switzer",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+
+  --font-involve:
+    "Involve",
+    "Switzer",
+    sans-serif;
+}
+
+
+/* =========================================================
+   TAILWIND THEME
+========================================================= */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --font-sans: var(--font-switzer);
+  --font-heading: var(--font-involve);
+}
+
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-switzer);
+}
+
+
+/* =========================================================
+   HEADINGS
+========================================================= */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-involve);
+}
+
+
+/* =========================================================
+   AWARDS GRID
+========================================================= */
+
+.awards-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  position: relative;
+}
+
+.awards-item {
+  position: relative;
+}
+
+
+/* =========================================================
+   DESKTOP - 3 COLUMNS
+========================================================= */
+
+@media (min-width: 1024px) {
+  .awards-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .awards-item:nth-child(3n + 1)::after,
+  .awards-item:nth-child(3n + 2)::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 2.5rem;
+    bottom: 2.5rem;
+    width: 1px;
+    background-color: #e5e7eb;
+  }
+
+  .awards-item:nth-child(-n + 6)::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 2.5rem;
+    right: 2.5rem;
+    height: 1px;
+    background-color: #e5e7eb;
+  }
+}
+
+
+/* =========================================================
+   TABLET - 2 COLUMNS
+========================================================= */
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .awards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .awards-item:nth-child(odd)::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 2.5rem;
+    bottom: 2.5rem;
+    width: 1px;
+    background-color: #e5e7eb;
+  }
+
+  .awards-item:not(:nth-last-child(-n + 2))::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 2.5rem;
+    right: 2.5rem;
+    height: 1px;
+    background-color: #e5e7eb;
+  }
+}
+
+
+/* =========================================================
+   MOBILE - 1 COLUMN
+========================================================= */
+
+@media (max-width: 639px) {
+  .awards-item:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 2rem;
+    right: 2rem;
+    height: 1px;
+    background-color: #e5e7eb;
+  }
+}
+
+
+.awards-item:hover img {
+  transform: scale(1.05);
+}
+
+/* =========================================================
+   MARQUEE ANIMATION
+========================================================= */
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 25s linear infinite;
+}
