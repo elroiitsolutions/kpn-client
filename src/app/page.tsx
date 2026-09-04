@@ -13,7 +13,7 @@ import ScrollToTop from '@/components/ui/ScrollToTop';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white text-slate-800 antialiased selection:bg-rose-500 selection:text-white">
+    <main className="min-h-screen bg-white text-slate-800 antialiased selection:bg-red-500 selection:text-white">
       <HeroSection />
       <AboutSection />
       <ServicesSection />

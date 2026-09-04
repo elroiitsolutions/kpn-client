@@ -11,7 +11,7 @@ import ImageReveal from '../animation/ImageReveal';
 
 export default function AboutSection() {
   return (
-    <section className="relative z-20 -mt-10 rounded-t-[40px] mx-20 w-auto bg-white pb-20 pt-16 md:rounded-t-[60px] lg:pb-28 lg:pt-20">
+    <section className="relative z-20 -mt-6 rounded-t-[40px] mx-20 w-auto bg-white pb-20 pt-16 md:rounded-t-[60px] lg:pb-28 lg:pt-20">
       <div className="mx-auto max-w-[1600px] px-6 lg:px-12">
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-16">
           {/* Left Copy */}

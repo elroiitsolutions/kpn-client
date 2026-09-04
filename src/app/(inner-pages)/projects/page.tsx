@@ -5,11 +5,13 @@ import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import InnerPageHero from '@/components/sections/InnerPageHero';
 import { projectsData } from '@/data/siteData';
-import { MapPin, ChevronDown } from 'lucide-react';
+import { MapPin, ChevronDown, Heart, Scale } from 'lucide-react';
 import FadeIn from '@/components/animation/FadeIn';
+import { useWishlistCompare } from '@/context/WishlistCompareContext';
 
 export default function ProjectsPage() {
-  // Category tabs state: 'All' | 'Apartments' | 'Plots'
+  const { toggleWishlist, isInWishlist, toggleCompare, isInCompare } = useWishlistCompare();
+  // Category tabs state: 'All' | 'Apartments' | 'Plots'"
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
   // Pagination state
@@ -90,17 +92,18 @@ export default function ProjectsPage() {
 
       <section className="bg-white px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
         <div className="mx-auto max-w-[1500px]">
-          
+
           {/* =========================================================
               CATEGORY TOGGLE TABS (APARTMENTS & PLOTS)
           ========================================================= */}
           <FadeIn direction="up" className="mb-12 flex flex-wrap items-center justify-between gap-6 border-b border-slate-100 pb-8">
-            <div className="flex items-center gap-3">
-              {['All', 'Apartments', 'Plots'].map((cat) => (
+            <div className="flex flex-wrap items-center gap-3">
+              {['All', 'Apartments', 'Plots', 'Commercial', 'Industrial', 'Villas'].map((cat) => (
                 <button
                   key={cat}
                   onClick={() => {
                     setSelectedCategory(cat);
+                    setCurrentPage(1);
                     if (cat !== 'All') {
                       setFilters((prev) => ({ ...prev, type: cat }));
                       setAppliedFilters((prev) => ({ ...prev, type: cat }));
@@ -109,11 +112,10 @@ export default function ProjectsPage() {
                       setAppliedFilters((prev) => ({ ...prev, type: 'All' }));
                     }
                   }}
-                  className={`h-12 px-7 rounded-full text-sm font-extrabold transition-all duration-300 ${
-                    selectedCategory === cat
+                  className={`h-12 px-7 rounded-full text-sm font-extrabold transition-all duration-300 ${selectedCategory === cat
                       ? 'bg-[#f12131] text-white shadow-md scale-105'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900'
-                  }`}
+                    }`}
                 >
                   {cat === 'All' ? 'All Projects' : cat}
                 </button>
@@ -290,8 +292,8 @@ export default function ProjectsPage() {
                           lg:p-10
                         "
                       >
-                        {/* TOP BADGE */}
-                        <div>
+                        {/* TOP BADGE & ACTION BUTTONS */}
+                        <div className="flex items-center justify-between">
                           <span
                             className="
                               inline-flex
@@ -313,6 +315,43 @@ export default function ProjectsPage() {
                           >
                             {project.bhk}
                           </span>
+
+                          {/* Wishlist & Compare Buttons */}
+                          <div className="flex items-center gap-2 z-20">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                toggleWishlist(project.id);
+                              }}
+                              className={`flex h-10 w-10 items-center justify-center rounded-full shadow-md backdrop-blur-md transition-all duration-300 ${
+                                isInWishlist(project.id)
+                                  ? 'bg-[#f12131] text-white scale-110'
+                                  : 'bg-white/80 text-slate-800 hover:bg-white hover:text-[#f12131]'
+                              }`}
+                              title={isInWishlist(project.id) ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                            >
+                              <Heart className={`h-5 w-5 ${isInWishlist(project.id) ? 'fill-white' : ''}`} />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                toggleCompare(project.id);
+                              }}
+                              className={`flex h-10 w-10 items-center justify-center rounded-full shadow-md backdrop-blur-md transition-all duration-300 ${
+                                isInCompare(project.id)
+                                  ? 'bg-[#382b88] text-white scale-110'
+                                  : 'bg-white/80 text-slate-800 hover:bg-white hover:text-[#382b88]'
+                              }`}
+                              title={isInCompare(project.id) ? 'Remove from Compare' : 'Add to Compare'}
+                            >
+                              <Scale className="h-5 w-5" />
+                            </button>
+                          </div>
                         </div>
 
                         {/* BOTTOM CONTENT */}
@@ -395,11 +434,10 @@ export default function ProjectsPage() {
                         setCurrentPage(page);
                         window.scrollTo({ top: 400, behavior: 'smooth' });
                       }}
-                      className={`flex h-11 w-11 items-center justify-center rounded-full text-sm font-extrabold shadow-md transition-all ${
-                        currentPage === page
+                      className={`flex h-11 w-11 items-center justify-center rounded-full text-sm font-extrabold shadow-md transition-all ${currentPage === page
                           ? 'bg-[#f12131] text-white scale-105'
                           : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-                      }`}
+                        }`}
                     >
                       {page}
                     </button>
@@ -465,6 +503,9 @@ export default function ProjectsPage() {
                       <option value="All">Project Type</option>
                       <option value="Apartments">Apartments</option>
                       <option value="Plots">Plots</option>
+                      <option value="Commercial">Commercial</option>
+                      <option value="Industrial">Industrial</option>
+                      <option value="Villas">Villas</option>
                     </select>
                     <ChevronDown className="pointer-events-none absolute right-6 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                   </div>

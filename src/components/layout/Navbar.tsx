@@ -9,8 +9,11 @@ import {
   Menu,
   X,
   ChevronDown,
+  Heart,
+  Scale,
 } from 'lucide-react';
 import { navigationLinks } from '@/data/siteData';
+import { useWishlistCompare } from '@/context/WishlistCompareContext';
 
 interface NavbarProps {
   variant?: 'default' | 'hero';
@@ -19,6 +22,7 @@ interface NavbarProps {
 export default function Navbar({
   variant = 'default',
 }: NavbarProps) {
+  const { wishlistIds, compareIds } = useWishlistCompare();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileDropdown, setMobileDropdown] = useState<string | null>(null);
@@ -370,6 +374,35 @@ export default function Navbar({
             >
               +91 7338834233
             </a>
+          </div>
+
+          {/* Wishlist & Compare Buttons */}
+          <div className="flex items-center gap-3">
+            <Link
+              href="/wishlist"
+              className="relative flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-red-50 hover:text-[#f12131]"
+              title="Saved Wishlist"
+            >
+              <Heart className="h-5 w-5" />
+              {wishlistIds.length > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#f12131] text-[10px] font-bold text-white shadow-sm">
+                  {wishlistIds.length}
+                </span>
+              )}
+            </Link>
+
+            <Link
+              href="/compare"
+              className="relative flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-red-50 hover:text-[#f12131]"
+              title="Compare Projects"
+            >
+              <Scale className="h-5 w-5" />
+              {compareIds.length > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#382b88] text-[10px] font-bold text-white shadow-sm">
+                  {compareIds.length}
+                </span>
+              )}
+            </Link>
           </div>
 
           <Link

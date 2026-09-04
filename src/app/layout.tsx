@@ -1,21 +1,23 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import WhatsAppFloatingButton from "@/components/ui/WhatsAppFloatingButton";
+import type { Metadata } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
+import './globals.css';
+import WhatsAppFloatingButton from '@/components/ui/WhatsAppFloatingButton';
+import { WishlistCompareProvider } from '@/context/WishlistCompareContext';
+import FloatingActionBar from '@/components/ui/FloatingActionBar';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
-  title: "KPN Promoters - Real Estate Developers in Chennai",
-  description: "Landmark real estate projects that deliver lasting value to investors and communities.",
+  title: 'KPN Promoters - Real Estate Developers in Chennai',
+  description: 'Landmark real estate projects that deliver lasting value to investors and communities.',
 };
 
 export default function RootLayout({
@@ -30,10 +32,12 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        {children}
-        <WhatsAppFloatingButton />
+        <WishlistCompareProvider>
+          {children}
+          <WhatsAppFloatingButton />
+          <FloatingActionBar />
+        </WishlistCompareProvider>
       </body>
     </html>
   );
 }
-
