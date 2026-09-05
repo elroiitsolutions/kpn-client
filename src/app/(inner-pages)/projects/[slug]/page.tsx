@@ -7,6 +7,7 @@ import Navbar from '@/components/layout/Navbar';
 import InnerPageHero from '@/components/sections/InnerPageHero';
 import { projectsData } from '@/data/siteData';
 import { getProjectBySlug, getProjectUnits, submitEnquiry } from '@/lib/cmsClient';
+import RunningPillBadge from '@/components/ui/RunningPillBadge';
 import FadeIn from '@/components/animation/FadeIn';
 import {
   MapPin,
@@ -36,6 +37,8 @@ import {
   ZoomOut,
   Share2,
   Play,
+  HelpCircle,
+  ChevronUp,
 } from 'lucide-react';
 
 interface PageProps {
@@ -314,6 +317,32 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
       setIsSubmittingInquiry(false);
     }
   };
+
+  // FAQ Accordion State
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+
+  const projectFaqs = [
+    {
+      question: `What are the key specifications and floor plans available at ${project.name}?`,
+      answer: `${project.name} offers premium ${project.bhk} layouts ranging from 550 to 1200 Sq. Ft. built with high-grade RCC frame structures, vitrified tile flooring, modular electrical fittings, and Vastu-compliant architecture.`,
+    },
+    {
+      question: 'Are bank loan approvals available for purchasing this property?',
+      answer: 'Yes, our projects are approved by leading nationalized and private banks including SBI, HDFC, ICICI, Axis Bank, and LIC Housing Finance. We offer full assistance with hassle-free loan processing.',
+    },
+    {
+      question: 'What is the current construction status and expected possession date?',
+      answer: `This project status is currently ${project.status}. For detailed unit availability, stage-wise construction schedule, and exact possession timelines, please submit an inquiry form or contact our customer desk.`,
+    },
+    {
+      question: 'What safety standards and security features are provided?',
+      answer: 'The project features 24x7 security personnel, gated entry/exit checkpoints, CCTV surveillance, automated fire-fighting systems, power backup, and dedicated maintenance support.',
+    },
+    {
+      question: 'How can I schedule a physical site visit or request a brochure?',
+      answer: 'You can easily request a callback or schedule a site visit by filling out the "Request more information" form above, or by contacting our sales team directly.',
+    },
+  ];
 
   // Category page view (/projects/apartments or /projects/plots)
   if (isCategory) {
@@ -1043,78 +1072,57 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                 Request more information
               </h2>
 
-              {inquirySubmitted ? (
-                <div className="rounded-3xl border border-emerald-200 bg-emerald-50/80 p-8 text-center shadow-xs">
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white font-black text-xl">
-                    ✓
-                  </div>
-                  <h3 className="text-xl font-black text-emerald-900">
-                    Thank you for your enquiry!
-                  </h3>
-                  <p className="mt-2 text-xs font-semibold text-emerald-700">
-                    Our sales advisor has received your request for {project.name} and will get in touch with you shortly.
-                  </p>
-                </div>
-              ) : (
-                <form onSubmit={handleInquirySubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <input
-                      type="text"
-                      required
-                      value={inquiryName}
-                      onChange={(e) => setInquiryName(e.target.value)}
-                      placeholder="Your Full Name*"
-                      suppressHydrationWarning
-                      className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
-                    />
-                    <input
-                      type="tel"
-                      required
-                      value={inquiryPhone}
-                      onChange={(e) => setInquiryPhone(e.target.value)}
-                      placeholder="Phone Number (e.g. +91 98765 43210)*"
-                      suppressHydrationWarning
-                      className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
-                    />
-                  </div>
-
+              <form onSubmit={handleInquirySubmit} className="space-y-6">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <input
-                    type="email"
-                    value={inquiryEmail}
-                    onChange={(e) => setInquiryEmail(e.target.value)}
-                    placeholder="Email Address (Optional)"
+                    type="text"
+                    required
+                    placeholder="First Name*"
                     suppressHydrationWarning
                     className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
                   />
-
-                  <textarea
-                    rows={4}
-                    value={inquiryMessage}
-                    onChange={(e) => setInquiryMessage(e.target.value)}
-                    placeholder="Tell us what you are looking for (e.g. 2 BHK, villa plot, site visit timeline)..."
+                  <input
+                    type="text"
+                    required
+                    placeholder="Last Name*"
                     suppressHydrationWarning
-                    className="w-full resize-none rounded-[28px] border-0 bg-slate-100/80 p-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
+                    className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
                   />
+                </div>
 
-                  <div className="flex justify-center pt-2">
-                    <button
-                      type="submit"
-                      disabled={isSubmittingInquiry}
-                      suppressHydrationWarning
-                      className="group flex h-14 items-center gap-5 rounded-full border border-slate-200 bg-white pl-8 pr-2 text-sm font-extrabold text-slate-900 shadow-md transition hover:shadow-lg disabled:opacity-50"
-                    >
-                      <span>{isSubmittingInquiry ? 'Submitting...' : 'Submit Enquiry'}</span>
-                      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f12131] text-white transition-transform duration-300 group-hover:translate-x-1">
-                        <ArrowRight className="h-5 w-5" />
-                      </span>
-                    </button>
-                  </div>
-                </form>
-              )}
+                <input
+                  type="email"
+                  required
+                  placeholder="Email*"
+                  suppressHydrationWarning
+                  className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
+                />
+
+                <textarea
+                  required
+                  rows={5}
+                  placeholder="Message..."
+                  suppressHydrationWarning
+                  className="w-full resize-none rounded-[28px] border-0 bg-slate-100/80 p-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
+                />
+
+                <div className="flex justify-center pt-2">
+                  <button
+                    type="submit"
+                    suppressHydrationWarning
+                    className="group flex h-14 items-center gap-5 rounded-full border border-slate-200 bg-white pl-8 pr-2 text-sm font-extrabold text-slate-900 shadow-md transition hover:shadow-lg"
+                  >
+                    <span>Submit</span>
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f12131] text-white transition-transform duration-300 group-hover:translate-x-1">
+                      <ArrowRight className="h-5 w-5" />
+                    </span>
+                  </button>
+                </div>
+              </form>
             </div>
           </FadeIn>
 
-            {/* Bottom Project Navigation */}
+          {/* Bottom Project Navigation */}
             <div className="mt-24">
               <div className="flex items-center justify-between rounded-full border border-slate-200 bg-white p-2 sm:px-8 sm:py-4 shadow-sm">
                 <Link
@@ -1132,6 +1140,89 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                   <span>next project</span>
                   <ChevronRight className="h-4 w-4 text-[#f12131]" />
                 </Link>
+              </div>
+            </div>
+            {/* =========================================================
+              FAQ SECTION (Matching kpndemos.netlify.app/faqs design)
+            ========================================================= */}
+            <div className="mt-24 pt-12">
+              {/* Header: Centered Label Badge & Large Heading */}
+              <div className="mx-auto max-w-4xl text-center">
+                <FadeIn direction="up" distance={30}>
+                <RunningPillBadge text="FIND YOUR ANSWERS" />
+                  <h2 className="mt-6 text-4xl font-extrabold tracking-tight text-[#382b88] sm:text-5xl lg:text-[64px] lg:leading-[1.05]">
+                    Read most frequent
+                    <br />
+                    questions
+                  </h2>
+                </FadeIn>
+              </div>
+
+              {/* Accordion Items Stream with Left Purple Icon Badge & Right Chevron */}
+              <div className="mx-auto mt-16 max-w-4xl space-y-0">
+                {projectFaqs.map((faq, index) => {
+                  const isOpen = openFaqIndex === index;
+                  return (
+                    <FadeIn
+                      key={index}
+                      direction="up"
+                      distance={20}
+                      delay={index * 0.06}
+                    >
+                      <div className="border-b border-slate-200/80 py-6 transition-colors">
+                        <button
+                          type="button"
+                          suppressHydrationWarning
+                          onClick={() =>
+                            setOpenFaqIndex(isOpen ? null : index)
+                          }
+                          className="flex w-full items-start justify-between gap-6 text-left"
+                        >
+                          {/* Question Badge Icon + Question Text */}
+                          <div className="flex items-center gap-5 sm:gap-6">
+                            <div
+                              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white shadow-sm transition-colors duration-300 ${
+                                isOpen ? 'bg-[#f12131]' : 'bg-[#382b88]'
+                              }`}
+                            >
+                              <HelpCircle className="h-6 w-6" />
+                            </div>
+                            <span className="text-lg font-bold text-slate-900 sm:text-xl md:text-[22px]">
+                              {faq.question}
+                            </span>
+                          </div>
+
+                          {/* Right Chevron Indicator */}
+                          <span className="mt-2 text-slate-500 transition-transform duration-300">
+                            {isOpen ? (
+                              <ChevronUp className="h-5 w-5 text-[#382b88]" />
+                            ) : (
+                              <ChevronRight className="h-5 w-5 text-slate-400" />
+                            )}
+                          </span>
+                        </button>
+
+                        {/* Collapsible Answer */}
+                        <motion.div
+                          initial={false}
+                          animate={{
+                            height: isOpen ? 'auto' : 0,
+                            opacity: isOpen ? 1 : 0,
+                          }}
+                          transition={{
+                            duration: 0.35,
+                            ease: [0.22, 1, 0.36, 1],
+                          }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pl-16 sm:pl-17 pr-6 pt-4 text-base font-normal leading-relaxed text-slate-600 sm:text-lg">
+                            {faq.answer}
+                          </div>
+                        </motion.div>
+                      </div>
+                    </FadeIn>
+                  );
+                })}
               </div>
             </div>
 

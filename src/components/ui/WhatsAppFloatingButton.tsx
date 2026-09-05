@@ -12,7 +12,7 @@ export default function WhatsAppFloatingButton() {
   const whatsappUrl = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${defaultMessage}`;
 
   return (
-    <div className="fixed bottom-6 left-6 z-50 flex items-center">
+    <div className="fixed bottom-20 right-6 z-50 flex items-center">
       {/* WhatsApp Floating Action Button */}
       <a
         href={whatsappUrl}
@@ -59,7 +59,7 @@ export default function WhatsAppFloatingButton() {
         <div
           className={`
             absolute
-            left-16
+            right-16
             top-1/2
             -translate-y-1/2
             whitespace-nowrap

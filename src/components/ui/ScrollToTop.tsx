@@ -8,7 +8,7 @@ export default function ScrollToTop() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setVisible(window.scrollY > 200);
+      setVisible(window.scrollY > 100);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -39,19 +39,21 @@ export default function ScrollToTop() {
     });
   };
 
+  if (!visible) return null;
+
   return (
     <button
       onClick={scrollToTop}
       aria-label="Scroll to top"
-      className={`
+      className="
         group
         fixed
-        bottom-5
+        bottom-6
         right-6
-        z-40
+        z-50
         flex
-        h-12
-        w-12
+        h-12.5
+        w-12.5
         items-center
         justify-center
         rounded-full
@@ -59,18 +61,20 @@ export default function ScrollToTop() {
         text-white
         shadow-xl
         transition-all
-        duration-300
-        hover:scale-110
-        hover:bg-[#d01927]
+        hover:scale-105
         active:scale-95
-        ${
-          visible
-            ? 'opacity-100 translate-y-0 pointer-events-auto scale-100'
-            : 'opacity-0 translate-y-4 pointer-events-none scale-75'
-        }
-      `}
+      "
     >
-      <ChevronUp className="h-5 w-5 transition-transform duration-300 group-hover:-translate-y-0.5" />
+      <ChevronUp
+        className="
+          h-5
+          w-5
+          transition-all
+          duration-300
+          group-hover:scale-105
+          group-hover:text-black
+        "
+      />
     </button>
   );
 }
