@@ -15,6 +15,14 @@ import {
   X,
 } from 'lucide-react';
 import { api } from '@/lib/api';
+import ConfirmModal from '@/components/admin/ConfirmModal';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
 export default function AdminMediaPage() {
   const [mediaItems, setMediaItems] = useState<any[]>([]);
@@ -22,6 +30,8 @@ export default function AdminMediaPage() {
   const [typeFilter, setTypeFilter] = useState('All');
   const [isUploading, setIsUploading] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // New media modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -90,15 +100,19 @@ export default function AdminMediaPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this media asset?')) return;
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
     try {
-      const res = await api.delete(`/media/${id}`);
+      const res = await api.delete(`/media/${deleteTarget.id}`);
       if (res.success) {
-        setMediaItems((prev) => prev.filter((m) => m._id !== id));
+        setMediaItems((prev) => prev.filter((m) => m._id !== deleteTarget.id));
+        setDeleteTarget(null);
       }
     } catch (err: any) {
       alert(err.message || 'Failed to delete');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -224,8 +238,9 @@ export default function AdminMediaPage() {
                 </button>
 
                 <button
-                  onClick={() => handleDelete(item._id)}
+                  onClick={() => setDeleteTarget({ id: item._id, title: item.title || 'Media Asset' })}
                   className="text-slate-400 hover:text-red-600 transition-colors"
+                  title="Delete Media Asset"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -271,17 +286,21 @@ export default function AdminMediaPage() {
                   <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
                     Media Type
                   </label>
-                  <select
+                  <Select
                     value={newItem.mediaType}
-                    onChange={(e) => setNewItem({ ...newItem, mediaType: e.target.value })}
-                    className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold"
+                    onValueChange={(val) => setNewItem({ ...newItem, mediaType: val })}
                   >
-                    <option value="image">Image</option>
-                    <option value="video">Video</option>
-                    <option value="news">News</option>
-                    <option value="press">Press Release</option>
-                    <option value="event">Event</option>
-                  </select>
+                    <SelectTrigger className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-800 shadow-none cursor-pointer">
+                      <SelectValue placeholder="Media Type" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl">
+                      <SelectItem value="image" className="text-xs font-bold py-2">Image</SelectItem>
+                      <SelectItem value="video" className="text-xs font-bold py-2">Video</SelectItem>
+                      <SelectItem value="news" className="text-xs font-bold py-2">News</SelectItem>
+                      <SelectItem value="press" className="text-xs font-bold py-2">Press Release</SelectItem>
+                      <SelectItem value="event" className="text-xs font-bold py-2">Event</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
@@ -355,6 +374,18 @@ export default function AdminMediaPage() {
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        title="Delete Media Asset?"
+        itemName={deleteTarget?.title}
+        message="Are you sure you want to delete this media asset? This action cannot be undone."
+        confirmText="Delete Media"
+        isLoading={isDeleting}
+        onConfirm={confirmDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

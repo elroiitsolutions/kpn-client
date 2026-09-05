@@ -18,6 +18,14 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { api } from '@/lib/api';
+import ConfirmModal from '@/components/admin/ConfirmModal';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
 export default function AdminProjectsPage() {
   const [projects, setProjects] = useState<any[]>([]);
@@ -25,7 +33,8 @@ export default function AdminProjectsPage() {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchProjects = async () => {
     setIsLoading(true);
@@ -60,20 +69,19 @@ export default function AdminProjectsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to permanently delete this project and all its units?')) {
-      return;
-    }
-    setDeletingId(id);
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
     try {
-      const res = await api.delete(`/projects/${id}`);
+      const res = await api.delete(`/projects/${deleteTarget.id}`);
       if (res.success) {
-        setProjects((prev) => prev.filter((p) => p._id !== id));
+        setProjects((prev) => prev.filter((p) => p._id !== deleteTarget.id));
+        setDeleteTarget(null);
       }
     } catch (err: any) {
       alert(err.message || 'Failed to delete project');
     } finally {
-      setDeletingId(null);
+      setIsDeleting(false);
     }
   };
 
@@ -131,29 +139,31 @@ export default function AdminProjectsPage() {
 
         {/* Dropdowns */}
         <div className="flex flex-wrap items-center gap-3">
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="h-10 rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 outline-none"
-          >
-            <option value="All">All Property Types</option>
-            <option value="Apartments">Apartments</option>
-            <option value="Plots">Plots</option>
-            <option value="Villas">Villas</option>
-            <option value="Commercial">Commercial</option>
-          </select>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="h-10 min-w-[160px] rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 outline-none shadow-none cursor-pointer">
+              <SelectValue placeholder="All Property Types" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl">
+              <SelectItem value="All" className="text-xs font-bold">All Property Types</SelectItem>
+              <SelectItem value="Apartments" className="text-xs font-bold">Apartments</SelectItem>
+              <SelectItem value="Plots" className="text-xs font-bold">Plots</SelectItem>
+              <SelectItem value="Villas" className="text-xs font-bold">Villas</SelectItem>
+              <SelectItem value="Commercial" className="text-xs font-bold">Commercial</SelectItem>
+            </SelectContent>
+          </Select>
 
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-10 rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 outline-none"
-          >
-            <option value="All">All Statuses</option>
-            <option value="Ongoing">Ongoing</option>
-            <option value="Upcoming">Upcoming</option>
-            <option value="Completed">Completed</option>
-            <option value="Sold Out">Sold Out</option>
-          </select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="h-10 min-w-[140px] rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 outline-none shadow-none cursor-pointer">
+              <SelectValue placeholder="All Statuses" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl">
+              <SelectItem value="All" className="text-xs font-bold">All Statuses</SelectItem>
+              <SelectItem value="Ongoing" className="text-xs font-bold">Ongoing</SelectItem>
+              <SelectItem value="Upcoming" className="text-xs font-bold">Upcoming</SelectItem>
+              <SelectItem value="Completed" className="text-xs font-bold">Completed</SelectItem>
+              <SelectItem value="Sold Out" className="text-xs font-bold">Sold Out</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -299,10 +309,9 @@ export default function AdminProjectsPage() {
 
                         {/* Delete */}
                         <button
-                          onClick={() => handleDelete(project._id)}
-                          disabled={deletingId === project._id}
+                          onClick={() => setDeleteTarget({ id: project._id, title: project.title })}
                           title="Delete Project"
-                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -315,6 +324,18 @@ export default function AdminProjectsPage() {
           </div>
         )}
       </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        title="Delete Project?"
+        itemName={deleteTarget?.title}
+        message="Are you sure you want to permanently delete this project and all its unit configurations? This action cannot be undone."
+        confirmText="Delete Project"
+        isLoading={isDeleting}
+        onConfirm={confirmDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

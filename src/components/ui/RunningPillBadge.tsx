@@ -47,24 +47,19 @@ export default function RunningPillBadge({
         rounded-full
         border
         border-[#f12131]/80
-        h-[36px]
-        w-[220px]
+        h-[34px]
+        w-[180px]
         px-3
         shadow-xs
-        text-[11px]
-        font-extrabold
+        text-xs
+        font-semibold
         uppercase
         tracking-wider
         select-none
         relative
         ${isDark ? 'bg-black text-white' : 'bg-white text-slate-800'}
         ${className}
-      `}
-      style={{
-        maskImage: 'linear-gradient(to right, transparent, black 12%, black 88%, transparent)',
-        WebkitMaskImage: 'linear-gradient(to right, transparent, black 12%, black 88%, transparent)',
-      }}
-    >
+      `}>
       <motion.div
         className="flex w-max items-center"
         animate={{

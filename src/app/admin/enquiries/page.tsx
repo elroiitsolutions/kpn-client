@@ -18,6 +18,14 @@ import {
   X,
 } from 'lucide-react';
 import { api } from '@/lib/api';
+import ConfirmModal from '@/components/admin/ConfirmModal';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
 export default function AdminEnquiriesPage() {
   const [enquiries, setEnquiries] = useState<any[]>([]);
@@ -27,6 +35,8 @@ export default function AdminEnquiriesPage() {
   const [selectedEnquiry, setSelectedEnquiry] = useState<any | null>(null);
   const [noteText, setNoteText] = useState('');
   const [isAddingNote, setIsAddingNote] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchEnquiries = async () => {
     setIsLoading(true);
@@ -85,16 +95,20 @@ export default function AdminEnquiriesPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this enquiry record?')) return;
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
     try {
-      const res = await api.delete(`/enquiries/${id}`);
+      const res = await api.delete(`/enquiries/${deleteTarget.id}`);
       if (res.success) {
-        setEnquiries((prev) => prev.filter((e) => e._id !== id));
-        if (selectedEnquiry?._id === id) setSelectedEnquiry(null);
+        setEnquiries((prev) => prev.filter((e) => e._id !== deleteTarget.id));
+        if (selectedEnquiry?._id === deleteTarget.id) setSelectedEnquiry(null);
+        setDeleteTarget(null);
       }
     } catch (err: any) {
       alert(err.message || 'Failed to delete');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -192,20 +206,21 @@ export default function AdminEnquiriesPage() {
           />
         </div>
 
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="h-10 rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 outline-none"
-        >
-          <option value="All">All Lead Statuses</option>
-          <option value="New">New</option>
-          <option value="Contacted">Contacted</option>
-          <option value="Site Visit">Site Visit</option>
-          <option value="Interested">Interested</option>
-          <option value="Negotiation">Negotiation</option>
-          <option value="Booked">Booked</option>
-          <option value="Closed">Closed</option>
-        </select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="h-10 min-w-[170px] rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 outline-none shadow-none cursor-pointer">
+            <SelectValue placeholder="All Lead Statuses" />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl">
+            <SelectItem value="All" className="text-xs font-bold">All Lead Statuses</SelectItem>
+            <SelectItem value="New" className="text-xs font-bold">New</SelectItem>
+            <SelectItem value="Contacted" className="text-xs font-bold">Contacted</SelectItem>
+            <SelectItem value="Site Visit" className="text-xs font-bold">Site Visit</SelectItem>
+            <SelectItem value="Interested" className="text-xs font-bold">Interested</SelectItem>
+            <SelectItem value="Negotiation" className="text-xs font-bold">Negotiation</SelectItem>
+            <SelectItem value="Booked" className="text-xs font-bold">Booked</SelectItem>
+            <SelectItem value="Closed" className="text-xs font-bold">Closed</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* 2-Column Layout: Table on left, Details on right if selected */}
@@ -271,26 +286,30 @@ export default function AdminEnquiriesPage() {
                           </td>
 
                           <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
-                            <select
+                            <Select
                               value={enquiry.status}
-                              onChange={(e) => handleStatusChange(enquiry._id, e.target.value)}
-                              className={`h-7 rounded-full border px-2.5 text-[10px] font-extrabold outline-none ${getStatusBadge(
-                                enquiry.status
-                              )}`}
+                              onValueChange={(val) => handleStatusChange(enquiry._id, val)}
                             >
-                              <option value="New">New</option>
-                              <option value="Contacted">Contacted</option>
-                              <option value="Site Visit">Site Visit</option>
-                              <option value="Interested">Interested</option>
-                              <option value="Negotiation">Negotiation</option>
-                              <option value="Booked">Booked</option>
-                              <option value="Closed">Closed</option>
-                            </select>
+                              <SelectTrigger className={`h-7 rounded-full border px-2.5 text-[10px] font-extrabold outline-none shadow-none cursor-pointer ${getStatusBadge(
+                                enquiry.status
+                              )}`}>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-xl border border-slate-100 bg-white p-1 shadow-xl">
+                                <SelectItem value="New" className="text-xs font-bold">New</SelectItem>
+                                <SelectItem value="Contacted" className="text-xs font-bold">Contacted</SelectItem>
+                                <SelectItem value="Site Visit" className="text-xs font-bold">Site Visit</SelectItem>
+                                <SelectItem value="Interested" className="text-xs font-bold">Interested</SelectItem>
+                                <SelectItem value="Negotiation" className="text-xs font-bold">Negotiation</SelectItem>
+                                <SelectItem value="Booked" className="text-xs font-bold">Booked</SelectItem>
+                                <SelectItem value="Closed" className="text-xs font-bold">Closed</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </td>
 
                           <td className="px-5 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                             <button
-                              onClick={() => handleDelete(enquiry._id)}
+                              onClick={() => setDeleteTarget({ id: enquiry._id, title: `${enquiry.name} (${enquiry.projectName || 'General Inquiry'})` })}
                               title="Delete enquiry"
                               className="h-8 w-8 rounded-lg text-slate-400 hover:text-red-600 transition-colors inline-flex items-center justify-center"
                             >
@@ -386,6 +405,18 @@ export default function AdminEnquiriesPage() {
           </div>
         )}
       </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        title="Delete Customer Enquiry?"
+        itemName={deleteTarget?.title}
+        message="Are you sure you want to delete this enquiry lead record? This action cannot be undone."
+        confirmText="Delete Enquiry"
+        isLoading={isDeleting}
+        onConfirm={confirmDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

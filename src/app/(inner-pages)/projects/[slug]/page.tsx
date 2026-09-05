@@ -68,7 +68,14 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
       try {
         const live = await getProjectBySlug(slug);
         if (isMounted && live) {
-          setProject((prev: any) => ({ ...prev, ...live }));
+          setProject((prev: any) => ({
+            ...prev,
+            ...live,
+            brochureUrl:
+              live.brochureUrl !== undefined
+                ? live.brochureUrl
+                : (prev?.brochureUrl || ''),
+          }));
         }
       } catch (err) {
         console.warn('Could not load dynamic project from CMS');
@@ -625,6 +632,22 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                     <span><strong className="text-slate-800">Pricing:</strong> {project.budget}.</span>
                   </li>
                 </ul>
+
+                {Boolean(project.brochureUrl && project.brochureUrl.trim() !== '') && (
+                  <div className="pt-2">
+                    <a
+                      href={encodeURI(project.brochureUrl)}
+                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#f12131] py-3.5 px-5 text-sm font-bold text-white shadow-md transition duration-300 hover:bg-red-600 hover:shadow-lg active:scale-[0.99]"
+                    >
+                      <FileText className="h-4 w-4" />
+                      <span>Download Official Brochure</span>
+                      <Download className="h-4 w-4 transition-transform group-hover:translate-y-0.5" />
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -714,7 +737,7 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                           {item}
                         </li>
                       ))}
-                    </ul>
+                    </ul>                    
                   </div>
                 )}
               </div>
@@ -731,9 +754,9 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                 Features & amenities
               </h2>
 
-              {project.brochureUrl && (
+              {Boolean(project.brochureUrl && project.brochureUrl.trim() !== '') && (
                 <a
-                  href={project.brochureUrl}
+                  href={encodeURI(project.brochureUrl)}
                   download
                   target="_blank"
                   rel="noopener noreferrer"

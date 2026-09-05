@@ -15,6 +15,14 @@ import {
   Eye,
 } from 'lucide-react';
 import { api } from '@/lib/api';
+import ConfirmModal from '@/components/admin/ConfirmModal';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
 export default function AdminBlogsPage() {
   const [blogs, setBlogs] = useState<any[]>([]);
@@ -22,6 +30,8 @@ export default function AdminBlogsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All Posts');
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchBlogs = async () => {
     setIsLoading(true);
@@ -44,15 +54,19 @@ export default function AdminBlogsPage() {
     fetchBlogs();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this blog post?')) return;
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
     try {
-      const res = await api.delete(`/blogs/${id}`);
+      const res = await api.delete(`/blogs/${deleteTarget.id}`);
       if (res.success) {
-        setBlogs((prev) => prev.filter((b) => b._id !== id));
+        setBlogs((prev) => prev.filter((b) => b._id !== deleteTarget.id));
+        setDeleteTarget(null);
       }
     } catch (err: any) {
       alert(err.message || 'Failed to delete');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -104,16 +118,17 @@ export default function AdminBlogsPage() {
           />
         </div>
 
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="h-10 rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 outline-none"
-        >
-          <option value="All Posts">All Categories</option>
-          {categories.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="h-10 min-w-[170px] rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 outline-none shadow-none cursor-pointer">
+            <SelectValue placeholder="All Categories" />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl">
+            <SelectItem value="All Posts" className="text-xs font-bold">All Categories</SelectItem>
+            {categories.map((c) => (
+              <SelectItem key={c} value={c} className="text-xs font-bold">{c}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
@@ -204,8 +219,9 @@ export default function AdminBlogsPage() {
                         </Link>
 
                         <button
-                          onClick={() => handleDelete(post._id)}
+                          onClick={() => setDeleteTarget({ id: post._id, title: post.title })}
                           className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                          title="Delete Blog Post"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -218,6 +234,18 @@ export default function AdminBlogsPage() {
           </div>
         )}
       </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        title="Delete Blog Post?"
+        itemName={deleteTarget?.title}
+        message="Are you sure you want to delete this blog post? This will permanently delete the post and its published content."
+        confirmText="Delete Post"
+        isLoading={isDeleting}
+        onConfirm={confirmDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

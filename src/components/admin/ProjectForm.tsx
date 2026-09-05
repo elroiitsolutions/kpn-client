@@ -12,13 +12,24 @@ import {
   FileText,
   Image as ImageIcon,
   CheckCircle,
+  CheckCircle2,
   HelpCircle,
   MapPin,
   Compass,
   Layers,
+  Loader2,
+  ExternalLink,
+  X,
 } from 'lucide-react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
 interface ProjectFormProps {
   initialData?: any;
@@ -30,6 +41,7 @@ export default function ProjectForm({ initialData, isEdit = false }: ProjectForm
   const [activeTab, setActiveTab] = useState<'basic' | 'units' | 'media' | 'plans' | 'amenities' | 'specs' | 'nearby' | 'faqs'>('basic');
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isUploadingBrochure, setIsUploadingBrochure] = useState(false);
 
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
@@ -95,6 +107,10 @@ export default function ProjectForm({ initialData, isEdit = false }: ProjectForm
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (fieldName === 'brochure') {
+      setIsUploadingBrochure(true);
+    }
+
     try {
       const res = await api.upload(file, 'projects');
       if (res.url) {
@@ -108,6 +124,11 @@ export default function ProjectForm({ initialData, isEdit = false }: ProjectForm
       }
     } catch (err: any) {
       alert(err.message || 'File upload failed');
+    } finally {
+      if (fieldName === 'brochure') {
+        setIsUploadingBrochure(false);
+      }
+      e.target.value = '';
     }
   };
 
@@ -240,33 +261,41 @@ export default function ProjectForm({ initialData, isEdit = false }: ProjectForm
               <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">
                 Property Type*
               </label>
-              <select
+              <Select
                 value={formData.propertyType}
-                onChange={(e) => setFormData({ ...formData, propertyType: e.target.value as any })}
-                className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-4 text-sm font-semibold text-slate-800 outline-none focus:bg-white focus:ring-2 focus:ring-[#f12131]/20"
+                onValueChange={(val) => setFormData({ ...formData, propertyType: val as any })}
               >
-                <option value="Apartments">Apartments</option>
-                <option value="Plots">Plots</option>
-                <option value="Villas">Villas</option>
-                <option value="Commercial">Commercial</option>
-                <option value="Industrial">Industrial</option>
-              </select>
+                <SelectTrigger className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-4 text-sm font-semibold text-slate-800 outline-none focus:bg-white focus:ring-2 focus:ring-[#f12131]/20 shadow-none cursor-pointer">
+                  <SelectValue placeholder="Select Property Type" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border border-slate-100 bg-white p-2 shadow-2xl">
+                  <SelectItem value="Apartments" className="rounded-xl font-bold py-2.5 text-slate-700">Apartments</SelectItem>
+                  <SelectItem value="Plots" className="rounded-xl font-bold py-2.5 text-slate-700">Plots</SelectItem>
+                  <SelectItem value="Villas" className="rounded-xl font-bold py-2.5 text-slate-700">Villas</SelectItem>
+                  <SelectItem value="Commercial" className="rounded-xl font-bold py-2.5 text-slate-700">Commercial</SelectItem>
+                  <SelectItem value="Industrial" className="rounded-xl font-bold py-2.5 text-slate-700">Industrial</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
               <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">
                 Project Status*
               </label>
-              <select
+              <Select
                 value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-4 text-sm font-semibold text-slate-800 outline-none focus:bg-white focus:ring-2 focus:ring-[#f12131]/20"
+                onValueChange={(val) => setFormData({ ...formData, status: val as any })}
               >
-                <option value="Ongoing">Ongoing</option>
-                <option value="Upcoming">Upcoming</option>
-                <option value="Completed">Completed</option>
-                <option value="Sold Out">Sold Out</option>
-              </select>
+                <SelectTrigger className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-4 text-sm font-semibold text-slate-800 outline-none focus:bg-white focus:ring-2 focus:ring-[#f12131]/20 shadow-none cursor-pointer">
+                  <SelectValue placeholder="Select Project Status" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border border-slate-100 bg-white p-2 shadow-2xl">
+                  <SelectItem value="Ongoing" className="rounded-xl font-bold py-2.5 text-slate-700">Ongoing</SelectItem>
+                  <SelectItem value="Upcoming" className="rounded-xl font-bold py-2.5 text-slate-700">Upcoming</SelectItem>
+                  <SelectItem value="Completed" className="rounded-xl font-bold py-2.5 text-slate-700">Completed</SelectItem>
+                  <SelectItem value="Sold Out" className="rounded-xl font-bold py-2.5 text-slate-700">Sold Out</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
@@ -498,29 +527,107 @@ export default function ProjectForm({ initialData, isEdit = false }: ProjectForm
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">
-              Brochure PDF URL / Upload
-            </label>
-            <div className="flex flex-col sm:flex-row gap-4 items-center">
-              <input
-                type="text"
-                value={formData.brochureUrl}
-                onChange={(e) => setFormData({ ...formData, brochureUrl: e.target.value })}
-                placeholder="URL to PDF brochure"
-                className="h-12 flex-1 w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-4 text-sm font-semibold text-slate-800 outline-none focus:bg-white focus:ring-2 focus:ring-[#f12131]/20"
-              />
-              <label className="flex h-12 shrink-0 cursor-pointer items-center gap-2 rounded-2xl bg-slate-800 px-5 text-xs font-bold text-white hover:bg-slate-700 transition-colors">
-                <Upload className="h-4 w-4" />
-                <span>Upload PDF</span>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700">
+                  Project Brochure (PDF)
+                </label>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Upload a PDF brochure or enter a link. Enables the &quot;Download Brochure&quot; button on the project page.
+                </p>
+              </div>
+
+              {formData.brochureUrl ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200 self-start sm:self-auto">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Brochure Attached
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 border border-amber-200 self-start sm:self-auto">
+                  No brochure attached
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+              <div className="relative flex-1">
+                <FileText className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  value={formData.brochureUrl}
+                  onChange={(e) => setFormData({ ...formData, brochureUrl: e.target.value })}
+                  placeholder="e.g. /brouchure/DGM Monika Brouchure (4).pdf or upload below"
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-10 pr-4 text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-[#f12131]/20 transition-all"
+                />
+              </div>
+
+              <label
+                className={`flex h-12 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-2xl px-5 text-xs font-bold text-white transition-all shadow-sm ${
+                  isUploadingBrochure
+                    ? 'bg-slate-400 cursor-not-allowed'
+                    : 'bg-[#f12131] hover:bg-red-600 active:scale-95'
+                }`}
+              >
+                {isUploadingBrochure ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Uploading...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4" />
+                    <span>Upload PDF</span>
+                  </>
+                )}
                 <input
                   type="file"
                   accept="application/pdf"
+                  disabled={isUploadingBrochure}
                   onChange={(e) => handleFileUpload(e, 'brochure')}
                   className="hidden"
                 />
               </label>
             </div>
+
+            {formData.brochureUrl && (
+              <div className="flex items-center justify-between rounded-xl bg-white border border-slate-200 p-3 text-xs">
+                <div className="flex items-center gap-2.5 overflow-hidden pr-2">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600">
+                    <FileText className="h-4 w-4" />
+                  </div>
+                  <div className="truncate">
+                    <span className="font-semibold text-slate-800 truncate block">
+                      {formData.brochureUrl.split('/').pop() || 'Brochure PDF'}
+                    </span>
+                    <span className="text-[10px] text-slate-400 truncate block">
+                      {formData.brochureUrl}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <a
+                    href={encodeURI(formData.brochureUrl)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200 transition-colors"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    <span>Preview</span>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, brochureUrl: '' })}
+                    className="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-100 transition-colors"
+                    title="Remove brochure"
+                  >
+                    <X className="h-3 w-3" />
+                    <span>Remove</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

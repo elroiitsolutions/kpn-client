@@ -27,6 +27,7 @@ const DEFAULT_FOOTER = {
     { label: 'Core Values', href: '/core-values' },
   ],
   importantLinks: [
+    { label: 'Celebrations', href: '/celebrations' },
     { label: 'Our Projects', href: '/projects' },
     { label: 'News & Updates', href: '/blogs' },
     { label: 'Terms & Conditions', href: '/terms' },

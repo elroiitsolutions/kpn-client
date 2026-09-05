@@ -3,6 +3,13 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Users, Search, Gift, Clock, CheckCircle } from 'lucide-react';
 import { api } from '@/lib/api';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function AdminReferralsPage() {
   const [referrals, setReferrals] = useState<any[]>([]);
@@ -95,19 +102,20 @@ export default function AdminReferralsPage() {
           />
         </div>
 
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="h-10 rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700"
-        >
-          <option value="All">All Workflow Stages</option>
-          <option value="Referral Submitted">Referral Submitted</option>
-          <option value="Contacted">Contacted</option>
-          <option value="Site Visit">Site Visit</option>
-          <option value="Interested">Interested</option>
-          <option value="Booked">Booked</option>
-          <option value="Completed / Closed">Completed / Closed</option>
-        </select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="h-10 min-w-[200px] rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 shadow-none cursor-pointer">
+            <SelectValue placeholder="All Workflow Stages" />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl">
+            <SelectItem value="All" className="text-xs font-bold">All Workflow Stages</SelectItem>
+            <SelectItem value="Referral Submitted" className="text-xs font-bold">Referral Submitted</SelectItem>
+            <SelectItem value="Contacted" className="text-xs font-bold">Contacted</SelectItem>
+            <SelectItem value="Site Visit" className="text-xs font-bold">Site Visit</SelectItem>
+            <SelectItem value="Interested" className="text-xs font-bold">Interested</SelectItem>
+            <SelectItem value="Booked" className="text-xs font-bold">Booked</SelectItem>
+            <SelectItem value="Completed / Closed" className="text-xs font-bold">Completed / Closed</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
@@ -157,33 +165,41 @@ export default function AdminReferralsPage() {
                     </td>
 
                     <td className="px-4 py-4">
-                      <select
+                      <Select
                         value={item.status}
-                        onChange={(e) => handleUpdateStatus(item._id, e.target.value)}
-                        className={`h-7 rounded-full border px-2.5 text-[10px] font-extrabold outline-none ${getStatusBadge(
-                          item.status
-                        )}`}
+                        onValueChange={(val) => handleUpdateStatus(item._id, val)}
                       >
-                        <option value="Referral Submitted">Referral Submitted</option>
-                        <option value="Contacted">Contacted</option>
-                        <option value="Site Visit">Site Visit</option>
-                        <option value="Interested">Interested</option>
-                        <option value="Booked">Booked</option>
-                        <option value="Completed / Closed">Completed / Closed</option>
-                      </select>
+                        <SelectTrigger className={`h-7 rounded-full border px-2.5 text-[10px] font-extrabold outline-none shadow-none cursor-pointer ${getStatusBadge(
+                          item.status
+                        )}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border border-slate-100 bg-white p-1 shadow-xl">
+                          <SelectItem value="Referral Submitted" className="text-xs font-bold">Referral Submitted</SelectItem>
+                          <SelectItem value="Contacted" className="text-xs font-bold">Contacted</SelectItem>
+                          <SelectItem value="Site Visit" className="text-xs font-bold">Site Visit</SelectItem>
+                          <SelectItem value="Interested" className="text-xs font-bold">Interested</SelectItem>
+                          <SelectItem value="Booked" className="text-xs font-bold">Booked</SelectItem>
+                          <SelectItem value="Completed / Closed" className="text-xs font-bold">Completed / Closed</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </td>
 
                     <td className="px-4 py-4">
-                      <select
+                      <Select
                         value={item.rewardStatus || 'Pending'}
-                        onChange={(e) => handleUpdateStatus(item._id, item.status, e.target.value)}
-                        className="h-7 rounded-full border border-slate-200 bg-white px-2.5 text-[10px] font-bold text-slate-700"
+                        onValueChange={(val) => handleUpdateStatus(item._id, item.status, val)}
                       >
-                        <option value="Pending">Pending</option>
-                        <option value="Approved">Approved</option>
-                        <option value="Disbursed">Disbursed</option>
-                        <option value="Ineligible">Ineligible</option>
-                      </select>
+                        <SelectTrigger className="h-7 rounded-full border border-slate-200 bg-white px-2.5 text-[10px] font-bold text-slate-700 shadow-none cursor-pointer">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border border-slate-100 bg-white p-1 shadow-xl">
+                          <SelectItem value="Pending" className="text-xs font-bold">Pending</SelectItem>
+                          <SelectItem value="Approved" className="text-xs font-bold">Approved</SelectItem>
+                          <SelectItem value="Disbursed" className="text-xs font-bold">Disbursed</SelectItem>
+                          <SelectItem value="Ineligible" className="text-xs font-bold">Ineligible</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </td>
                   </tr>
                 ))}

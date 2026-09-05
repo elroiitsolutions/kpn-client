@@ -9,15 +9,27 @@ import {
   Star,
   X,
   ExternalLink,
+  Upload,
 } from 'lucide-react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
+import ConfirmModal from '@/components/admin/ConfirmModal';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
 export default function AdminTestimonialsPage() {
   const [testimonials, setTestimonials] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -28,6 +40,22 @@ export default function AdminTestimonialsPage() {
     rating: 5,
     status: 'Published',
   });
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      const res = await api.upload(file, 'testimonials');
+      if (res.url) {
+        setFormData((prev) => ({ ...prev, avatar: res.url }));
+      }
+    } catch (err: any) {
+      alert(err.message || 'Image upload failed');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const loadData = async () => {
     setIsLoading(true);
@@ -89,15 +117,19 @@ export default function AdminTestimonialsPage() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this testimonial?')) return;
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
     try {
-      const res = await api.delete(`/testimonials/${id}`);
+      const res = await api.delete(`/testimonials/${deleteTarget.id}`);
       if (res.success) {
-        setTestimonials((prev) => prev.filter((t) => t._id !== id));
+        setTestimonials((prev) => prev.filter((t) => t._id !== deleteTarget.id));
+        setDeleteTarget(null);
       }
     } catch (err: any) {
       alert(err.message || 'Failed to delete');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -142,10 +174,21 @@ export default function AdminTestimonialsPage() {
               className="group overflow-hidden rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-xs transition-all hover:border-slate-300 hover:shadow-md flex flex-col justify-between"
             >
               <div>
-                <div className="flex items-center gap-1 text-amber-400 mb-3">
-                  {[...Array(t.rating || 5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-current" />
-                  ))}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-1 text-amber-400">
+                    {[...Array(t.rating || 5)].map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-current" />
+                    ))}
+                  </div>
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${
+                      t.status === 'Draft'
+                        ? 'bg-amber-50 text-amber-700 border border-amber-200/60'
+                        : 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
+                    }`}
+                  >
+                    {t.status || 'Published'}
+                  </span>
                 </div>
 
                 <h3 className="text-sm font-black text-[#29247c]">
@@ -177,8 +220,9 @@ export default function AdminTestimonialsPage() {
                     <Edit className="h-3.5 w-3.5" />
                   </button>
                   <button
-                    onClick={() => handleDelete(t._id)}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 text-red-600 hover:bg-red-50"
+                    onClick={() => setDeleteTarget({ id: t._id, title: t.title || t.author })}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                    title="Delete Testimonial"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -268,50 +312,129 @@ export default function AdminTestimonialsPage() {
                   <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
                     Rating (Stars)
                   </label>
-                  <select
-                    value={formData.rating}
-                    onChange={(e) => setFormData({ ...formData, rating: parseInt(e.target.value, 10) || 5 })}
-                    className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold"
+                  <Select
+                    value={String(formData.rating)}
+                    onValueChange={(val) => setFormData({ ...formData, rating: parseInt(val, 10) || 5 })}
                   >
-                    <option value="5">5 Stars ⭐⭐⭐⭐⭐</option>
-                    <option value="4">4 Stars ⭐⭐⭐⭐</option>
-                    <option value="3">3 Stars ⭐⭐⭐</option>
-                  </select>
+                    <SelectTrigger className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-800 outline-none shadow-none cursor-pointer">
+                      <SelectValue placeholder="Rating" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl">
+                      <SelectItem value="5" className="text-xs font-bold py-2">5 Stars ⭐⭐⭐⭐⭐</SelectItem>
+                      <SelectItem value="4" className="text-xs font-bold py-2">4 Stars ⭐⭐⭐⭐</SelectItem>
+                      <SelectItem value="3" className="text-xs font-bold py-2">3 Stars ⭐⭐⭐</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
-                    Profile Avatar URL
+                    Display Status
                   </label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(val) => setFormData({ ...formData, status: val })}
+                  >
+                    <SelectTrigger className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-800 outline-none shadow-none cursor-pointer">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl">
+                      <SelectItem value="Published" className="text-xs font-bold py-2">Published (Live on Website)</SelectItem>
+                      <SelectItem value="Draft" className="text-xs font-bold py-2">Draft (Hidden)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
+                  Customer Avatar / Photo
+                </label>
+                <div className="flex items-center gap-3">
+                  {formData.avatar ? (
+                    <img
+                      src={formData.avatar}
+                      alt="Avatar preview"
+                      className="h-11 w-11 shrink-0 rounded-full object-cover border border-slate-200"
+                    />
+                  ) : (
+                    <div className="h-11 w-11 shrink-0 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 text-xs font-bold">
+                      IMG
+                    </div>
+                  )}
                   <input
                     type="text"
                     value={formData.avatar}
                     onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
-                    placeholder="https://..."
-                    className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold"
+                    placeholder="https://... or upload photo"
+                    className="h-10 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold"
                   />
+                  <label className="flex h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors">
+                    <Upload className="h-3.5 w-3.5 text-slate-500" />
+                    <span>{isUploading ? 'Uploading...' : 'Upload'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={isUploading}
+                      onChange={handleFileUpload}
+                    />
+                  </label>
                 </div>
               </div>
 
-              <div className="pt-3 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="h-10 px-5 rounded-full border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="h-10 px-6 rounded-full bg-[#f12131] text-xs font-bold text-white shadow-md hover:bg-[#d81928]"
-                >
-                  {editingId ? 'Update Testimonial' : 'Save Testimonial'}
-                </button>
+              <div className="pt-3 flex items-center justify-between gap-3 border-t border-slate-100">
+                {editingId ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      setDeleteTarget({
+                        id: editingId,
+                        title: formData.title || formData.author,
+                      });
+                    }}
+                    className="flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>Delete</span>
+                  </button>
+                ) : (
+                  <div />
+                )}
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="h-10 px-5 rounded-full border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="h-10 px-6 rounded-full bg-[#f12131] text-xs font-bold text-white shadow-md hover:bg-[#d81928] transition-all"
+                  >
+                    {editingId ? 'Update Testimonial' : 'Save Testimonial'}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        title="Delete Testimonial?"
+        itemName={deleteTarget?.title}
+        message="Are you sure you want to delete this testimonial review? This action cannot be undone."
+        confirmText="Delete Testimonial"
+        isLoading={isDeleting}
+        onConfirm={confirmDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }
