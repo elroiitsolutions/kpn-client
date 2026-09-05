@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       return NextResponse.json(generateLocalBotResponse(latestText));
     }
 
-    const apiKey = process.env.GEMINI_API_KEY || 'AQ.Ab8RN6KMsZhOLGbUQQXtr_16DPDN90ILexiXWv2bH6598tTlzw';
+    const apiKey = process.env.GEMINI_API_KEY || '';
     const debugInfo: Record<string, any> = {};
 
     // 2. If Gemini API Key is configured, call Google Gemini with system_instruction
