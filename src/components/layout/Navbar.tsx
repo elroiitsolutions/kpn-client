@@ -11,9 +11,11 @@ import {
   ChevronDown,
   Heart,
   Scale,
+  Search,
 } from 'lucide-react';
 import { navigationLinks } from '@/data/siteData';
 import { useWishlistCompare } from '@/context/WishlistCompareContext';
+import SmartSearchModal from '@/components/ui/SmartSearchModal';
 
 interface NavbarProps {
   variant?: 'default' | 'hero';
@@ -26,6 +28,7 @@ export default function Navbar({
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileDropdown, setMobileDropdown] = useState<string | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const pathname = usePathname();
 
@@ -376,33 +379,62 @@ export default function Navbar({
             </a>
           </div>
 
-          {/* Wishlist & Compare Buttons */}
+          {/* Search, Wishlist & Compare Buttons with Custom Hover Tooltips */}
           <div className="flex items-center gap-3">
-            <Link
-              href="/wishlist"
-              className="relative flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-red-50 hover:text-[#f12131]"
-              title="Saved Wishlist"
-            >
-              <Heart className="h-5 w-5" />
-              {wishlistIds.length > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#f12131] text-[10px] font-bold text-white shadow-sm">
-                  {wishlistIds.length}
-                </span>
-              )}
-            </Link>
+            {/* Search Icon */}
+            <div className="relative group">
+              <button
+                id="smart-search-trigger"
+                onClick={() => setSearchOpen(true)}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition duration-200 hover:bg-red-50 hover:text-[#f12131] hover:scale-105 active:scale-95"
+                type="button"
+                suppressHydrationWarning
+              >
+                <Search className="h-5 w-5" />
+              </button>
+              <div className="pointer-events-none absolute -bottom-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:translate-y-1 z-50 whitespace-nowrap rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white shadow-xl">
+                Search
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-b-slate-900" />
+              </div>
+            </div>
 
-            <Link
-              href="/compare"
-              className="relative flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-red-50 hover:text-[#f12131]"
-              title="Compare Projects"
-            >
-              <Scale className="h-5 w-5" />
-              {compareIds.length > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#382b88] text-[10px] font-bold text-white shadow-sm">
-                  {compareIds.length}
-                </span>
-              )}
-            </Link>
+            {/* Wishlist Icon */}
+            <div className="relative group">
+              <Link
+                href="/wishlist"
+                className="relative flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition duration-200 hover:bg-red-50 hover:text-[#f12131] hover:scale-105 active:scale-95"
+              >
+                <Heart className="h-5 w-5" />
+                {wishlistIds.length > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#f12131] text-[10px] font-bold text-white shadow-sm">
+                    {wishlistIds.length}
+                  </span>
+                )}
+              </Link>
+              <div className="pointer-events-none absolute -bottom-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:translate-y-1 z-50 whitespace-nowrap rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white shadow-xl">
+                Wishlist
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-b-slate-900" />
+              </div>
+            </div>
+
+            {/* Compare Icon */}
+            <div className="relative group">
+              <Link
+                href="/compare"
+                className="relative flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition duration-200 hover:bg-red-50 hover:text-[#f12131] hover:scale-105 active:scale-95"
+              >
+                <Scale className="h-5 w-5" />
+                {compareIds.length > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#382b88] text-[10px] font-bold text-white shadow-sm">
+                    {compareIds.length}
+                  </span>
+                )}
+              </Link>
+              <div className="pointer-events-none absolute -bottom-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:translate-y-1 z-50 whitespace-nowrap rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white shadow-xl">
+                Compare Projects
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-b-slate-900" />
+              </div>
+            </div>
           </div>
 
           <Link
@@ -444,7 +476,17 @@ export default function Navbar({
             lg:hidden
           "
         >
-          {/* Mobile CTA */}
+          {/* Mobile Search Button */}
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-red-50 hover:text-[#f12131]"
+            title="Search Projects"
+            type="button"
+          >
+            <Search className="h-4 w-4" />
+          </button>
+
+          {/* Mobile CTA */}"
 
           <Link
             href="/contact-us"
@@ -783,6 +825,11 @@ export default function Navbar({
         </AnimatePresence>
 
       </div>
+
+      <SmartSearchModal
+        isOpen={searchOpen}
+        onClose={() => setSearchOpen(false)}
+      />
     </motion.header>
   );
 }
