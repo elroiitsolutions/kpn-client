@@ -17,6 +17,8 @@ import {
   Calendar,
   CircleDollarSign,
   Shield,
+  FileText,
+  Download,
   Camera,
   Dumbbell,
   Gamepad2,
@@ -570,54 +572,183 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
               <h2 className="text-3xl font-extrabold text-[#29247c] sm:text-4xl">
                 Project description
               </h2>
-              <p className="text-base font-normal leading-relaxed text-slate-500">
-                Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.
+              <p className="text-base font-medium leading-relaxed text-slate-600">
+                {project.description ||
+                  `${project.name} is a premier development situated in ${project.location}. Offering CMDA & RERA approved infrastructure, strategic transit access, and exceptional value appreciation.`}
               </p>
-              <p className="text-base font-normal leading-relaxed text-slate-500">
-                Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur quae ab illoinventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.
-              </p>
+
+              {project.highlights && project.highlights.length > 0 && (
+                <div className="pt-4">
+                  <h3 className="text-xl font-bold text-[#29247c] mb-4">
+                    Key Project Highlights
+                  </h3>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {project.highlights.map((h: string, i: number) => (
+                      <div key={i} className="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#f12131] text-xs font-bold text-white">
+                          ✓
+                        </span>
+                        <span className="text-xs font-semibold text-slate-700 leading-relaxed">{h}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="lg:col-span-5">
-              <div className="space-y-4 rounded-[28px] border border-slate-100 bg-slate-50/60 p-8">
+              <div className="space-y-6 rounded-[28px] border border-slate-100 bg-slate-50/60 p-8 shadow-sm">
                 <h3 className="text-xl font-bold text-[#29247c]">
                   Key Details
                 </h3>
                 <ul className="space-y-3.5 text-sm leading-relaxed text-slate-600">
                   <li className="flex items-start gap-2">
                     <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f12131]" />
-                    <span><strong className="text-slate-800">Location:</strong> Central Business District / {project.location}.</span>
+                    <span><strong className="text-slate-800">Location:</strong> {project.address || project.location}.</span>
+                  </li>
+                  {project.plotSizes && (
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f12131]" />
+                      <span><strong className="text-slate-800">Plot Extents:</strong> {project.plotSizes}.</span>
+                    </li>
+                  )}
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f12131]" />
+                    <span><strong className="text-slate-800">Type:</strong> {project.type} ({project.bhk}).</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f12131]" />
-                    <span><strong className="text-slate-800">Total Built-Up Area:</strong> 350,000 sq. ft.</span>
+                    <span><strong className="text-slate-800">Status:</strong> {project.status} (CMDA & RERA Approved).</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f12131]" />
-                    <span><strong className="text-slate-800">Number of Floors:</strong> 20, including two underground levels for parking.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f12131]" />
-                    <span><strong className="text-slate-800">Special Features:</strong> Vertical garden facade, collaborative workspaces, and an energy-efficient HVAC system.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f12131]" />
-                    <span><strong className="text-slate-800">Amenities:</strong> Gym, café, daycare, and rooftop event space.</span>
+                    <span><strong className="text-slate-800">Pricing:</strong> {project.budget}.</span>
                   </li>
                 </ul>
               </div>
             </div>
           </div>
 
+          {/* =========================================================
+              BROCHURE LOCATION ADVANTAGES MATRIX (IF AVAILABLE)
+          ========================================================= */}
+          {project.locationAdvantages && (
+            <div className="mt-16">
+              <h2 className="mb-8 text-3xl font-extrabold text-[#29247c]">
+                Location Advantages
+              </h2>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {/* Schools & Colleges */}
+                {project.locationAdvantages.schoolsColleges && (
+                  <div className="rounded-[24px] border border-slate-100 bg-white p-6 shadow-sm">
+                    <div className="mb-4 flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-[#f12131]">
+                        <Building className="h-5 w-5" />
+                      </div>
+                      <h4 className="font-extrabold text-[#29247c]">Schools & Colleges</h4>
+                    </div>
+                    <ul className="space-y-2 text-xs font-semibold text-slate-600">
+                      {project.locationAdvantages.schoolsColleges.map((item: string, idx: number) => (
+                        <li key={idx} className="flex items-center gap-2">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#f12131]" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Hospitals */}
+                {project.locationAdvantages.hospitals && (
+                  <div className="rounded-[24px] border border-slate-100 bg-white p-6 shadow-sm">
+                    <div className="mb-4 flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-[#f12131]">
+                        <Shield className="h-5 w-5" />
+                      </div>
+                      <h4 className="font-extrabold text-[#29247c]">Hospitals</h4>
+                    </div>
+                    <ul className="space-y-2 text-xs font-semibold text-slate-600">
+                      {project.locationAdvantages.hospitals.map((item: string, idx: number) => (
+                        <li key={idx} className="flex items-center gap-2">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#f12131]" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Public Facilities */}
+                {project.locationAdvantages.publicFacilities && (
+                  <div className="rounded-[24px] border border-slate-100 bg-white p-6 shadow-sm">
+                    <div className="mb-4 flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-[#f12131]">
+                        <MapPin className="h-5 w-5" />
+                      </div>
+                      <h4 className="font-extrabold text-[#29247c]">Public Facilities</h4>
+                    </div>
+                    <ul className="space-y-2 text-xs font-semibold text-slate-600">
+                      {project.locationAdvantages.publicFacilities.map((item: string, idx: number) => (
+                        <li key={idx} className="flex items-center gap-2">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#f12131]" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Corporate Offices */}
+                {project.locationAdvantages.corporateOffices && (
+                  <div className="rounded-[24px] border border-slate-100 bg-white p-6 shadow-sm">
+                    <div className="mb-4 flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-[#f12131]">
+                        <Layers className="h-5 w-5" />
+                      </div>
+                      <h4 className="font-extrabold text-[#29247c]">Corporate Offices</h4>
+                    </div>
+                    <ul className="space-y-2 text-xs font-semibold text-slate-600">
+                      {project.locationAdvantages.corporateOffices.map((item: string, idx: number) => (
+                        <li key={idx} className="flex items-center gap-2">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#f12131]" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           <hr className="my-20 border-t border-slate-100" />
 
           {/* =========================================================
               FEATURES & AMENITIES (8 CARDS)
           ========================================================= */}
           <div>
-            <h2 className="mb-12 text-3xl font-extrabold text-[#29247c] sm:text-4xl">
-              Features & amenities
-            </h2>
+            <div className="mb-12 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="text-3xl font-extrabold text-[#29247c] sm:text-4xl">
+                Features & amenities
+              </h2>
+
+              {project.brochureUrl && (
+                <a
+                  href={project.brochureUrl}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex items-center gap-3 rounded-full bg-[#f12131] px-6 py-3.5 text-white shadow-md transition-all duration-300 hover:bg-red-600 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-colors">
+                    <FileText className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm font-extrabold">Download Brochure</span>
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-white transition-colors">
+                    <Download className="h-3.5 w-3.5" />
+                  </div>
+                </a>
+              )}
+            </div>
 
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-[28px] border border-slate-100 bg-slate-50/70 p-8 text-center transition duration-300 hover:bg-white hover:shadow-lg">

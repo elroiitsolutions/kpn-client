@@ -113,6 +113,16 @@ export interface ProjectItem {
   image: string;
   address?: string;
   description?: string;
+  plotSizes?: string;
+  proximityDetails?: string[];
+  locationAdvantages?: {
+    schoolsColleges?: string[];
+    hospitals?: string[];
+    publicFacilities?: string[];
+    corporateOffices?: string[];
+  };
+  highlights?: string[];
+  brochureUrl?: string;
   streetViewUrl?: string;
   mapEmbedUrl?: string;
 }
@@ -138,13 +148,61 @@ export const projectsData: ProjectItem[] = [
     id: '02',
     name: 'DGM Monica Residency',
     slug: 'dgm-monica-residency',
-    location: 'Urapakkam, Chennai',
-    address: 'Near GST Road, Urapakkam, Chennai',
-    bhk: '1 & 2 BHK',
+    location: 'Guduvanchery, Chennai',
+    address: 'Near GST Road, Guduvanchery / Urapakkam, Chennai',
+    bhk: '1 & 2 BHK (639 - 996 Sq.Ft.)',
     type: 'Apartments',
     status: 'Ongoing',
     budget: '₹ 30L Onwards',
     image: '/images/projects/apt_dgm_monica.jpg',
+    brochureUrl: '/brouchure/DGM Monika Brouchure (4).pdf',
+    description: 'DGM Monica Residency offers premium 1 & 2 BHK ready-to-move apartment residences in Guduvanchery. Built with RCC framed structure, 100% Vaastu compliance, smart lifts, power backup, CCTV security, and premium specifications including Vitrified tile flooring, Teak wood doors, and UPVC sliding windows.',
+    highlights: [
+      '1 & 2 BHK Ready-to-Move Apartments (639 - 996 Sq.Ft.)',
+      '100% Vaastu Compliant Architecture',
+      'Smart Passenger Lift & 5kVA Power Backup for Common Area',
+      'CCTV Surveillance & Video Door Phone for Each Flat',
+      'Anti-skid Balcony Tiles & Vitrified Nano-Tech Interior Flooring',
+      'Teak Wood Main Door Frame with Godrej Locks',
+      'Proximity to Guduvanchery Railway Station & Kilambakkam Bus Terminus',
+    ],
+    proximityDetails: [
+      '450 Mtrs to Velammal International School',
+      '650 Mtrs to Neelan Matriculation School',
+      '2 Kms to Guduvanchery Railway Station',
+      '6 Kms to Kilambakkam Bus Terminus',
+    ],
+    locationAdvantages: {
+      schoolsColleges: [
+        'Velammal International School - 450 Meters',
+        'Neelan Matriculation School - 650 Meters',
+        'Sri Vishwa Vidyalaya Higher Secondary School',
+        'SMN Park School - 3.6 Kms',
+        'Holy Sai International School',
+        'Shikshaa Kidz-E-Techno & Shikshaa Litera Mount School',
+      ],
+      hospitals: [
+        'Deepam Hospital',
+        'SRM Hospital',
+        'Arokiya Annai Hospital',
+        'One Health Hospital',
+      ],
+      publicFacilities: [
+        'Guduvanchery Railway Station - 2 Kms',
+        'Fashion Factory - 2.5 Kms',
+        'Zudio Guduvanchery - 3.1 Kms',
+        'Max - 3.6 Kms',
+        'Vandalur Zoo - 5.6 Kms',
+        'Kilambakkam Bus Terminus - 6 Kms',
+      ],
+      corporateOffices: [
+        'ZOHO Corporation - 6 Kms',
+        'Sriram Gateway - 10 Kms',
+        'Ford India Pvt. Ltd. - 12 Kms',
+        'Renault Nissan Technology & Business Centre - 18 Kms',
+        'Infosys - 18 Kms',
+      ],
+    },
     streetViewUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE1mX1h3Q1pfcG5oQ09oV2RjSGFxTXlhZFl0b2pfaEZfN0p4WGZZ!2m2!1d12.8571477!2d80.0631628!3f120!4f0!5f0.7820865974627469',
   },
   {
@@ -260,25 +318,122 @@ export const projectsData: ProjectItem[] = [
     name: 'AVP Kanagam Avenue',
     slug: 'avp-kanagam-avenue',
     location: 'Guduvanchery, Chennai',
-    address: 'Govindarajapuram, Guduvanchery, Chennai',
-    bhk: 'Plots',
+    address: 'Govindarajapuram, Guduvanchery (Close Proximity to GST Road), Chennai',
+    bhk: 'Plots (1000 - 1733 Sq.Ft.)',
     type: 'Plots',
     status: 'Ongoing',
     budget: '₹ 4500/Sq.Ft',
     image: '/images/projects/plot_avp_kanagam_avenue.jpg',
+    plotSizes: '1000 - 1733 Sq.Ft.',
+    brochureUrl: '/brouchure/AVP Kanagam Avenue Brouchure (1) (1).pdf',
+    description: 'AVP Kanagam Avenue features premium CMDA & RERA approved residential plots strategically positioned along GST Road in Guduvanchery. Offering exceptional value appreciation, close proximity to Kilambakkam Bus Terminus, Chennai Metro Phase 2 extension, and elevated corridors.',
+    highlights: [
+      '5 Minutes Drive off GST Road',
+      'Directly on the road connecting Guduvanchery junction with Tiruporur',
+      'Velammal and SRM CBSE Schools at walkable distance',
+      'Proposed Mufassil Bus stand provides major regional connectivity',
+      'Proximity to upcoming 250 Acre commercial hub with malls, hotels & schools',
+      'Upcoming Metro Connectivity & 18.4 km Elevated Corridor',
+      'Proximity to Kilambakkam Kalaignar Centenary Bus Terminus & Railway Station',
+    ],
+    proximityDetails: [
+      '5 Mins to GST Road',
+      '1.5 Kms to Velammal Vidyashram',
+      '2.8 Kms to SRM Public School',
+      '6 Kms to Guduvanchery Railway Station',
+      '9 Kms to Kilambakkam Bus Terminus',
+    ],
+    locationAdvantages: {
+      schoolsColleges: [
+        'Velammal Vidyashram School - 1.5 Kms',
+        'SRM Public School - 2.8 Kms',
+        'St. Mary\'s Matriculation School - 3.6 Kms',
+        'SRM University - 8 Kms',
+        'Crescent College - 9 Kms',
+      ],
+      hospitals: [
+        'Deepam Hospital',
+        'SRM Hospital',
+        'Arokiya Annai Hospital',
+        'One Health Hospital',
+      ],
+      publicFacilities: [
+        'Fashion Factory - 6 Kms',
+        'Guduvanchery Railway Station - 6 Kms',
+        'Zudio Guduvanchery - 8 Kms',
+        'Max - 8 Kms',
+        'Kilambakkam Bus Terminus - 9 Kms',
+        'Vandalur Zoo - 10 Kms',
+      ],
+      corporateOffices: [
+        'ZOHO Corporation - 7 Kms',
+        'Sriram Gateway - 11 Kms',
+        'Ford India Pvt. Ltd. - 12 Kms',
+        'Infosys - 17 Kms',
+        'Renault Nissan Technology & Business Centre - 17 Kms',
+      ],
+    },
     streetViewUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE1mX1h3Q1pfcG5oQ09oV2RjSGFxTXlhZFl0b2pfaEZfN0p4WGZZ!2m2!1d12.8571477!2d80.0631628!3f120!4f0!5f0.7820865974627469',
   },
   {
     id: '12',
     name: 'AVP Kanagam Nagar',
     slug: 'avp-kanagam-nagar',
-    location: 'Kalivanthapattu, Chennai',
-    address: 'Kalivanthapattu Road, Maraimalai Nagar / Chennai',
-    bhk: 'Plots',
+    location: 'Guduvanchery, Chennai',
+    address: 'S.No 347/11A of Karanaipuducherry, Kalivanthapattu Village, Maraimalai Nagar Municipality, Chengalpet / Guduvanchery, Chennai',
+    bhk: 'Plots (714 - 2106 Sq.Ft.)',
     type: 'Plots',
     status: 'Ongoing',
     budget: '₹ 3500/Sq.Ft',
     image: '/images/projects/plot_avp_kanagam_nagar.jpg',
+    plotSizes: '714 - 2106 Sq.Ft.',
+    brochureUrl: '/brouchure/AVP Kanagam Nagar - 4 Side.pdf',
+    description: 'AVP Kanagam Nagar offers premium DTCP & RERA approved residential layout plots (Approval No: 213/2025, 10/2026; TNRERA/35/LO/4519/2025) located in Kalivanthapattu, Guduvanchery, just 15 minutes from GST Road. Spanning Phase I & Phase II, this project provides ideal plot extents ranging from 714 to 2106 Sq.Ft., surrounded by top educational institutions, transport hubs, and rapid commercial corridors.',
+    highlights: [
+      'DTCP & RERA Approved Layout (TNRERA/35/LO/4519/2025)',
+      '15 Minutes from GST Road, Guduvanchery',
+      'Phase I & Phase II plots ranging from 714 to 2106 Sq.Ft.',
+      'Located along Guduvanchery - Thiruporur (Nellikuppam) Main Road',
+      'Walking distance / Proximity to Velammal Vidhyashram & SRM University',
+      'Close to Kilambakkam Bus Terminus & Guduvanchery Bus Terminus',
+      'Nearby major industrial & tech hubs including Bosch, Zoho Corp, Ford & Mahindra World City SEZ',
+    ],
+    proximityDetails: [
+      '15 Mins to GST Road',
+      'Near Velammal Vidhyashram',
+      'Near SRM University & SRM Rural Health Centre',
+      'Proximity to Kilambakkam Bus Terminus',
+    ],
+    locationAdvantages: {
+      schoolsColleges: [
+        'Velammal Vidhyashram School',
+        'SRM Public School',
+        'SRM University',
+        'Crescent Engineering College',
+        'VIT Chennai',
+        'FIITJEE Global School',
+        'Sri Ramanujar Engineering College',
+        'Orchids The International School',
+        'TNPESU',
+      ],
+      hospitals: [
+        'SRM Rural Health Centre',
+        'SRM Hospital',
+      ],
+      publicFacilities: [
+        'Guduvanchery Bus Terminus',
+        'Kilambakkam Bus Terminus',
+        'Arignar Anna Zoological Park (Vandalur Zoo)',
+        'Hotel Junior Kuppanna',
+        'Tamilnadu Police Academy',
+      ],
+      corporateOffices: [
+        'ZOHO Corp',
+        'Bosch',
+        'Ford',
+        'Mahindra World City SEZ',
+      ],
+    },
     streetViewUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE1mX1h3Q1pfcG5oQ09oV2RjSGFxTXlhZFl0b2pfaEZfN0p4WGZZ!2m2!1d12.8571477!2d80.0631628!3f120!4f0!5f0.7820865974627469',
   },
   {
