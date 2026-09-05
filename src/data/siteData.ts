@@ -1,10 +1,12 @@
+import { address } from "framer-motion/client";
+
 export const navigationLinks = [
   { label: 'Home', href: '/' },
   {
     label: 'Pages',
     children: [
       { label: 'About Us', href: '/about-us' },
-      // { label: 'Why Choose Us', href: '/why-choose-us' },
+      { label: 'Why Choose Us', href: '/why-choose-us' },
       { label: 'Our Awards', href: '/our-awards' },
       // { label: 'Our Team', href: '/our-team' },
       // { label: 'Careers', href: '/careers' },
@@ -105,11 +107,12 @@ export interface ProjectItem {
   slug: string;
   location: string;
   bhk: string;
-  type: 'Apartments' | 'Plots';
+  type: 'Apartments' | 'Plots' | 'Commercial' | 'Industrial' | 'Villas';
   status: 'Ongoing' | 'Completed' | 'Upcoming';
   budget: string;
   image: string;
   address?: string;
+  description?: string;
   streetViewUrl?: string;
   mapEmbedUrl?: string;
 }
@@ -295,13 +298,104 @@ export const projectsData: ProjectItem[] = [
     id: '14',
     name: 'KPN Sri Sai Baba Nagar',
     slug: 'kpn-sri-sai-baba-nagar',
-    location: 'Maraimalai Nagar, Chennai',
-    address: 'Sri Sai Baba Nagar, Maraimalai Nagar, Chennai',
+    location: 'Karanaikattur, Chennai',
+    address: 'Karanai Kattur Main Road, Chennai',
     bhk: 'Plots',
     type: 'Plots',
     status: 'Ongoing',
     budget: '₹ 999/Sq.Ft',
-    image: '/images/projects/plot_kpn_ssbn.jpeg',
+    image: '/images/projectimg/KPN-SAI-BABA-NAGAR.jpg',
+    streetViewUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE1mX1h3Q1pfcG5oQ09oV2RjSGFxTXlhZFl0b2pfaEZfN0p4WGZZ!2m2!1d12.8571477!2d80.0631628!3f120!4f0!5f0.7820865974627469',
+  },
+  {
+    id: '15',
+    name: 'KPN Hindhu Avenue',
+    slug: 'kpn-hindhu-avenue',
+    location: 'Urapakkam, Chennai',
+    address: 'Hindhu Avenue, Urapakkam, Chennai',
+    bhk: '2 & 3 BHK Villa',
+    type: 'Villas',
+    status: 'Ongoing',
+    budget: '₹ 45L Onwards',
+    image: '/images/projectimg/KPN-Hindu-Avenue.jpg',
+    streetViewUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE1mX1h3Q1pfcG5oQ09oV2RjSGFxTXlhZFl0b2pfaEZfN0p4WGZZ!2m2!1d12.8571477!2d80.0631628!3f120!4f0!5f0.7820865974627469',
+  },
+  {
+    id: '16',
+    name: 'KPN Platinum City',
+    slug: 'kpn-platinum-city',
+    location: 'Karanaipuducheri, Chennai',
+    address: 'Karanaipuducheri Main Road, Chennai',
+    bhk: 'Plots',
+    type: 'Plots',
+    status: 'Ongoing',
+    budget: '₹ 2499/Sq.Ft',
+    image: '/images/projectimg/KPN-Platinum-City.jpg',
+    streetViewUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE1mX1h3Q1pfcG5oQ09oV2RjSGFxTXlhZFl0b2pfaEZfN0p4WGZZ!2m2!1d12.8571477!2d80.0631628!3f120!4f0!5f0.7820865974627469',
+  },
+  {
+    id: '17',
+    name: 'KPN Sairam Nagar',
+    slug: 'kpn-sairam-nagar',
+    location: 'Urapakkam, Chennai',
+    address: 'Sairam Nagar, Urapakkam, Chennai',
+    bhk: '2 & 3 BHK Villa',
+    type: 'Villas',
+    status: 'Ongoing',
+    budget: '₹ 52L Onwards',
+    image: '/images/projectimg/KPN-Sai-Ram-Nagar.jpg',
+    streetViewUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE1mX1h3Q1pfcG5oQ09oV2RjSGFxTXlhZFl0b2pfaEZfN0p4WGZZ!2m2!1d12.8571477!2d80.0631628!3f120!4f0!5f0.7820865974627469',
+  },
+  {
+    id: '18',
+    name: 'KPN Krishna Nagar',
+    slug: 'kpn-krishna-nagar',
+    location: 'Urapakkam, Chennai',
+    address: 'Krishna Nagar, Urapakkam, Chennai',
+    bhk: 'Plots',
+    type: 'Plots',
+    status: 'Ongoing',
+    budget: '₹ 3200/Sq.Ft',
+    image: '/images/projectimg/KPN-KRISHNA-NAGAR.jpg',
+    streetViewUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE1mX1h3Q1pfcG5oQ09oV2RjSGFxTXlhZFl0b2pfaEZfN0p4WGZZ!2m2!1d12.8571477!2d80.0631628!3f120!4f0!5f0.7820865974627469',
+  },
+  {
+    id: '19',
+    name: 'KPN Grand',
+    slug: 'kpn-grand',
+    location: 'Karanaipuducheri, Chennai',
+    address: 'KPN Grand, Karanaipuducheri, Chennai',
+    bhk: '2 & 3 BHK Villa',
+    type: 'Villas',
+    status: 'Ongoing',
+    budget: '₹ 58L Onwards',
+    image: '/images/projectimg/KPN-GRAND.jpg',
+    streetViewUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE1mX1h3Q1pfcG5oQ09oV2RjSGFxTXlhZFl0b2pfaEZfN0p4WGZZ!2m2!1d12.8571477!2d80.0631628!3f120!4f0!5f0.7820865974627469',
+  },
+  {
+    id: '20',
+    name: 'KPN Silverwood',
+    slug: 'kpn-silverwood',
+    location: 'Urapakkam, Chennai',
+    address: 'Silverwood Avenue, Urapakkam, Chennai',
+    bhk: '2 BHK',
+    type: 'Apartments',
+    status: 'Ongoing',
+    budget: '₹ 42L Onwards',
+    image: '/images/projectimg/KPN-SILVERWOOD.jpg',
+    streetViewUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE1mX1h3Q1pfcG5oQ09oV2RjSGFxTXlhZFl0b2pfaEZfN0p4WGZZ!2m2!1d12.8571477!2d80.0631628!3f120!4f0!5f0.7820865974627469',
+  },
+  {
+    id: '21',
+    name: 'KPN Sri Bhavani Amman Nagar',
+    slug: 'kpn-sri-bhavani-amman-nagar',
+    location: 'Karanaipuducheri, Chennai',
+    address: 'Karanaipuducheri Main Road, Chennai',
+    bhk: 'Plots',
+    type: 'Plots',
+    status: 'Ongoing',
+    budget: '₹ 3899/Sq.Ft',
+    image: '/images/projectimg/KPN-SRI-BHAVANI-AMMAN-NAGAR.jpg',
     streetViewUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE1mX1h3Q1pfcG5oQ09oV2RjSGFxTXlhZFl0b2pfaEZfN0p4WGZZ!2m2!1d12.8571477!2d80.0631628!3f120!4f0!5f0.7820865974627469',
   },
 ];
