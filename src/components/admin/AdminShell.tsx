@@ -70,21 +70,21 @@ export default function AdminShell({ children }: AdminShellProps) {
     <SidebarProvider defaultOpen={true}>
       <AppSidebar />
       <SidebarInset>
-        {/* Shadcn Header */}
-        <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur shadow-2xs">
-          <div className="flex items-center gap-3">
-            <SidebarTrigger />
+        {/* Header */}
+        <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b border-slate-200/80 bg-white/95 px-6 backdrop-blur shadow-2xs font-sans">
+          <div className="flex items-center gap-3.5">
+            <SidebarTrigger className="text-slate-600 hover:text-[#29247c] hover:bg-rose-50/60 transition-colors" />
             <Separator orientation="vertical" className="h-4 bg-slate-200" />
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden sm:block">
-                  <BreadcrumbLink href="/admin" className="text-xs font-semibold text-slate-500 hover:text-slate-900">
+                  <BreadcrumbLink href="/admin" className="text-xs font-bold text-slate-400 hover:text-[#29247c] transition-colors">
                     Admin
                   </BreadcrumbLink>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden sm:block" />
+                <BreadcrumbSeparator className="hidden sm:block text-slate-300" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage className="text-xs font-bold text-[#29247c]">
+                  <BreadcrumbPage className="text-xs font-black text-[#29247c] font-heading tracking-tight">
                     {currentPageTitle}
                   </BreadcrumbPage>
                 </BreadcrumbItem>
@@ -97,17 +97,17 @@ export default function AdminShell({ children }: AdminShellProps) {
               href="/"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-8 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-2xs"
+              className="flex h-8 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 text-xs font-bold text-slate-700 hover:border-[#f12131] hover:text-[#f12131] hover:bg-rose-50/50 transition-all shadow-2xs group"
             >
-              <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
+              <ExternalLink className="h-3.5 w-3.5 text-slate-400 group-hover:text-[#f12131] transition-colors" />
               <span className="hidden sm:inline">Live Website</span>
             </Link>
 
-            <div className="flex items-center gap-2 pl-3 border-l border-slate-200">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#29247c] text-[11px] font-black text-white shadow-xs">
+            <div className="flex items-center gap-2.5 pl-3 border-l border-slate-200">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#29247c] text-xs font-black text-white shadow-xs font-heading">
                 {user?.name ? user.name[0].toUpperCase() : 'A'}
               </div>
-              <span className="text-xs font-bold text-slate-800 hidden md:inline">
+              <span className="text-xs font-extrabold text-slate-800 hidden md:inline">
                 {user?.name || 'Administrator'}
               </span>
             </div>
@@ -115,8 +115,8 @@ export default function AdminShell({ children }: AdminShellProps) {
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 p-6 lg:p-8">
-          <div className="mx-auto max-w-[1500px] w-full">{children}</div>
+        <main className="flex-1 p-6 lg:p-8 bg-[#f8fafc]">
+          <div className="mx-auto max-w-[1500px] w-full font-sans">{children}</div>
         </main>
       </SidebarInset>
     </SidebarProvider>

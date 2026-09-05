@@ -242,7 +242,7 @@ export const SidebarGroupLabel = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        'px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 select-none truncate',
+        'px-2.5 py-1.5 text-[10px] font-extrabold uppercase tracking-widest text-slate-400 select-none truncate font-heading',
         className
       )}
       {...props}
@@ -276,11 +276,11 @@ export const SidebarMenuItem = React.forwardRef<
 SidebarMenuItem.displayName = 'SidebarMenuItem';
 
 const sidebarMenuButtonVariants = cva(
-  'group flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium outline-none transition-colors disabled:pointer-events-none disabled:opacity-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+  'group flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-semibold outline-none transition-all disabled:pointer-events-none disabled:opacity-50 text-slate-600 hover:bg-rose-50/60 hover:text-[#29247c]',
   {
     variants: {
       isActive: {
-        true: 'bg-slate-100 text-[#f12131] font-bold shadow-2xs',
+        true: 'bg-rose-50 text-[#f12131] font-extrabold shadow-2xs ring-1 ring-rose-200/70',
         false: '',
       },
     },

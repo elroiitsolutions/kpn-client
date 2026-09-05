@@ -48,10 +48,10 @@ const navSections = [
     title: 'CONTENT & MEDIA',
     items: [
       { label: 'Blogs & Articles', href: '/admin/blogs', icon: FileText },
-      { label: 'Media Library', href: '/admin/media', icon: ImageIcon },
+      // { label: 'Media Library', href: '/admin/media', icon: ImageIcon },
       { label: 'Awards & Honors', href: '/admin/awards', icon: Trophy },
       { label: 'Testimonials', href: '/admin/testimonials', icon: MessageSquareQuote },
-      { label: 'Video Center', href: '/admin/videos', icon: Video },
+      // { label: 'Video Center', href: '/admin/videos', icon: Video },
     ],
   },
   {
@@ -65,7 +65,7 @@ const navSections = [
   {
     title: 'GROWTH & SYSTEM',
     items: [
-      { label: 'Referrals', href: '/admin/referrals', icon: Users },
+      // { label: 'Referrals', href: '/admin/referrals', icon: Users },
       { label: 'Settings', href: '/admin/settings', icon: Settings },
     ],
   },

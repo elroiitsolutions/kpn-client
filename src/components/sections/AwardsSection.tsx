@@ -1,12 +1,30 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { testimonialsData } from '@/data/siteData';
+import { getTestimonials, TestimonialItem } from '@/lib/cmsClient';
 import RunningPillBadge from '../ui/RunningPillBadge';
 import FadeIn from '../animation/FadeIn';
 
 export default function AwardsSection() {
-  const duplicatedData = [...testimonialsData, ...testimonialsData];
+  const [items, setItems] = useState<TestimonialItem[]>(testimonialsData);
+
+  useEffect(() => {
+    async function loadTestimonials() {
+      try {
+        const fetched = await getTestimonials();
+        if (fetched && fetched.length > 0) {
+          setItems(fetched);
+        }
+      } catch (err) {
+        console.warn('Failed to load testimonials, using fallback');
+      }
+    }
+    loadTestimonials();
+  }, []);
+
+  const duplicatedData = [...items, ...items];
 
   return (
     <section className="py-20 lg:py-28 bg-[#f8fafc]/70 relative overflow-hidden">

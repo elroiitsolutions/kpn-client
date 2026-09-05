@@ -56,8 +56,27 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
 
   // Current project lookup
   const projectIndex = projectsData.findIndex((p) => p.slug === slug);
-  const project =
-    projectIndex !== -1 ? projectsData[projectIndex] : projectsData[0];
+  const [project, setProject] = useState<any>(
+    projectIndex !== -1 ? projectsData[projectIndex] : projectsData[0]
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadProjectDetails() {
+      try {
+        const live = await getProjectBySlug(slug);
+        if (isMounted && live) {
+          setProject((prev: any) => ({ ...prev, ...live }));
+        }
+      } catch (err) {
+        console.warn('Could not load dynamic project from CMS');
+      }
+    }
+    loadProjectDetails();
+    return () => {
+      isMounted = false;
+    };
+  }, [slug]);
 
   // Previous and Next navigation
   const prevProject =
@@ -290,29 +309,48 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
   };
 
   // Dynamic lead inquiry state
-  const [inquiryName, setInquiryName] = useState('');
+  const [inquiryFirstName, setInquiryFirstName] = useState('');
+  const [inquiryLastName, setInquiryLastName] = useState('');
   const [inquiryPhone, setInquiryPhone] = useState('');
   const [inquiryEmail, setInquiryEmail] = useState('');
   const [inquiryMessage, setInquiryMessage] = useState('');
   const [inquirySubmitted, setInquirySubmitted] = useState(false);
   const [isSubmittingInquiry, setIsSubmittingInquiry] = useState(false);
+  const [inquiryError, setInquiryError] = useState<string | null>(null);
 
   // Inquiry form submit
   const handleInquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setInquiryError(null);
+
+    const fullName = `${inquiryFirstName} ${inquiryLastName}`.trim();
+    if (!fullName) {
+      setInquiryError('Please enter your name.');
+      return;
+    }
+
+    if (!inquiryPhone.trim()) {
+      setInquiryError('Please enter your phone number.');
+      return;
+    }
+
     setIsSubmittingInquiry(true);
     try {
-      await submitEnquiry({
-        name: inquiryName,
-        phone: inquiryPhone,
-        email: inquiryEmail,
+      const res = await submitEnquiry({
+        name: fullName,
+        phone: inquiryPhone.trim(),
+        email: inquiryEmail.trim(),
         projectName: project.name,
-        message: inquiryMessage,
+        message: inquiryMessage.trim(),
         source: 'Project Detail',
       });
-      setInquirySubmitted(true);
-    } catch {
-      setInquirySubmitted(true);
+      if (res && res.success) {
+        setInquirySubmitted(true);
+      } else {
+        setInquiryError(res?.message || 'Could not submit inquiry. Please try again.');
+      }
+    } catch (err: any) {
+      setInquiryError(err?.message || 'Network error. Please try again.');
     } finally {
       setIsSubmittingInquiry(false);
     }
@@ -1072,53 +1110,104 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                 Request more information
               </h2>
 
-              <form onSubmit={handleInquirySubmit} className="space-y-6">
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                  <input
-                    type="text"
-                    required
-                    placeholder="First Name*"
-                    suppressHydrationWarning
-                    className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
-                  />
-                  <input
-                    type="text"
-                    required
-                    placeholder="Last Name*"
-                    suppressHydrationWarning
-                    className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
-                  />
-                </div>
-
-                <input
-                  type="email"
-                  required
-                  placeholder="Email*"
-                  suppressHydrationWarning
-                  className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
-                />
-
-                <textarea
-                  required
-                  rows={5}
-                  placeholder="Message..."
-                  suppressHydrationWarning
-                  className="w-full resize-none rounded-[28px] border-0 bg-slate-100/80 p-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
-                />
-
-                <div className="flex justify-center pt-2">
+              {inquirySubmitted ? (
+                <div className="rounded-[28px] border border-emerald-200 bg-emerald-50/90 p-8 text-center shadow-sm animate-in fade-in duration-300">
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md">
+                    ✓
+                  </div>
+                  <h3 className="text-xl font-extrabold text-[#29247c]">
+                    Thank you! Your enquiry has been received.
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-600">
+                    Our sales team will get in touch with you shortly regarding {project.name}.
+                  </p>
                   <button
-                    type="submit"
-                    suppressHydrationWarning
-                    className="group flex h-14 items-center gap-5 rounded-full border border-slate-200 bg-white pl-8 pr-2 text-sm font-extrabold text-slate-900 shadow-md transition hover:shadow-lg"
+                    type="button"
+                    onClick={() => {
+                      setInquirySubmitted(false);
+                      setInquiryFirstName('');
+                      setInquiryLastName('');
+                      setInquiryPhone('');
+                      setInquiryEmail('');
+                      setInquiryMessage('');
+                    }}
+                    className="mt-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-6 py-2.5 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition"
                   >
-                    <span>Submit</span>
-                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f12131] text-white transition-transform duration-300 group-hover:translate-x-1">
-                      <ArrowRight className="h-5 w-5" />
-                    </span>
+                    Send another inquiry
                   </button>
                 </div>
-              </form>
+              ) : (
+                <form onSubmit={handleInquirySubmit} className="space-y-5 text-left">
+                  {inquiryError && (
+                    <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-semibold text-red-700">
+                      {inquiryError}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <input
+                      type="text"
+                      required
+                      placeholder="First Name*"
+                      value={inquiryFirstName}
+                      onChange={(e) => setInquiryFirstName(e.target.value)}
+                      suppressHydrationWarning
+                      className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Last Name"
+                      value={inquiryLastName}
+                      onChange={(e) => setInquiryLastName(e.target.value)}
+                      suppressHydrationWarning
+                      className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <input
+                      type="tel"
+                      required
+                      placeholder="Phone Number*"
+                      value={inquiryPhone}
+                      onChange={(e) => setInquiryPhone(e.target.value)}
+                      suppressHydrationWarning
+                      className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
+                    />
+                    <input
+                      type="email"
+                      placeholder="Email Address"
+                      value={inquiryEmail}
+                      onChange={(e) => setInquiryEmail(e.target.value)}
+                      suppressHydrationWarning
+                      className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
+                    />
+                  </div>
+
+                  <textarea
+                    rows={4}
+                    placeholder="Message or specific requirements (optional)..."
+                    value={inquiryMessage}
+                    onChange={(e) => setInquiryMessage(e.target.value)}
+                    suppressHydrationWarning
+                    className="w-full resize-none rounded-[28px] border-0 bg-slate-100/80 p-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
+                  />
+
+                  <div className="flex justify-center pt-2">
+                    <button
+                      type="submit"
+                      disabled={isSubmittingInquiry}
+                      suppressHydrationWarning
+                      className="group flex h-14 items-center gap-5 rounded-full border border-slate-200 bg-white pl-8 pr-2 text-sm font-extrabold text-slate-900 shadow-md transition hover:shadow-lg disabled:opacity-60 cursor-pointer"
+                    >
+                      <span>{isSubmittingInquiry ? 'Submitting...' : 'Submit Inquiry'}</span>
+                      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f12131] text-white transition-transform duration-300 group-hover:translate-x-1">
+                        <ArrowRight className="h-5 w-5" />
+                      </span>
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           </FadeIn>
 

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import { blogData, BlogPostItem } from '@/data/siteData';
-import { getStrapiArticles } from '@/lib/strapi';
+import { getBlogs } from '@/lib/cmsClient';
 import RunningPillBadge from '../ui/RunningPillBadge';
 import FadeIn from '../animation/FadeIn';
 import StaggerContainer from '../animation/StaggerContainer';
@@ -16,7 +16,7 @@ export default function BlogSection() {
   useEffect(() => {
     async function loadLatest() {
       try {
-        const fetched = await getStrapiArticles();
+        const fetched = await getBlogs();
         if (fetched && fetched.length > 0) {
           setPosts(fetched.slice(0, 3));
         }

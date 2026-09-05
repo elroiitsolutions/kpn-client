@@ -71,7 +71,7 @@ export default function AdminDashboardPage() {
       value: stats.totalProjects,
       subValue: `${stats.publishedProjects} Published • ${stats.draftProjects} Draft`,
       icon: Building2,
-      color: 'bg-blue-600',
+      color: 'bg-[#29247c]',
       href: '/admin/projects',
     },
     {
@@ -88,17 +88,19 @@ export default function AdminDashboardPage() {
       value: stats.totalBlogs,
       subValue: `${stats.publishedBlogs} Live on Website`,
       icon: FileText,
-      color: 'bg-emerald-600',
+      color: 'bg-[#342987]',
       href: '/admin/blogs',
     },
+    /*
     {
       title: 'Customer Referrals',
       value: stats.totalReferrals,
       subValue: 'Referral Program Leads',
       icon: Users,
-      color: 'bg-purple-600',
+      color: 'bg-rose-600',
       href: '/admin/referrals',
     },
+    */
   ];
 
   const getStatusBadgeColor = (status: string) => {
@@ -151,8 +153,8 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* KPI Cards 4-Column Grid */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {/* KPI Cards Grid */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {statCards.map((card) => {
           const Icon = card.icon;
           return (

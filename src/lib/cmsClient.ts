@@ -44,13 +44,18 @@ export async function getProjects(): Promise<ProjectItem[]> {
           image: p.image,
           status: p.status,
           propertyType: p.propertyType,
+          type: p.propertyType || p.type || 'Apartments',
+          address: p.address,
+          description: p.description,
+          streetViewUrl: p.streetViewUrl,
+          mapEmbedUrl: p.mapEmbedUrl,
           totalUnits: p.totalUnits,
           availableUnits: p.availableUnits,
           commencementDate: p.commencementDate,
           handoverTimeline: p.handoverTimeline,
-          amenities: p.amenities?.map((a: any) => a.name) || [],
+          amenities: p.amenities?.map((a: any) => (typeof a === 'string' ? a : a.name)) || [],
           details: {
-            propertyType: p.propertyType,
+            propertyType: p.propertyType || p.type,
             status: p.status,
             handover: p.handoverTimeline,
             units: p.totalUnits ? `${p.totalUnits} Units` : undefined,
@@ -142,6 +147,8 @@ export async function getBlogs(): Promise<BlogPostItem[]> {
           bannerImage: b.bannerImage,
           content: typeof b.content === 'string' ? b.content.split('\n\n') : b.content,
           galleryImages: b.galleryImages || [],
+          quoteText: b.quoteText,
+          quoteAuthor: b.quoteAuthor,
         }));
       }
     }
@@ -181,6 +188,8 @@ export async function getBlogBySlug(slug: string): Promise<BlogPostItem | null> 
           bannerImage: b.bannerImage,
           content: typeof b.content === 'string' ? b.content.split('\n\n') : b.content,
           galleryImages: b.galleryImages || [],
+          quoteText: b.quoteText,
+          quoteAuthor: b.quoteAuthor,
         };
       }
     }

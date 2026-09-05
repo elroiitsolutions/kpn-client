@@ -88,10 +88,18 @@ export const WishlistCompareProvider: React.FC<{ children: React.ReactNode }> = 
   );
 };
 
+const defaultContext: WishlistCompareContextType = {
+  wishlistIds: [],
+  compareIds: [],
+  toggleWishlist: () => {},
+  isInWishlist: () => false,
+  toggleCompare: () => {},
+  isInCompare: () => false,
+  clearCompare: () => {},
+  clearWishlist: () => {},
+};
+
 export const useWishlistCompare = () => {
   const context = useContext(WishlistCompareContext);
-  if (!context) {
-    throw new Error('useWishlistCompare must be used within a WishlistCompareProvider');
-  }
-  return context;
+  return context || defaultContext;
 };

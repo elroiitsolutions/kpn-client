@@ -6,10 +6,12 @@ import Navbar from '@/components/layout/Navbar';
 import InnerPageHero from '@/components/sections/InnerPageHero';
 import { projectsData, ProjectItem } from '@/data/siteData';
 import { getProjects } from '@/lib/cmsClient';
-import { MapPin, ChevronDown } from 'lucide-react';
+import { MapPin, ChevronDown, Heart, Scale } from 'lucide-react';
 import FadeIn from '@/components/animation/FadeIn';
+import { useWishlistCompare } from '@/context/WishlistCompareContext';
 
 export default function ProjectsPage() {
+  const { toggleWishlist, isInWishlist, toggleCompare, isInCompare } = useWishlistCompare();
   const [allProjects, setAllProjects] = useState<ProjectItem[]>(projectsData);
 
   useEffect(() => {
@@ -22,19 +24,7 @@ export default function ProjectsPage() {
     loadDynamic();
   }, []);
 
-  // Category tabs state: 'All' | 'Apartments' | 'Plots'
-import { useState, useMemo } from 'react';
-import Link from 'next/link';
-import Navbar from '@/components/layout/Navbar';
-import InnerPageHero from '@/components/sections/InnerPageHero';
-import { projectsData } from '@/data/siteData';
-import { MapPin, ChevronDown, Heart, Scale } from 'lucide-react';
-import FadeIn from '@/components/animation/FadeIn';
-import { useWishlistCompare } from '@/context/WishlistCompareContext';
-
-export default function ProjectsPage() {
-  const { toggleWishlist, isInWishlist, toggleCompare, isInCompare } = useWishlistCompare();
-  // Category tabs state: 'All' | 'Apartments' | 'Plots'"
+  // Category tabs state: 'All' | 'Apartments' | 'Plots' | 'Commercial' | 'Industrial' | 'Villas'
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
   // Pagination state
@@ -120,8 +110,6 @@ export default function ProjectsPage() {
               CATEGORY TOGGLE TABS (APARTMENTS & PLOTS)
           ========================================================= */}
           <FadeIn direction="up" className="mb-12 flex flex-wrap items-center justify-between gap-6 border-b border-slate-100 pb-8">
-            <div className="flex items-center gap-3">
-              {['All', 'Apartments', 'Plots'].map((cat) => (
             <div className="flex flex-wrap items-center gap-3">
               {['All', 'Apartments', 'Plots', 'Commercial', 'Industrial', 'Villas'].map((cat) => (
                 <button
@@ -142,10 +130,6 @@ export default function ProjectsPage() {
                       ? 'bg-[#f12131] text-white shadow-md scale-105'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900'
                   }`}
-                  className={`h-12 px-7 rounded-full text-sm font-extrabold transition-all duration-300 ${selectedCategory === cat
-                      ? 'bg-[#f12131] text-white shadow-md scale-105'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900'
-                    }`}
                 >
                   {cat === 'All' ? 'All Projects' : cat}
                 </button>
@@ -322,8 +306,6 @@ export default function ProjectsPage() {
                           lg:p-10
                         "
                       >
-                        {/* TOP BADGE */}
-                        <div>
                         {/* TOP BADGE & ACTION BUTTONS */}
                         <div className="flex items-center justify-between">
                           <span
@@ -471,10 +453,6 @@ export default function ProjectsPage() {
                           ? 'bg-[#f12131] text-white scale-105'
                           : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
                       }`}
-                      className={`flex h-11 w-11 items-center justify-center rounded-full text-sm font-extrabold shadow-md transition-all ${currentPage === page
-                          ? 'bg-[#f12131] text-white scale-105'
-                          : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-                        }`}
                     >
                       {page}
                     </button>
@@ -598,5 +576,4 @@ export default function ProjectsPage() {
       </section>
     </>
   );
-}
 }

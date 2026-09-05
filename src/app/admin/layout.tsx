@@ -15,7 +15,9 @@ export default function AdminLayout({
 }) {
   return (
     <AuthProvider>
-      <AdminShell>{children}</AdminShell>
+      <div className="font-sans antialiased text-slate-800 bg-[#f8fafc] min-h-screen">
+        <AdminShell>{children}</AdminShell>
+      </div>
     </AuthProvider>
   );
 }

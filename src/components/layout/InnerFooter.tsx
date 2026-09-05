@@ -1,11 +1,76 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import FadeIn from '../animation/FadeIn';
 import StaggerContainer from '../animation/StaggerContainer';
 import StaggerItem from '../animation/StaggerItem';
+import { getFooter } from '@/lib/cmsClient';
 
-export default function Footer() {
+const DEFAULT_FOOTER = {
+  phone: '+91 7338834233',
+  email: 'kpnsalesteam@gmail.com',
+  companyDescription: 'We are creators of transformative spaces that inspire, innovate, and endure.',
+  copyright: '© 2026 KPN Promoters Pvt Ltd. All Rights Reserved.',
+  socialLinks: {
+    facebook: 'https://www.facebook.com/kpnpromoters.in',
+    instagram: 'https://www.instagram.com/kpnpromotersofficial/',
+    youtube: 'https://www.youtube.com/@KPNPROMOTERSPVTLTD',
+    linkedin: 'https://x.com/PromotersKpn',
+  },
+  quickLinks: [
+    { label: 'About Us', href: '/about-us' },
+    { label: 'Why Choose Us', href: '/why-choose-us' },
+    { label: 'Our Team', href: '/our-team' },
+    { label: 'Solutions', href: '/our-solutions' },
+    { label: 'Partners', href: '/partners' },
+    { label: 'Core Values', href: '/core-values' },
+  ],
+  importantLinks: [
+    { label: 'Our Projects', href: '/projects' },
+    { label: 'News & Updates', href: '/blogs' },
+    { label: 'Terms & Conditions', href: '/terms' },
+    { label: 'Support Center', href: '/support' },
+    { label: 'Contact', href: '/contact-us' },
+  ],
+};
+
+export default function InnerFooter() {
+  const [data, setData] = useState(DEFAULT_FOOTER);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadCMSFooter() {
+      try {
+        const cmsData = await getFooter();
+        if (isMounted && cmsData) {
+          setData({
+            phone: cmsData.phone || DEFAULT_FOOTER.phone,
+            email: cmsData.email || DEFAULT_FOOTER.email,
+            companyDescription: cmsData.companyDescription || DEFAULT_FOOTER.companyDescription,
+            copyright: cmsData.copyright || DEFAULT_FOOTER.copyright,
+            socialLinks: {
+              ...DEFAULT_FOOTER.socialLinks,
+              ...(cmsData.socialLinks || {}),
+            },
+            quickLinks: cmsData.quickLinks && cmsData.quickLinks.length > 0
+              ? cmsData.quickLinks
+              : DEFAULT_FOOTER.quickLinks,
+            importantLinks: cmsData.importantLinks && cmsData.importantLinks.length > 0
+              ? cmsData.importantLinks
+              : DEFAULT_FOOTER.importantLinks,
+          });
+        }
+      } catch (err) {
+        console.warn('Could not load dynamic inner footer CMS, using default');
+      }
+    }
+    loadCMSFooter();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <section className="relative overflow-hidden -mt-16 sm:-mt-20 z-0">
 
@@ -71,8 +136,7 @@ export default function Footer() {
               </Link>
 
               <p className="mt-20 max-w-[350px] text-sm leading-relaxed text-slate-400">
-                We are creators of transformative spaces that inspire,
-                innovate, and endure.
+                {data.companyDescription}
               </p>
 
             </StaggerItem>
@@ -82,89 +146,28 @@ export default function Footer() {
             <StaggerItem className="grid grid-cols-2 gap-x-10 gap-y-6 py-10 lg:col-span-3 lg:px-10 lg:py-0">
 
               <div className="space-y-6">
-
-                <Link
-                  href="/about-us"
-                  className="block text-sm font-semibold text-slate-900 hover:text-rose-600 transition-colors"
-                >
-                  About Us
-                </Link>
-
-                <Link
-                  href="/why-choose-us"
-                  className="block text-sm font-semibold text-slate-900 hover:text-rose-600 transition-colors"
-                >
-                  Why Choose Us
-                </Link>
-
-                <Link
-                  href="/our-team"
-                  className="block text-sm font-semibold text-slate-900 hover:text-rose-600 transition-colors"
-                >
-                  Our Team
-                </Link>
-
-                <Link
-                  href="/our-solutions"
-                  className="block text-sm font-semibold text-slate-900 hover:text-rose-600 transition-colors"
-                >
-                  Solutions
-                </Link>
-
-                <Link
-                  href="/partners"
-                  className="block text-sm font-semibold text-slate-900 hover:text-rose-600 transition-colors"
-                >
-                  Partners
-                </Link>
-
-                <Link
-                  href="/core-values"
-                  className="block text-sm font-semibold text-slate-900 hover:text-rose-600 transition-colors"
-                >
-                  Core Values
-                </Link>
-
+                {data.quickLinks.map((link: any, idx: number) => (
+                  <Link
+                    key={idx}
+                    href={link.href || '#'}
+                    className="block text-sm font-semibold text-slate-900 hover:text-rose-600 transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
               </div>
 
 
               <div className="space-y-6">
-
-                <Link
-                  href="/projects"
-                  className="block text-sm font-semibold text-slate-900 hover:text-rose-600 transition-colors"
-                >
-                  Our Projects
-                </Link>
-
-                <Link
-                  href="/blogs"
-                  className="block text-sm font-semibold text-slate-900 hover:text-rose-600 transition-colors"
-                >
-                  News & Updates
-                </Link>
-
-                <Link
-                  href="/terms"
-                  className="block text-sm font-semibold text-slate-900 hover:text-rose-600 transition-colors"
-                >
-                  Terms & Conditions
-                </Link>
-
-                <Link
-                  href="/support"
-                  className="block text-sm font-semibold text-slate-900 hover:text-rose-600 transition-colors"
-                >
-                  Support Center
-                </Link>
-
-                <Link
-                  href="/contact-us"
-                  className="block text-sm font-semibold text-slate-900 hover:text-rose-600 transition-colors"
-                >
-                  Contact
-                </Link>
-
+                {data.importantLinks.map((link: any, idx: number) => (
+                  <Link
+                    key={idx}
+                    href={link.href || '#'}
+                    className="block text-sm font-semibold text-slate-900 hover:text-rose-600 transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
               </div>
 
             </StaggerItem>
@@ -174,42 +177,53 @@ export default function Footer() {
             <StaggerItem className="lg:col-span-5 lg:border-l lg:border-slate-200 lg:pl-10">
 
               <a
-                href="tel:+917338834233"
+                href={`tel:${data.phone.replace(/[^0-9+]/g, '')}`}
                 className="block w-fit border-b border-rose-500 pb-1 text-xl font-bold text-slate-900 sm:text-2xl hover:opacity-80 transition-opacity"
               >
-                +91 7338834233
+                {data.phone}
               </a>
 
               <a
-                href="mailto:kpnsalesteam@gmail.com"
+                href={`mailto:${data.email}`}
                 className="mt-5 block w-fit border-b border-rose-500 pb-1 text-xl font-bold text-slate-900 sm:text-2xl hover:opacity-80 transition-opacity"
               >
-                kpnsalesteam@gmail.com
+                {data.email}
               </a>
 
               <div className="mt-28 flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-400">
 
-                <Link href="https://www.facebook.com/kpnpromoters.in" className="hover:text-rose-600 transition-colors">
-                  Facebook
-                </Link>
+                {data.socialLinks?.facebook && (
+                  <Link href={data.socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="hover:text-rose-600 transition-colors">
+                    Facebook
+                  </Link>
+                )}
 
-                <span>·</span>
+                {data.socialLinks?.instagram && (
+                  <>
+                    <span>·</span>
+                    <Link href={data.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-rose-600 transition-colors">
+                      Instagram
+                    </Link>
+                  </>
+                )}
 
-                <Link href="https://www.instagram.com/kpnpromotersofficial/" className="hover:text-rose-600 transition-colors">
-                  Instagram
-                </Link>
+                {data.socialLinks?.youtube && (
+                  <>
+                    <span>·</span>
+                    <Link href={data.socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="hover:text-rose-600 transition-colors">
+                      Youtube
+                    </Link>
+                  </>
+                )}
 
-                <span>·</span>
-
-                <Link href="https://www.youtube.com/@KPNPROMOTERSPVTLTD" className="hover:text-rose-600 transition-colors">
-                  Youtube
-                </Link>
-
-                <span>·</span>
-
-                <Link href="https://x.com/PromotersKpn" className="hover:text-rose-600 transition-colors">
-                  Twitter
-                </Link>
+                {(data.socialLinks?.linkedin || (data.socialLinks as any)?.twitter) && (
+                  <>
+                    <span>·</span>
+                    <Link href={data.socialLinks?.linkedin || (data.socialLinks as any)?.twitter} target="_blank" rel="noopener noreferrer" className="hover:text-rose-600 transition-colors">
+                      Twitter
+                    </Link>
+                  </>
+                )}
 
               </div>
 
@@ -228,7 +242,7 @@ export default function Footer() {
           <div className="pt-6">
 
             <p className="text-xs text-slate-400">
-              © 2026 KPN Promoters Pvt Ltd. All Rights Reserved.
+              {data.copyright}
             </p>
 
           </div>

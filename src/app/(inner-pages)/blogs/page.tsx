@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import InnerPageHero from '@/components/sections/InnerPageHero';
 import { blogData, BlogPostItem } from '@/data/siteData';
-import { getStrapiArticles, getStrapiCategories } from '@/lib/strapi';
+import { getBlogs } from '@/lib/cmsClient';
 import FadeIn from '@/components/animation/FadeIn';
 import StaggerContainer from '@/components/animation/StaggerContainer';
 import StaggerItem from '@/components/animation/StaggerItem';
@@ -22,23 +22,23 @@ export default function BlogsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All Posts');
 
   useEffect(() => {
-    async function loadStrapiData() {
+    async function loadCMSBlogs() {
       try {
-        const [fetchedPosts, fetchedCategories] = await Promise.all([
-          getStrapiArticles(),
-          getStrapiCategories(),
-        ]);
+        const fetchedPosts = await getBlogs();
         if (fetchedPosts && fetchedPosts.length > 0) {
           setPosts(fetchedPosts);
-        }
-        if (fetchedCategories && fetchedCategories.length > 0) {
-          setCategories(fetchedCategories);
+          const uniqueCats = Array.from(
+            new Set(fetchedPosts.map((p) => p.category).filter(Boolean))
+          );
+          if (uniqueCats.length > 0) {
+            setCategories(['All Posts', ...uniqueCats]);
+          }
         }
       } catch (err) {
         console.warn('Using local blog data fallback:', err);
       }
     }
-    loadStrapiData();
+    loadCMSBlogs();
   }, []);
 
   const filteredPosts = useMemo(() => {

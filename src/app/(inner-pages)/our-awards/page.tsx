@@ -1,15 +1,32 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import InnerPageHero from '@/components/sections/InnerPageHero';
 import TestimonialsSection from '@/components/sections/TestimonialsSection';
-import { awardsData } from '@/data/siteData';
+import { awardsData, AwardItem } from '@/data/siteData';
+import { getAwards } from '@/lib/cmsClient';
 import RunningPillBadge from '@/components/ui/RunningPillBadge';
 import FadeIn from '@/components/animation/FadeIn';
 import StaggerContainer from '@/components/animation/StaggerContainer';
 import StaggerItem from '@/components/animation/StaggerItem';
 
 export default function OurAwardsPage() {
+  const [awards, setAwards] = useState<AwardItem[]>(awardsData);
+
+  useEffect(() => {
+    async function loadAwards() {
+      try {
+        const fetched = await getAwards();
+        if (fetched && fetched.length > 0) {
+          setAwards(fetched);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch awards, using fallback');
+      }
+    }
+    loadAwards();
+  }, []);
   return (
     <>
       <Navbar variant="hero" />
@@ -78,7 +95,7 @@ export default function OurAwardsPage() {
           ====================================================== */}
           <StaggerContainer staggerDelay={0.08} className="awards-grid mt-20 lg:mt-24">
 
-            {(awardsData || []).map((award) => (
+            {(awards || []).map((award) => (
               <StaggerItem key={award.id}>
               <article
                 className="

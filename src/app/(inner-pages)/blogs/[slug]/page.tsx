@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import InnerPageHero from '@/components/sections/InnerPageHero';
 import { blogData, BlogPostItem } from '@/data/siteData';
-import { getStrapiArticleBySlug, getStrapiArticles } from '@/lib/strapi';
+import { getBlogBySlug, getBlogs } from '@/lib/cmsClient';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import FadeIn from '@/components/animation/FadeIn';
 import ImageReveal from '@/components/animation/ImageReveal';
@@ -30,8 +30,8 @@ export default function BlogDetailPage({ params }: PageProps) {
     async function loadPost() {
       try {
         const [fetchedPost, fetchedList] = await Promise.all([
-          getStrapiArticleBySlug(slug),
-          getStrapiArticles(),
+          getBlogBySlug(slug),
+          getBlogs(),
         ]);
         if (fetchedPost) {
           setPost(fetchedPost);
@@ -105,28 +105,46 @@ export default function BlogDetailPage({ params }: PageProps) {
             )}
 
             {/* 2-Column Side-by-Side Image Gallery */}
-            {post.galleryImages && post.galleryImages.length > 0 && (
+            {((post.galleryImages && post.galleryImages.length > 0) || true) && (
               <div className="my-12 grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="overflow-hidden rounded-[28px] border border-slate-100 shadow-md">
                   <img
-                    src={post.galleryImages[0]}
-                    alt="Gallery 1"
+                    src={
+                      post.galleryImages?.[0] ||
+                      '/images/projects/project_1.jpg'
+                    }
+                    alt="Article Gallery 1"
                     className="h-[320px] w-full object-cover transition-transform duration-500 hover:scale-105"
                   />
                 </div>
 
                 <div className="overflow-hidden rounded-[28px] border border-slate-100 shadow-md">
                   <img
-                    src={post.galleryImages[1] || post.galleryImages[0]}
-                    alt="Gallery 2"
+                    src={
+                      post.galleryImages?.[1] ||
+                      '/images/projects/project_2.jpg'
+                    }
+                    alt="Article Gallery 2"
                     className="h-[320px] w-full object-cover transition-transform duration-500 hover:scale-105"
                   />
                 </div>
               </div>
             )}
 
+            {post.content && post.content[1] && (
+              <p>{post.content[1]}</p>
+            )}
+
+            {/* Stylized Blockquote Quote Block */}
+            <blockquote className="my-10 border-l-4 border-[#f12131] bg-slate-50/80 p-8 rounded-r-3xl italic text-xl font-bold text-slate-800 shadow-xs leading-relaxed">
+              <p>“{post.quoteText || 'Investing in real estate is more than just acquiring property; it is about establishing a lasting legacy of security and peace of mind for your family.'}”</p>
+              <cite className="block mt-4 not-italic text-sm font-black uppercase tracking-widest text-[#29247c]">
+                — {post.quoteAuthor || 'KPN Editorial Team'}
+              </cite>
+            </blockquote>
+
             {/* Remaining Paragraphs */}
-            {post.content && post.content.slice(1).map((para, i) => (
+            {post.content && post.content.slice(2).map((para, i) => (
               <p key={i}>{para}</p>
             ))}
           </FadeIn>

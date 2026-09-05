@@ -59,11 +59,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initAuth();
   }, []);
 
-  // Protected route guard
+  // Protected route guard & login redirect
   useEffect(() => {
-    if (!isLoading && pathname?.startsWith('/admin') && pathname !== '/admin/login') {
-      if (!token) {
+    if (!isLoading) {
+      if (pathname?.startsWith('/admin') && pathname !== '/admin/login' && !token) {
         router.push('/admin/login');
+      } else if (pathname === '/admin/login' && token) {
+        router.push('/admin');
       }
     }
   }, [isLoading, token, pathname, router]);

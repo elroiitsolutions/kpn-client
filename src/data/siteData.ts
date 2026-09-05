@@ -464,6 +464,8 @@ export interface BlogPostItem {
   excerpt: string;
   content: string[];
   galleryImages?: string[];
+  quoteText?: string;
+  quoteAuthor?: string;
 }
 
 export const blogData: BlogPostItem[] = [

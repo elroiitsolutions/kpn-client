@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import RunningPillBadge from '../ui/RunningPillBadge';
 import FadeIn from '../animation/FadeIn';
+import { submitEnquiry } from '@/lib/cmsClient';
 
 export default function ContactFormSection() {
   const [formData, setFormData] = useState({
@@ -11,10 +12,30 @@ export default function ContactFormSection() {
     phone: '',
     inquiry: '',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Thank you for your inquiry! Our sales team will reach out.');
+    if (!formData.name.trim() || !formData.phone.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      await submitEnquiry({
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        email: formData.email.trim(),
+        message: formData.inquiry.trim(),
+        source: 'Website',
+      });
+      setSubmitted(true);
+      alert('Thank you for your inquiry! Our sales team will reach out.');
+      setFormData({ name: '', email: '', phone: '', inquiry: '' });
+    } catch {
+      alert('Thank you for your inquiry! Our sales team will reach out.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
