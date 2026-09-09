@@ -223,6 +223,7 @@ export default function KpnChatbot() {
             <button
               onClick={() => setShowNotification(false)}
               className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 text-slate-600 hover:bg-slate-300"
+              suppressHydrationWarning
             >
               <X className="h-3 w-3" />
             </button>
@@ -243,6 +244,7 @@ export default function KpnChatbot() {
                 setIsOpen(true);
               }}
               className="mt-2.5 w-full rounded-full bg-[#f12131] py-1 text-center text-[11px] font-bold text-white shadow-sm hover:bg-[#d01927]"
+              suppressHydrationWarning
             >
               Chat Now
             </button>
@@ -254,6 +256,7 @@ export default function KpnChatbot() {
           onClick={() => setIsOpen(!isOpen)}
           aria-label="Open KPN AI Chatbot"
           className="group relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-tr from-[#29247c] to-[#3f38aa] text-white shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_30px_rgb(41,36,124,0.4)] active:scale-95"
+          suppressHydrationWarning
         >
           {/* Subtle pulse wave */}
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#29247c] opacity-25 duration-1000 pointer-events-none" />

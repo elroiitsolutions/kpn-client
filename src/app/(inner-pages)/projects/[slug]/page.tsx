@@ -51,16 +51,19 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
   const resolvedParams = use(params);
   const slug = resolvedParams.slug.toLowerCase();
 
-  // Category slug check ('apartments' or 'plots')
-  const isCategory = slug === 'apartments' || slug === 'plots';
+  // Category slug check ('apartments' | 'plots' | 'villas')
+  const isCategory = slug === 'apartments' || slug === 'plots' || slug === 'villas';
   const categoryName =
-    slug === 'apartments' ? 'Apartments' : slug === 'plots' ? 'Plots' : '';
+    slug === 'apartments' ? 'Apartments' : slug === 'plots' ? 'Plots' : slug === 'villas' ? 'Villas' : '';
 
   // Current project lookup
   const projectIndex = projectsData.findIndex((p) => p.slug === slug);
-  const [project, setProject] = useState<any>(
-    projectIndex !== -1 ? projectsData[projectIndex] : projectsData[0]
-  );
+  const currentLocalProject = projectIndex !== -1 ? projectsData[projectIndex] : projectsData[0];
+  const [project, setProject] = useState<any>(currentLocalProject);
+
+  useEffect(() => {
+    setProject(currentLocalProject);
+  }, [slug]);
 
   useEffect(() => {
     let isMounted = true;
@@ -68,7 +71,11 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
       try {
         const live = await getProjectBySlug(slug);
         if (isMounted && live) {
-          setProject((prev: any) => ({ ...prev, ...live }));
+          setProject((prev: any) => ({
+            ...prev,
+            ...live,
+            brochureUrl: live.brochureUrl || prev?.brochureUrl || projectsData[projectIndex]?.brochureUrl,
+          }));
         }
       } catch (err) {
         console.warn('Could not load dynamic project from CMS');
@@ -78,7 +85,7 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
     return () => {
       isMounted = false;
     };
-  }, [slug]);
+  }, [slug, projectIndex]);
 
   // Previous and Next navigation
   const prevProject =
@@ -403,7 +410,7 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
         <section className="bg-white px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
           <div className="mx-auto max-w-[1500px]">
             {/* Category Tabs */}
-            <div className="mb-12 flex items-center gap-3 border-b border-slate-100 pb-8">
+            <div className="mb-12 flex flex-wrap items-center gap-3 border-b border-slate-100 pb-8">
               <Link
                 href="/projects"
                 className="flex h-12 items-center justify-center rounded-full bg-slate-100 px-7 text-sm font-extrabold text-slate-700 transition-all hover:bg-slate-200"
@@ -429,6 +436,16 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                 }`}
               >
                 Plots
+              </Link>
+              <Link
+                href="/projects/villas"
+                className={`flex h-12 items-center justify-center rounded-full px-7 text-sm font-extrabold transition-all ${
+                  slug === 'villas'
+                    ? 'bg-[#f12131] text-white shadow-md'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                Villas
               </Link>
             </div>
 
@@ -732,12 +749,20 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
               </h2>
 
               {project.brochureUrl && (
-                <a
-                  href={project.brochureUrl}
-                  download
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group inline-flex items-center gap-3 rounded-full bg-[#f12131] px-6 py-3.5 text-white shadow-md transition-all duration-300 hover:bg-red-600 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+                <button
+                  type="button"
+                  suppressHydrationWarning
+                  onClick={() => {
+                    window.dispatchEvent(
+                      new CustomEvent('kpn_open_brochure_modal', {
+                        detail: {
+                          brochureUrl: project.brochureUrl,
+                          projectName: project.name,
+                        },
+                      })
+                    );
+                  }}
+                  className="group inline-flex items-center gap-3 rounded-full bg-[#f12131] px-6 py-3.5 text-white shadow-md transition-all duration-300 hover:bg-red-600 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                 >
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-colors">
                     <FileText className="h-4 w-4" />
@@ -746,7 +771,7 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                   <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-white transition-colors">
                     <Download className="h-3.5 w-3.5" />
                   </div>
-                </a>
+                </button>
               )}
             </div>
 
