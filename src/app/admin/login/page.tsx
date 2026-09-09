@@ -127,6 +127,7 @@ export default function AdminLoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your Email"
+                  suppressHydrationWarning
                   className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/60 pl-11 pr-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none transition hover:border-slate-300 focus:border-[#29247c] focus:bg-white focus:ring-4 focus:ring-[#29247c]/10"
                 />
               </div>
@@ -150,6 +151,7 @@ export default function AdminLoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
+                  suppressHydrationWarning
                   className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/60 pl-11 pr-12 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none transition hover:border-slate-300 focus:border-[#29247c] focus:bg-white focus:ring-4 focus:ring-[#29247c]/10"
                 />
                 {/* Eye toggle button */}
@@ -157,6 +159,7 @@ export default function AdminLoginPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  suppressHydrationWarning
                   className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
                 >
                   {showPassword ? (
@@ -172,6 +175,7 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
+              suppressHydrationWarning
               className="group flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#f12131] text-sm font-bold text-white shadow-lg shadow-red-500/25 transition-all hover:bg-[#d81928] hover:shadow-xl hover:shadow-red-500/30 active:scale-[0.99] disabled:opacity-60 cursor-pointer"
             >
               {isSubmitting ? (

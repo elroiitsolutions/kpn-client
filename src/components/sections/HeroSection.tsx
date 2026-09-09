@@ -7,7 +7,7 @@ import Navbar from '@/components/layout/Navbar';
 
 export default function HeroSection() {
   return (
-    <section className="relative min-h-[100vh] w-full overflow-hidden bg-slate-800">
+    <section id="main-content" className="relative min-h-[100vh] w-full overflow-hidden bg-slate-800">
       <video
         autoPlay
         loop
