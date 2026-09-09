@@ -19,6 +19,7 @@ import {
   Settings,
   LogOut,
   PlusCircle,
+  PartyPopper,
 } from 'lucide-react';
 
 import {
@@ -55,6 +56,7 @@ const navigationItems = [
     title: 'Content & Media',
     items: [
       { title: 'Blogs', url: '/admin/blogs', icon: FileText },
+      { title: 'Celebrations', url: '/admin/celebrations', icon: PartyPopper },
       // { title: 'Media Library', url: '/admin/media', icon: ImageIcon },
       { title: 'Awards', url: '/admin/awards', icon: Trophy },
       { title: 'Testimonials', url: '/admin/testimonials', icon: MessageSquareQuote },

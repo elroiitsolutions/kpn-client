@@ -14,12 +14,15 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
+import ConfirmModal from '@/components/admin/ConfirmModal';
 
 export default function AdminAwardsPage() {
   const [awards, setAwards] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -102,15 +105,19 @@ export default function AdminAwardsPage() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this award?')) return;
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
     try {
-      const res = await api.delete(`/awards/${id}`);
+      const res = await api.delete(`/awards/${deleteTarget.id}`);
       if (res.success) {
-        setAwards((prev) => prev.filter((a) => a._id !== id));
+        setAwards((prev) => prev.filter((a) => a._id !== deleteTarget.id));
+        setDeleteTarget(null);
       }
     } catch (err: any) {
       alert(err.message || 'Failed to delete award');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -201,8 +208,9 @@ export default function AdminAwardsPage() {
                     <Edit className="h-3.5 w-3.5" />
                   </button>
                   <button
-                    onClick={() => handleDelete(award._id)}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 text-red-600 hover:bg-red-50"
+                    onClick={() => setDeleteTarget({ id: award._id, title: award.title })}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                    title="Delete Award"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -318,6 +326,18 @@ export default function AdminAwardsPage() {
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        title="Delete Award?"
+        itemName={deleteTarget?.title}
+        message="Are you sure you want to delete this award? This action cannot be undone and will permanently remove it from the website."
+        confirmText="Delete Award"
+        isLoading={isDeleting}
+        onConfirm={confirmDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

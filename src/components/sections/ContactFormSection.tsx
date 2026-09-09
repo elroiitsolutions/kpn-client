@@ -4,6 +4,13 @@ import { useState } from 'react';
 import RunningPillBadge from '../ui/RunningPillBadge';
 import FadeIn from '../animation/FadeIn';
 import { submitEnquiry } from '@/lib/cmsClient';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
 export default function ContactFormSection() {
   const [formData, setFormData] = useState({
@@ -118,41 +125,30 @@ export default function ContactFormSection() {
                       suppressHydrationWarning
                       className="w-full rounded-full border border-slate-100 bg-slate-50/80 px-6 py-4 text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-400/60 focus:border-transparent transition-all"
                     />
-                    <div className="relative">
-                      <select
-                        value={formData.inquiry}
-                        onChange={(e) =>
-                          setFormData({ ...formData, inquiry: e.target.value })
-                        }
-                        suppressHydrationWarning
-                        className="w-full rounded-full border border-slate-100 bg-slate-50/80 px-6 py-4 text-sm text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-400/60 focus:border-transparent transition-all appearance-none cursor-pointer"
-                      >
-                        <option value="" disabled>
-                          You inquiry about...
-                        </option>
-                        <option value="residential" className="text-slate-800">
+                    <Select
+                      value={formData.inquiry}
+                      onValueChange={(val) =>
+                        setFormData({ ...formData, inquiry: val })
+                      }
+                    >
+                      <SelectTrigger className="w-full h-[54px] rounded-full border border-slate-100 bg-slate-50/80 px-6 text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-400/60 focus:border-transparent transition-all shadow-none cursor-pointer">
+                        <SelectValue placeholder="You inquiry about..." />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl border border-slate-100 bg-white p-2 shadow-2xl">
+                        <SelectItem value="residential" className="rounded-xl font-semibold py-2.5 text-slate-700">
                           Residential Property
-                        </option>
-                        <option value="commercial" className="text-slate-800">
+                        </SelectItem>
+                        <SelectItem value="commercial" className="rounded-xl font-semibold py-2.5 text-slate-700">
                           Commercial Property
-                        </option>
-                        <option value="jv" className="text-slate-800">
+                        </SelectItem>
+                        <SelectItem value="jv" className="rounded-xl font-semibold py-2.5 text-slate-700">
                           Our Venture
-                        </option>
-                        <option value="other" className="text-slate-800">
+                        </SelectItem>
+                        <SelectItem value="other" className="rounded-xl font-semibold py-2.5 text-slate-700">
                           General Inquiry
-                        </option>
-                      </select>
-                      {/* Dropdown Arrow */}
-                      <div className="pointer-events-none absolute inset-y-0 right-6 flex items-center text-slate-400">
-                        <svg
-                          className="fill-current h-4 w-4"
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M5.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.576 0 0.436 0.445 0.408 1.197 0 1.615l-4.695 4.502c-0.218 0.209-0.509 0.314-0.79 0.314s-0.572-0.105-0.79-0.314l-4.695-4.502c-0.408-0.418-0.436-1.17 0-1.615z" />
-                        </svg>
-                      </div>
-                    </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Bottom Actions Row */}

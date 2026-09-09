@@ -11,6 +11,13 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { api } from '@/lib/api';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface UnitsPageProps {
   params: Promise<{ id: string }>;
@@ -112,7 +119,7 @@ export default function ProjectUnitsManagerPage({ params }: UnitsPageProps) {
   }
 
   return (
-    <div className="space-y-8 font-sans max-w-5xl">
+    <div className="space-y-8 font-sans max-w-5xl mx-auto w-full">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
@@ -143,17 +150,18 @@ export default function ProjectUnitsManagerPage({ params }: UnitsPageProps) {
             <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-heading mb-1">
               Switch Project:
             </label>
-            <select
-              value={id}
-              onChange={(e) => handleProjectSwitch(e.target.value)}
-              className="h-10 rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 outline-none hover:border-slate-300 focus:ring-2 focus:ring-[#f12131]/20 transition-all cursor-pointer"
-            >
-              {allProjects.map((p) => (
-                <option key={p._id} value={p._id}>
-                  {p.name} ({p.propertyType})
-                </option>
-              ))}
-            </select>
+            <Select value={id} onValueChange={(val) => handleProjectSwitch(val)}>
+              <SelectTrigger className="h-10 min-w-[220px] rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 outline-none hover:border-slate-300 focus:ring-2 focus:ring-[#f12131]/20 transition-all cursor-pointer shadow-none">
+                <SelectValue placeholder="Switch Project" />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl border border-slate-100 bg-white p-1.5 shadow-xl max-h-72">
+                {allProjects.map((p) => (
+                  <SelectItem key={p._id} value={p._id} className="text-xs font-bold py-2">
+                    {p.name} ({p.propertyType})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <Link

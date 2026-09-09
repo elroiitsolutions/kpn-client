@@ -9,6 +9,13 @@ import { getProjects } from '@/lib/cmsClient';
 import { MapPin, ChevronDown, Heart, Scale } from 'lucide-react';
 import FadeIn from '@/components/animation/FadeIn';
 import { useWishlistCompare } from '@/context/WishlistCompareContext';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
 export default function ProjectsPage() {
   const { toggleWishlist, isInWishlist, toggleCompare, isInCompare } = useWishlistCompare();
@@ -484,80 +491,83 @@ export default function ProjectsPage() {
 
                 <form onSubmit={handleSearch} className="space-y-4">
                   {/* Status Dropdown */}
-                  <div className="relative">
-                    <select
-                      value={filters.status}
-                      onChange={(e) =>
-                        setFilters({ ...filters, status: e.target.value })
-                      }
-                      className="h-14 w-full appearance-none rounded-full border border-slate-200 bg-white px-7 text-sm font-bold text-slate-700 outline-none transition focus:border-[#f12131] focus:ring-2 focus:ring-[#f12131]/20 cursor-pointer"
-                    >
-                      <option value="All">Project Status</option>
-                      <option value="Ongoing">Ongoing</option>
-                      <option value="Completed">Completed</option>
-                      <option value="Upcoming">Upcoming</option>
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-6 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                  </div>
+                  <Select
+                    value={filters.status}
+                    onValueChange={(val) =>
+                      setFilters({ ...filters, status: val })
+                    }
+                  >
+                    <SelectTrigger className="h-14 w-full rounded-full border border-slate-200 bg-white px-7 text-sm font-bold text-slate-700 outline-none transition focus:border-[#f12131] focus:ring-2 focus:ring-[#f12131]/20 shadow-none cursor-pointer">
+                      <SelectValue placeholder="Project Status" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl border border-slate-100 bg-white p-2 shadow-2xl">
+                      <SelectItem value="All" className="rounded-xl font-bold py-3 text-slate-700">Project Status</SelectItem>
+                      <SelectItem value="Ongoing" className="rounded-xl font-bold py-3 text-slate-700">Ongoing</SelectItem>
+                      <SelectItem value="Completed" className="rounded-xl font-bold py-3 text-slate-700">Completed</SelectItem>
+                      <SelectItem value="Upcoming" className="rounded-xl font-bold py-3 text-slate-700">Upcoming</SelectItem>
+                    </SelectContent>
+                  </Select>
 
                   {/* Type Dropdown */}
-                  <div className="relative">
-                    <select
-                      value={filters.type}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setFilters({ ...filters, type: val });
-                        if (val === 'Apartments' || val === 'Plots') {
-                          setSelectedCategory(val);
-                        } else {
-                          setSelectedCategory('All');
-                        }
-                      }}
-                      className="h-14 w-full appearance-none rounded-full border border-slate-200 bg-white px-7 text-sm font-bold text-slate-700 outline-none transition focus:border-[#f12131] focus:ring-2 focus:ring-[#f12131]/20 cursor-pointer"
-                    >
-                      <option value="All">Project Type</option>
-                      <option value="Apartments">Apartments</option>
-                      <option value="Plots">Plots</option>
-                      <option value="Commercial">Commercial</option>
-                      <option value="Industrial">Industrial</option>
-                      <option value="Villas">Villas</option>
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-6 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                  </div>
+                  <Select
+                    value={filters.type}
+                    onValueChange={(val) => {
+                      setFilters({ ...filters, type: val });
+                      if (val === 'Apartments' || val === 'Plots') {
+                        setSelectedCategory(val);
+                      } else {
+                        setSelectedCategory('All');
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="h-14 w-full rounded-full border border-slate-200 bg-white px-7 text-sm font-bold text-slate-700 outline-none transition focus:border-[#f12131] focus:ring-2 focus:ring-[#f12131]/20 shadow-none cursor-pointer">
+                      <SelectValue placeholder="Project Type" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl border border-slate-100 bg-white p-2 shadow-2xl">
+                      <SelectItem value="All" className="rounded-xl font-bold py-3 text-slate-700">Project Type</SelectItem>
+                      <SelectItem value="Apartments" className="rounded-xl font-bold py-3 text-slate-700">Apartments</SelectItem>
+                      <SelectItem value="Plots" className="rounded-xl font-bold py-3 text-slate-700">Plots</SelectItem>
+                      <SelectItem value="Commercial" className="rounded-xl font-bold py-3 text-slate-700">Commercial</SelectItem>
+                      <SelectItem value="Industrial" className="rounded-xl font-bold py-3 text-slate-700">Industrial</SelectItem>
+                      <SelectItem value="Villas" className="rounded-xl font-bold py-3 text-slate-700">Villas</SelectItem>
+                    </SelectContent>
+                  </Select>
 
                   {/* Location Dropdown */}
-                  <div className="relative">
-                    <select
-                      value={filters.location}
-                      onChange={(e) =>
-                        setFilters({ ...filters, location: e.target.value })
-                      }
-                      className="h-14 w-full appearance-none rounded-full border border-slate-200 bg-white px-7 text-sm font-bold text-slate-700 outline-none transition focus:border-[#f12131] focus:ring-2 focus:ring-[#f12131]/20 cursor-pointer"
-                    >
-                      <option value="All">Project Location</option>
-                      <option value="Urapakkam">Urapakkam, Chennai</option>
-                      <option value="Guduvanchery">Guduvanchery, Chennai</option>
-                      <option value="Vandalur">Vandalur, Chennai</option>
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-6 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                  </div>
+                  <Select
+                    value={filters.location}
+                    onValueChange={(val) =>
+                      setFilters({ ...filters, location: val })
+                    }
+                  >
+                    <SelectTrigger className="h-14 w-full rounded-full border border-slate-200 bg-white px-7 text-sm font-bold text-slate-700 outline-none transition focus:border-[#f12131] focus:ring-2 focus:ring-[#f12131]/20 shadow-none cursor-pointer">
+                      <SelectValue placeholder="Project Location" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl border border-slate-100 bg-white p-2 shadow-2xl">
+                      <SelectItem value="All" className="rounded-xl font-bold py-3 text-slate-700">Project Location</SelectItem>
+                      <SelectItem value="Urapakkam" className="rounded-xl font-bold py-3 text-slate-700">Urapakkam, Chennai</SelectItem>
+                      <SelectItem value="Guduvanchery" className="rounded-xl font-bold py-3 text-slate-700">Guduvanchery, Chennai</SelectItem>
+                      <SelectItem value="Vandalur" className="rounded-xl font-bold py-3 text-slate-700">Vandalur, Chennai</SelectItem>
+                    </SelectContent>
+                  </Select>
 
                   {/* Budget Dropdown */}
-                  <div className="relative">
-                    <select
-                      value={filters.budget}
-                      onChange={(e) =>
-                        setFilters({ ...filters, budget: e.target.value })
-                      }
-                      className="h-14 w-full appearance-none rounded-full border border-slate-200 bg-white px-7 text-sm font-bold text-slate-700 outline-none transition focus:border-[#f12131] focus:ring-2 focus:ring-[#f12131]/20 cursor-pointer"
-                    >
-                      <option value="All">Project Budget</option>
-                      <option value="20L - 40L">20L - 40L</option>
-                      <option value="40L - 60L">40L - 60L</option>
-                      <option value="60L - 80L">60L - 80L</option>
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-6 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                  </div>
+                  <Select
+                    value={filters.budget}
+                    onValueChange={(val) =>
+                      setFilters({ ...filters, budget: val })
+                    }
+                  >
+                    <SelectTrigger className="h-14 w-full rounded-full border border-slate-200 bg-white px-7 text-sm font-bold text-slate-700 outline-none transition focus:border-[#f12131] focus:ring-2 focus:ring-[#f12131]/20 shadow-none cursor-pointer">
+                      <SelectValue placeholder="Project Budget" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl border border-slate-100 bg-white p-2 shadow-2xl">
+                      <SelectItem value="All" className="rounded-xl font-bold py-3 text-slate-700">Project Budget</SelectItem>
+                      <SelectItem value="20L - 40L" className="rounded-xl font-bold py-3 text-slate-700">20L - 40L</SelectItem>
+                      <SelectItem value="40L - 60L" className="rounded-xl font-bold py-3 text-slate-700">40L - 60L</SelectItem>
+                      <SelectItem value="60L - 80L" className="rounded-xl font-bold py-3 text-slate-700">60L - 80L</SelectItem>
+                    </SelectContent>
+                  </Select>
 
                   {/* Search Button */}
                   <button

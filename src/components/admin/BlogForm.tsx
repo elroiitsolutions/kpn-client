@@ -5,6 +5,13 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Save, Upload, Image as ImageIcon, Quote } from 'lucide-react';
 import { api } from '@/lib/api';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
 interface BlogFormProps {
   initialData?: any;
@@ -203,15 +210,19 @@ export default function BlogForm({ initialData, isEdit = false }: BlogFormProps)
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
               Status*
             </label>
-            <select
+            <Select
               value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50/70 px-3 text-xs font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#f12131]"
+              onValueChange={(val) => setFormData({ ...formData, status: val })}
             >
-              <option value="Published">Published</option>
-              <option value="Draft">Draft</option>
-              <option value="Archived">Archived</option>
-            </select>
+              <SelectTrigger className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50/70 px-3 text-xs font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#f12131] shadow-none cursor-pointer">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl">
+                <SelectItem value="Published" className="text-xs font-bold py-2">Published</SelectItem>
+                <SelectItem value="Draft" className="text-xs font-bold py-2">Draft</SelectItem>
+                <SelectItem value="Archived" className="text-xs font-bold py-2">Archived</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>

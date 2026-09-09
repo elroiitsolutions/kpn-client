@@ -277,8 +277,8 @@ export default function TestimonialsSection() {
             "
           >
             <img
-              src="/images/roundimg.jpg"
-              alt="Building"
+              src={testimonial.avatar || '/images/roundimg.jpg'}
+              alt={testimonial.author || 'Customer review'}
               className="h-full w-full object-cover"
             />
 

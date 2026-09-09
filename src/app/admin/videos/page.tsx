@@ -3,12 +3,22 @@
 import React, { useEffect, useState } from 'react';
 import { Video, Plus, Trash2, Edit, Play, X, ExternalLink } from 'lucide-react';
 import { api } from '@/lib/api';
+import ConfirmModal from '@/components/admin/ConfirmModal';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
 export default function AdminVideosPage() {
   const [videos, setVideos] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -70,15 +80,19 @@ export default function AdminVideosPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this video?')) return;
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
     try {
-      const res = await api.delete(`/videos/${id}`);
+      const res = await api.delete(`/videos/${deleteTarget.id}`);
       if (res.success) {
-        setVideos((prev) => prev.filter((v) => v._id !== id));
+        setVideos((prev) => prev.filter((v) => v._id !== deleteTarget.id));
+        setDeleteTarget(null);
       }
     } catch (err: any) {
       alert(err.message || 'Failed to delete');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -161,8 +175,9 @@ export default function AdminVideosPage() {
                 </a>
 
                 <button
-                  onClick={() => handleDelete(item._id)}
+                  onClick={() => setDeleteTarget({ id: item._id, title: item.title })}
                   className="text-slate-400 hover:text-red-600 transition-colors"
+                  title="Delete Video"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -207,16 +222,20 @@ export default function AdminVideosPage() {
                 <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
                   Associated Project
                 </label>
-                <select
-                  value={formData.project}
-                  onChange={(e) => setFormData({ ...formData, project: e.target.value })}
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold"
+                <Select
+                  value={formData.project || 'general'}
+                  onValueChange={(val) => setFormData({ ...formData, project: val === 'general' ? '' : val })}
                 >
-                  <option value="">General Video Tour</option>
-                  {projects.map((p) => (
-                    <option key={p._id} value={p._id}>{p.name}</option>
-                  ))}
-                </select>
+                  <SelectTrigger className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-800 shadow-none cursor-pointer">
+                    <SelectValue placeholder="General Video Tour" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl">
+                    <SelectItem value="general" className="text-xs font-bold py-2">General Video Tour</SelectItem>
+                    {projects.map((p) => (
+                      <SelectItem key={p._id} value={p._id} className="text-xs font-bold py-2">{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
@@ -238,29 +257,37 @@ export default function AdminVideosPage() {
                   <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
                     Platform Type
                   </label>
-                  <select
+                  <Select
                     value={formData.videoType}
-                    onChange={(e) => setFormData({ ...formData, videoType: e.target.value as any })}
-                    className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold"
+                    onValueChange={(val) => setFormData({ ...formData, videoType: val as any })}
                   >
-                    <option value="YouTube">YouTube</option>
-                    <option value="External">External / MP4</option>
-                    <option value="Cloudinary">Cloudinary</option>
-                  </select>
+                    <SelectTrigger className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-800 shadow-none cursor-pointer">
+                      <SelectValue placeholder="Platform" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl">
+                      <SelectItem value="YouTube" className="text-xs font-bold py-2">YouTube</SelectItem>
+                      <SelectItem value="External" className="text-xs font-bold py-2">External / MP4</SelectItem>
+                      <SelectItem value="Cloudinary" className="text-xs font-bold py-2">Cloudinary</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
                     Status
                   </label>
-                  <select
+                  <Select
                     value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                    className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold"
+                    onValueChange={(val) => setFormData({ ...formData, status: val as any })}
                   >
-                    <option value="Published">Published</option>
-                    <option value="Draft">Draft</option>
-                  </select>
+                    <SelectTrigger className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-800 shadow-none cursor-pointer">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl">
+                      <SelectItem value="Published" className="text-xs font-bold py-2">Published</SelectItem>
+                      <SelectItem value="Draft" className="text-xs font-bold py-2">Draft</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -283,6 +310,18 @@ export default function AdminVideosPage() {
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        title="Delete Video?"
+        itemName={deleteTarget?.title}
+        message="Are you sure you want to delete this video walkthrough? This action cannot be undone."
+        confirmText="Delete Video"
+        isLoading={isDeleting}
+        onConfirm={confirmDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

@@ -21,6 +21,7 @@ import {
   ExternalLink,
   ChevronRight,
   PlusCircle,
+  PartyPopper,
 } from 'lucide-react';
 import { useAuth } from '@/lib/authContext';
 
@@ -48,6 +49,7 @@ const navSections = [
     title: 'CONTENT & MEDIA',
     items: [
       { label: 'Blogs & Articles', href: '/admin/blogs', icon: FileText },
+      { label: 'Celebrations', href: '/admin/celebrations', icon: PartyPopper },
       // { label: 'Media Library', href: '/admin/media', icon: ImageIcon },
       { label: 'Awards & Honors', href: '/admin/awards', icon: Trophy },
       { label: 'Testimonials', href: '/admin/testimonials', icon: MessageSquareQuote },
