@@ -9,6 +9,7 @@ import { projectsData } from '@/data/siteData';
 import { getProjectBySlug, getProjectUnits, submitEnquiry } from '@/lib/cmsClient';
 import RunningPillBadge from '@/components/ui/RunningPillBadge';
 import FadeIn from '@/components/animation/FadeIn';
+import UnitBookingModal from '@/components/project/UnitBookingModal';
 import {
   MapPin,
   Layers,
@@ -61,6 +62,7 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
   const [project, setProject] = useState<any>(
     projectIndex !== -1 ? projectsData[projectIndex] : projectsData[0]
   );
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -98,22 +100,55 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
   // Active Media Tab state: 'Photos' | 'Plans' | 'Video' | 'Street View'
   const [activeMediaTab, setActiveMediaTab] = useState<string>('Photos');
 
-  // Media Gallery Photos List
-  const projectPhotos = [
-    { src: project.image, title: `${project.name} - Exterior View` },
-    { src: '/images/projects/project_2.jpg', title: `${project.name} - Architectural Detail` },
-    { src: '/images/projects/project_3.jpg', title: `${project.name} - Terrace & Balcony` },
-    { src: '/images/projects/project_4.jpg', title: `${project.name} - Living Space` },
-    { src: '/images/projects/project_5.jpg', title: `${project.name} - Aerial View` },
+  // Dynamic Media Gallery Photos List (Pulls from CMS project.image and project.galleryImages)
+  const rawPhotos: string[] = [
+    ...(project?.image ? [project.image] : []),
+    ...(Array.isArray(project?.galleryImages)
+      ? project.galleryImages.filter((img: string) => img && img !== project.image)
+      : []),
   ];
 
-  // Floor Plans List
-  const projectPlans = [
-    { src: '/images/projects/p1.webp', title: '1 BHK Master Plan (550 Sq. Ft.)' },
-    { src: '/images/projects/p2.webp', title: '2 BHK Luxury Plan (850 Sq. Ft.)' },
-    { src: '/images/projects/p3.webp', title: '3 BHK Premium Plan (1200 Sq. Ft.)' },
-    { src: '/images/projects/p4.webp', title: 'Executive Floor Plan (1500 Sq. Ft.)' },
-  ];
+  const projectPhotos =
+    rawPhotos.length > 0
+      ? rawPhotos.map((src: string, idx: number) => ({
+          src,
+          title:
+            idx === 0
+              ? `${project?.name || 'Project'} - Exterior View`
+              : `${project?.name || 'Project'} - Photo ${idx + 1}`,
+        }))
+      : [
+          { src: project?.image || '/images/projects/apt_lenid.jpg', title: `${project?.name || 'Project'} - Exterior View` },
+          { src: '/images/projects/project_2.jpg', title: `${project?.name || 'Project'} - Architectural Detail` },
+          { src: '/images/projects/project_3.jpg', title: `${project?.name || 'Project'} - Terrace & Balcony` },
+          { src: '/images/projects/project_4.jpg', title: `${project?.name || 'Project'} - Living Space` },
+          { src: '/images/projects/project_5.jpg', title: `${project?.name || 'Project'} - Aerial View` },
+        ];
+
+  // Dynamic Floor Plans List (Pulls from CMS project.floorPlans)
+  const rawPlans: any[] =
+    Array.isArray(project?.floorPlans) && project.floorPlans.length > 0
+      ? project.floorPlans
+      : [];
+
+  const projectPlans =
+    rawPlans.length > 0
+      ? rawPlans.map((plan: any, idx: number) => ({
+          src:
+            typeof plan === 'string'
+              ? plan
+              : plan.imageUrl || plan.src || '/images/projects/p1.webp',
+          title:
+            typeof plan === 'object' && plan.title
+              ? `${plan.title}${plan.sqft ? ` (${plan.sqft})` : ''}`
+              : `Floor Plan ${idx + 1}`,
+        }))
+      : [
+          { src: '/images/projects/p1.webp', title: '1 BHK Master Plan (550 Sq. Ft.)' },
+          { src: '/images/projects/p2.webp', title: '2 BHK Luxury Plan (850 Sq. Ft.)' },
+          { src: '/images/projects/p3.webp', title: '3 BHK Premium Plan (1200 Sq. Ft.)' },
+          { src: '/images/projects/p4.webp', title: 'Executive Floor Plan (1500 Sq. Ft.)' },
+        ];
 
   // Carousel width & container measurement
   const carouselContainerRef = useRef<HTMLDivElement>(null);
@@ -139,9 +174,21 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
   }, [activeMediaTab]);
 
   // Carousel active virtual index for seamless 3-set infinite track
-  const [photoVirtualIndex, setPhotoVirtualIndex] = useState(5);
-  const [planVirtualIndex, setPlanVirtualIndex] = useState(3);
+  const [photoVirtualIndex, setPhotoVirtualIndex] = useState(projectPhotos.length || 5);
+  const [planVirtualIndex, setPlanVirtualIndex] = useState(projectPlans.length || 3);
   const [allowTransition, setAllowTransition] = useState(true);
+
+  useEffect(() => {
+    if (projectPhotos.length > 0) {
+      setPhotoVirtualIndex(projectPhotos.length);
+    }
+  }, [projectPhotos.length]);
+
+  useEffect(() => {
+    if (projectPlans.length > 0) {
+      setPlanVirtualIndex(projectPlans.length);
+    }
+  }, [projectPlans.length]);
 
   // Drag state for uninterrupted real-time sliding
   const [dragOffset, setDragOffset] = useState(0);
@@ -236,6 +283,28 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
   const [lightboxType, setLightboxType] = useState<'photos' | 'plans'>('photos');
   const [isZoomed, setIsZoomed] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+
+  // Lock background scrolling when lightbox is open
+  useEffect(() => {
+    if (!lightboxOpen) return;
+
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+    const originalBodyPaddingRight = document.body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+      document.body.style.paddingRight = originalBodyPaddingRight;
+    };
+  }, [lightboxOpen]);
 
   const [lightboxDragOffset, setLightboxDragOffset] = useState(0);
   const [isLightboxDragging, setIsLightboxDragging] = useState(false);
@@ -568,6 +637,23 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                 alt={project.name}
                 className="h-[450px] w-full object-cover sm:h-[550px]"
               />
+            </div>
+
+            {/* Centered Book Now CTA Button (Step 2: After Image & Before Project Description) */}
+            <div className="my-8 flex flex-col items-center justify-center text-center">
+              <button
+                type="button"
+                onClick={() => setIsBookingModalOpen(true)}
+                className="group relative inline-flex items-center gap-3 rounded-full bg-[#f12131] px-9 py-4 text-sm sm:text-base font-black text-white shadow-xl shadow-red-500/25 hover:bg-[#d81928] hover:shadow-2xl hover:shadow-red-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 cursor-pointer"
+              >
+                <span className="flex h-2.5 w-2.5 rounded-full bg-white animate-ping" />
+                <span>Explore Units & Book Now</span>
+                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1.5" />
+              </button>
+              <p className="text-xs text-slate-500 font-semibold mt-2.5 flex items-center gap-1.5">
+                <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
+                Live Block, Floor & Unit Availability Navigator
+              </p>
             </div>
           </div>
 
@@ -1116,14 +1202,48 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                   </div>
                 ) : (
                   <div className="relative h-[450px] sm:h-[550px] w-full bg-black">
-                    <video
-                      controls
-                      autoPlay
-                      className="h-full w-full object-contain"
-                    >
-                      <source src="/images/videos/hero-bg.mp4" type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
+                    {(() => {
+                      const videoUrl = project.walkthroughVideoUrl || '';
+                      const ytMatch = videoUrl.match(
+                        /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/
+                      );
+                      if (ytMatch) {
+                        return (
+                          <iframe
+                            title={`${project.name} Walkthrough Video`}
+                            src={`https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`}
+                            className="h-full w-full border-0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        );
+                      }
+                      const vimeoMatch = videoUrl.match(/vimeo\.com\/(?:video\/)?([0-9]+)/);
+                      if (vimeoMatch) {
+                        return (
+                          <iframe
+                            title={`${project.name} Walkthrough Video`}
+                            src={`https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`}
+                            className="h-full w-full border-0"
+                            allow="autoplay; fullscreen; picture-in-picture"
+                            allowFullScreen
+                          />
+                        );
+                      }
+                      return (
+                        <video
+                          controls
+                          autoPlay
+                          className="h-full w-full object-contain"
+                        >
+                          <source
+                            src={videoUrl || '/images/videos/hero-bg.mp4'}
+                            type="video/mp4"
+                          />
+                          Your browser does not support the video tag.
+                        </video>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
@@ -1572,6 +1692,13 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
           </div>
         </div>
       )}
+
+      {/* Interactive Unit Booking Modal */}
+      <UnitBookingModal
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        project={project}
+      />
     </>
   );
 }

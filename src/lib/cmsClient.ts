@@ -58,7 +58,15 @@ export async function getProjects(): Promise<ProjectItem[]> {
             propertyType: p.propertyType || p.type,
             status: p.status,
             handover: p.handoverTimeline,
-            units: p.totalUnits ? `${p.totalUnits} Units` : undefined,
+            units: p.totalUnits
+              ? `${p.totalUnits} ${
+                  p.propertyType === 'Plots'
+                    ? 'Plots'
+                    : p.propertyType === 'Villas'
+                    ? 'Villas'
+                    : 'Units'
+                }`
+              : undefined,
           },
         }));
       }
@@ -133,7 +141,7 @@ export async function getBlogs(): Promise<BlogPostItem[]> {
       const data = await res.json();
       if (data.success && Array.isArray(data.data) && data.data.length > 0) {
         return data.data.map((b: any) => ({
-          id: b._id,
+          id: b._id || b.id || b.slug,
           title: b.title,
           slug: b.slug,
           category: b.category,
@@ -174,7 +182,7 @@ export async function getBlogBySlug(slug: string): Promise<BlogPostItem | null> 
       if (data.success && data.data) {
         const b = data.data;
         return {
-          id: b._id,
+          id: b._id || b.id || b.slug,
           title: b.title,
           slug: b.slug,
           category: b.category,
@@ -237,21 +245,21 @@ export async function getAwards(): Promise<AwardItem[]> {
 export async function getTestimonials(): Promise<TestimonialItem[]> {
   try {
     const res = await fetch(`${API_BASE_URL}/testimonials`, {
-      next: { revalidate: 60 },
-      signal: AbortSignal.timeout(3000),
+      cache: 'no-store',
+      signal: AbortSignal.timeout(4000),
     });
 
     if (res.ok) {
       const data = await res.json();
       if (data.success && Array.isArray(data.data) && data.data.length > 0) {
         return data.data.map((t: any) => ({
-          id: t._id,
+          id: t._id || t.id,
           title: t.title,
           author: t.author,
           role: t.role,
           avatar: t.avatar,
           quote: t.quote,
-          rating: t.rating || 5,
+          rating: Number(t.rating) || 5,
         }));
       }
     }
@@ -269,7 +277,12 @@ export async function submitEnquiry(enquiryData: {
   name: string;
   phone: string;
   email?: string;
+  projectId?: string;
   projectName?: string;
+  block?: string;
+  floor?: string;
+  unitNumber?: string;
+  unitType?: string;
   message?: string;
   source?: string;
 }) {

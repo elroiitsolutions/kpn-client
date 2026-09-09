@@ -3,6 +3,7 @@
 import React, { use, useEffect, useState } from 'react';
 import BlogForm from '@/components/admin/BlogForm';
 import { api } from '@/lib/api';
+import { useBreadcrumbs } from '@/lib/breadcrumbContext';
 
 interface EditBlogPageProps {
   params: Promise<{ id: string }>;
@@ -11,6 +12,7 @@ interface EditBlogPageProps {
 export default function EditBlogPage({ params }: EditBlogPageProps) {
   const resolvedParams = use(params);
   const { id } = resolvedParams;
+  const { setEntityTitle } = useBreadcrumbs();
 
   const [blog, setBlog] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -22,6 +24,9 @@ export default function EditBlogPage({ params }: EditBlogPageProps) {
         const res = await api.get(`/blogs/${id}`);
         if (res.success && res.data) {
           setBlog(res.data);
+          if (res.data.title) {
+            setEntityTitle(id, res.data.title);
+          }
         } else {
           setError('Blog post not found');
         }
@@ -33,7 +38,7 @@ export default function EditBlogPage({ params }: EditBlogPageProps) {
     }
 
     loadBlog();
-  }, [id]);
+  }, [id, setEntityTitle]);
 
   if (isLoading) {
     return (

@@ -79,7 +79,7 @@ export default function AdminTestimonialsPage() {
       if (editingId) {
         const res = await api.put(`/testimonials/${editingId}`, formData);
         if (res.success) {
-          setTestimonials((prev) => prev.map((t) => (t._id === editingId ? res.data : t)));
+          setTestimonials((prev) => prev.map((t) => ((t._id || t.id) === editingId ? res.data : t)));
         }
       } else {
         const res = await api.post('/testimonials', formData);
@@ -104,7 +104,7 @@ export default function AdminTestimonialsPage() {
   };
 
   const handleEdit = (item: any) => {
-    setEditingId(item._id);
+    setEditingId(item._id || item.id);
     setFormData({
       title: item.title,
       author: item.author,
@@ -123,7 +123,7 @@ export default function AdminTestimonialsPage() {
     try {
       const res = await api.delete(`/testimonials/${deleteTarget.id}`);
       if (res.success) {
-        setTestimonials((prev) => prev.filter((t) => t._id !== deleteTarget.id));
+        setTestimonials((prev) => prev.filter((t) => (t._id || t.id) !== deleteTarget.id));
         setDeleteTarget(null);
       }
     } catch (err: any) {
@@ -170,7 +170,7 @@ export default function AdminTestimonialsPage() {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {testimonials.map((t) => (
             <div
-              key={t._id}
+              key={t._id || t.id}
               className="group overflow-hidden rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-xs transition-all hover:border-slate-300 hover:shadow-md flex flex-col justify-between"
             >
               <div>
@@ -220,7 +220,7 @@ export default function AdminTestimonialsPage() {
                     <Edit className="h-3.5 w-3.5" />
                   </button>
                   <button
-                    onClick={() => setDeleteTarget({ id: t._id, title: t.title || t.author })}
+                    onClick={() => setDeleteTarget({ id: t._id || t.id, title: t.title || t.author })}
                     className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
                     title="Delete Testimonial"
                   >

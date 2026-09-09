@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { AuthProvider } from '@/lib/authContext';
+import { BreadcrumbProvider } from '@/lib/breadcrumbContext';
 import AdminShell from '@/components/admin/AdminShell';
 
 export const metadata: Metadata = {
@@ -15,9 +16,11 @@ export default function AdminLayout({
 }) {
   return (
     <AuthProvider>
-      <div className="font-sans antialiased text-slate-800 bg-[#f8fafc] min-h-screen">
-        <AdminShell>{children}</AdminShell>
-      </div>
+      <BreadcrumbProvider>
+        <div className="font-sans antialiased text-slate-800 bg-[#f8fafc] min-h-screen">
+          <AdminShell>{children}</AdminShell>
+        </div>
+      </BreadcrumbProvider>
     </AuthProvider>
   );
 }

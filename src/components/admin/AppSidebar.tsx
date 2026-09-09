@@ -66,7 +66,7 @@ const navigationItems = [
   {
     title: 'Website CMS',
     items: [
-      { title: 'Homepage', url: '/admin/cms/home', icon: Home },
+      // { title: 'Homepage', url: '/admin/cms/home', icon: Home },
       { title: 'Menu Navigation', url: '/admin/cms/menu', icon: MenuIcon },
       { title: 'Footer', url: '/admin/cms/footer', icon: PanelBottom },
     ],

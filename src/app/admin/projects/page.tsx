@@ -244,18 +244,33 @@ export default function AdminProjectsPage() {
                       <span className="font-extrabold text-slate-900">{project.budget}</span>
                     </td>
 
-                    {/* Units */}
+                    {/* Units / Plots / Villas */}
                     <td className="px-4 py-4">
                       <div className="flex flex-col gap-1">
                         <span className="text-xs font-black text-[#29247c] font-heading">
-                          {project.availableUnits ?? 0} <span className="text-slate-400 font-medium text-[11px]">/ {project.totalUnits ?? 0} avail</span>
+                          {project.availableUnits ?? 0}{' '}
+                          <span className="text-slate-400 font-medium text-[11px]">
+                            / {project.totalUnits ?? 0}{' '}
+                            {project.propertyType === 'Plots'
+                              ? 'plots'
+                              : project.propertyType === 'Villas'
+                              ? 'villas'
+                              : 'avail'}
+                          </span>
                         </span>
                         <Link
                           href={`/admin/projects/${project._id}/units`}
                           className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[10px] font-extrabold text-[#29247c] hover:border-[#f12131] hover:text-[#f12131] hover:bg-rose-50 transition-all w-fit"
                         >
                           <Layers className="h-3 w-3 text-[#f12131]" />
-                          <span>Manage Units</span>
+                          <span>
+                            Manage{' '}
+                            {project.propertyType === 'Plots'
+                              ? 'Plots'
+                              : project.propertyType === 'Villas'
+                              ? 'Villas'
+                              : 'Units'}
+                          </span>
                         </Link>
                       </div>
                     </td>

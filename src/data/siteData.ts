@@ -1,5 +1,3 @@
-import { address } from "framer-motion/client";
-
 export const navigationLinks = [
   { label: 'Home', href: '/' },
   {
@@ -126,9 +124,17 @@ export interface ProjectItem {
   brochureUrl?: string;
   streetViewUrl?: string;
   mapEmbedUrl?: string;
+  blocks?: any[];
+  plots?: any[];
+  totalBlocks?: number;
+  totalFloors?: number;
+  totalUnits?: number;
+  availableUnits?: number;
+  bookedUnits?: number;
+  soldUnits?: number;
 }
 
-export const projectsData: ProjectItem[] = [
+const rawProjectsData: ProjectItem[] = [
   // -------------------------------------------------------------
   // 6 OFFICIAL APARTMENTS FROM KPN PROMOTERS
   // -------------------------------------------------------------
@@ -464,7 +470,7 @@ export const projectsData: ProjectItem[] = [
     streetViewUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE1mX1h3Q1pfcG5oQ09oV2RjSGFxTXlhZFl0b2pfaEZfN0p4WGZZ!2m2!1d12.8571477!2d80.0631628!3f120!4f0!5f0.7820865974627469',
   },
   {
-    id: '15',
+    id: 'd1aa0874-25c1-471b-a9e5-263b0780fec6',
     name: 'KPN Hindhu Avenue',
     slug: 'kpn-hindhu-avenue',
     location: 'Urapakkam, Chennai',
@@ -490,7 +496,7 @@ export const projectsData: ProjectItem[] = [
     streetViewUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE1mX1h3Q1pfcG5oQ09oV2RjSGFxTXlhZFl0b2pfaEZfN0p4WGZZ!2m2!1d12.8571477!2d80.0631628!3f120!4f0!5f0.7820865974627469',
   },
   {
-    id: '17',
+    id: '4e42e16b-1483-425f-8623-955178cd360f',
     name: 'KPN Sairam Nagar',
     slug: 'kpn-sairam-nagar',
     location: 'Urapakkam, Chennai',
@@ -516,7 +522,7 @@ export const projectsData: ProjectItem[] = [
     streetViewUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE1mX1h3Q1pfcG5oQ09oV2RjSGFxTXlhZFl0b2pfaEZfN0p4WGZZ!2m2!1d12.8571477!2d80.0631628!3f120!4f0!5f0.7820865974627469',
   },
   {
-    id: '19',
+    id: 'f7ca68af-2cd2-4304-8175-f446ade2ae0a',
     name: 'KPN Grand',
     slug: 'kpn-grand',
     location: 'Karanaipuducheri, Chennai',
@@ -556,6 +562,223 @@ export const projectsData: ProjectItem[] = [
   },
 ];
 
+const createApartmentBlocks = () => [
+  {
+    blockId: 'A',
+    blockName: 'Tower A',
+    totalFloors: 4,
+    floorPlanImages: [],
+    floors: [
+      {
+        floorNumber: 1,
+        floorName: '1st Floor',
+        units: [
+          { unitId: 'A101', unitNumber: '101', bhk: 2, bathrooms: 2, size: 850, unitType: '2 BHK Luxury', facing: 'East', status: 'available' as const },
+          { unitId: 'A102', unitNumber: '102', bhk: 2, bathrooms: 2, size: 875, unitType: '2 BHK Premium', facing: 'North', status: 'available' as const },
+          { unitId: 'A103', unitNumber: '103', bhk: 1, bathrooms: 1, size: 560, unitType: '1 BHK Smart', facing: 'East', status: 'booked' as const },
+          { unitId: 'A104', unitNumber: '104', bhk: 2, bathrooms: 2, size: 890, unitType: '2 BHK Corner', facing: 'West', status: 'available' as const },
+        ],
+      },
+      {
+        floorNumber: 2,
+        floorName: '2nd Floor',
+        units: [
+          { unitId: 'A201', unitNumber: '201', bhk: 2, bathrooms: 2, size: 850, unitType: '2 BHK Luxury', facing: 'East', status: 'available' as const },
+          { unitId: 'A202', unitNumber: '202', bhk: 2, bathrooms: 2, size: 875, unitType: '2 BHK Premium', facing: 'North', status: 'sold' as const },
+          { unitId: 'A203', unitNumber: '203', bhk: 1, bathrooms: 1, size: 560, unitType: '1 BHK Smart', facing: 'East', status: 'available' as const },
+          { unitId: 'A204', unitNumber: '204', bhk: 3, bathrooms: 2, size: 1250, unitType: '3 BHK Royal', facing: 'North-East', status: 'available' as const },
+        ],
+      },
+      {
+        floorNumber: 3,
+        floorName: '3rd Floor',
+        units: [
+          { unitId: 'A301', unitNumber: '301', bhk: 2, bathrooms: 2, size: 850, unitType: '2 BHK Luxury', facing: 'East', status: 'available' as const },
+          { unitId: 'A302', unitNumber: '302', bhk: 2, bathrooms: 2, size: 875, unitType: '2 BHK Premium', facing: 'North', status: 'available' as const },
+          { unitId: 'A303', unitNumber: '303', bhk: 1, bathrooms: 1, size: 560, unitType: '1 BHK Smart', facing: 'East', status: 'available' as const },
+          { unitId: 'A304', unitNumber: '304', bhk: 2, bathrooms: 2, size: 890, unitType: '2 BHK Corner', facing: 'West', status: 'booked' as const },
+        ],
+      },
+      {
+        floorNumber: 4,
+        floorName: '4th Floor',
+        units: [
+          { unitId: 'A401', unitNumber: '401', bhk: 3, bathrooms: 3, size: 1350, unitType: '3 BHK Penthouse', facing: 'East', status: 'available' as const },
+          { unitId: 'A402', unitNumber: '402', bhk: 3, bathrooms: 3, size: 1400, unitType: '3 BHK Penthouse', facing: 'North', status: 'available' as const },
+          { unitId: 'A403', unitNumber: '403', bhk: 2, bathrooms: 2, size: 900, unitType: '2 BHK Luxury', facing: 'West', status: 'booked' as const },
+          { unitId: 'A404', unitNumber: '404', bhk: 3, bathrooms: 3, size: 1380, unitType: '3 BHK Royal', facing: 'North-East', status: 'available' as const },
+        ],
+      },
+    ],
+  },
+  {
+    blockId: 'B',
+    blockName: 'Tower B',
+    totalFloors: 3,
+    floorPlanImages: [],
+    floors: [
+      {
+        floorNumber: 1,
+        floorName: '1st Floor',
+        units: [
+          { unitId: 'B101', unitNumber: '101', bhk: 2, bathrooms: 2, size: 920, unitType: '2 BHK Luxury', facing: 'East', status: 'available' as const },
+          { unitId: 'B102', unitNumber: '102', bhk: 2, bathrooms: 2, size: 920, unitType: '2 BHK Luxury', facing: 'West', status: 'available' as const },
+          { unitId: 'B103', unitNumber: '103', bhk: 3, bathrooms: 2, size: 1200, unitType: '3 BHK Elite', facing: 'North', status: 'available' as const },
+        ],
+      },
+      {
+        floorNumber: 2,
+        floorName: '2nd Floor',
+        units: [
+          { unitId: 'B201', unitNumber: '201', bhk: 2, bathrooms: 2, size: 920, unitType: '2 BHK Luxury', facing: 'East', status: 'available' as const },
+          { unitId: 'B202', unitNumber: '202', bhk: 2, bathrooms: 2, size: 920, unitType: '2 BHK Luxury', facing: 'West', status: 'sold' as const },
+          { unitId: 'B203', unitNumber: '203', bhk: 3, bathrooms: 2, size: 1200, unitType: '3 BHK Elite', facing: 'North', status: 'available' as const },
+        ],
+      },
+      {
+        floorNumber: 3,
+        floorName: '3rd Floor',
+        units: [
+          { unitId: 'B301', unitNumber: '301', bhk: 2, bathrooms: 2, size: 950, unitType: '2 BHK Luxury', facing: 'East', status: 'available' as const },
+          { unitId: 'B302', unitNumber: '302', bhk: 3, bathrooms: 2, size: 1250, unitType: '3 BHK Royal', facing: 'West', status: 'available' as const },
+          { unitId: 'B303', unitNumber: '303', bhk: 3, bathrooms: 3, size: 1350, unitType: '3 BHK Elite', facing: 'North', status: 'available' as const },
+        ],
+      },
+    ],
+  },
+];
+
+const createPlots = () => {
+  const sizes = [600, 800, 1000, 1200, 1200, 1500, 1800, 2400];
+  const facings = ['East', 'North', 'East', 'North-East', 'West'];
+  return Array.from({ length: 28 }, (_, i) => {
+    const plotNum = i + 1;
+    const isBooked = plotNum === 4 || plotNum === 11 || plotNum === 19 || plotNum === 25;
+    const isSold = plotNum === 7 || plotNum === 14 || plotNum === 21;
+    return {
+      plotId: `P-${plotNum}`,
+      plotNumber: `${plotNum}`,
+      size: sizes[i % sizes.length],
+      facing: facings[i % facings.length],
+      status: (isSold ? 'sold' : isBooked ? 'booked' : 'available') as 'available' | 'booked' | 'sold',
+    };
+  });
+};
+
+const createVillaBlocks = () => [
+  {
+    blockId: 'V1',
+    blockName: 'Enclave A (Palm Grove)',
+    totalFloors: 2,
+    floorPlanImages: [],
+    floors: [
+      {
+        floorNumber: 1,
+        floorName: 'Ground Level',
+        units: [
+          { unitId: 'VA-01', unitNumber: 'A-01', bhk: 3, bathrooms: 3, size: 1850, unitType: '3 BHK Duplex Villa', facing: 'East', status: 'available' as const },
+          { unitId: 'VA-02', unitNumber: 'A-02', bhk: 3, bathrooms: 3, size: 1920, unitType: '3 BHK Duplex Villa', facing: 'North', status: 'available' as const },
+          { unitId: 'VA-03', unitNumber: 'A-03', bhk: 4, bathrooms: 4, size: 2200, unitType: '4 BHK Grand Villa', facing: 'East', status: 'booked' as const },
+          { unitId: 'VA-04', unitNumber: 'A-04', bhk: 4, bathrooms: 4, size: 2350, unitType: '4 BHK Corner Villa', facing: 'North-East', status: 'available' as const },
+        ],
+      },
+      {
+        floorNumber: 2,
+        floorName: 'Upper Level & Terrace',
+        units: [
+          { unitId: 'VA-05', unitNumber: 'A-05', bhk: 3, bathrooms: 3, size: 1850, unitType: '3 BHK Duplex Villa', facing: 'East', status: 'available' as const },
+          { unitId: 'VA-06', unitNumber: 'A-06', bhk: 3, bathrooms: 3, size: 1950, unitType: '3 BHK Duplex Villa', facing: 'West', status: 'sold' as const },
+          { unitId: 'VA-07', unitNumber: 'A-07', bhk: 4, bathrooms: 4, size: 2400, unitType: '4 BHK Grand Villa', facing: 'North', status: 'available' as const },
+        ],
+      },
+    ],
+  },
+  {
+    blockId: 'V2',
+    blockName: 'Enclave B (Royal Greens)',
+    totalFloors: 2,
+    floorPlanImages: [],
+    floors: [
+      {
+        floorNumber: 1,
+        floorName: 'Ground Level',
+        units: [
+          { unitId: 'VB-01', unitNumber: 'B-01', bhk: 3, bathrooms: 3, size: 2100, unitType: '3 BHK Duplex Villa', facing: 'East', status: 'available' as const },
+          { unitId: 'VB-02', unitNumber: 'B-02', bhk: 4, bathrooms: 4, size: 2600, unitType: '4 BHK Royal Villa', facing: 'North', status: 'available' as const },
+          { unitId: 'VB-03', unitNumber: 'B-03', bhk: 4, bathrooms: 4, size: 2850, unitType: '4 BHK Presidential Villa', facing: 'North-East', status: 'available' as const },
+        ],
+      },
+      {
+        floorNumber: 2,
+        floorName: 'Upper Level & Terrace',
+        units: [
+          { unitId: 'VB-04', unitNumber: 'B-04', bhk: 3, bathrooms: 3, size: 2100, unitType: '3 BHK Duplex Villa', facing: 'East', status: 'booked' as const },
+          { unitId: 'VB-05', unitNumber: 'B-05', bhk: 4, bathrooms: 4, size: 2750, unitType: '4 BHK Royal Villa', facing: 'North', status: 'available' as const },
+        ],
+      },
+    ],
+  },
+];
+
+const createVillaPlots = () => [
+  { plotId: 'villa-V-01', plotNumber: 'V-01', size: 1850, facing: 'East', status: 'available' as const },
+  { plotId: 'villa-V-02', plotNumber: 'V-02', size: 1950, facing: 'North', status: 'available' as const },
+  { plotId: 'villa-V-03', plotNumber: 'V-03', size: 2250, facing: 'East', status: 'booked' as const },
+  { plotId: 'villa-V-04', plotNumber: 'V-04', size: 2400, facing: 'North-East', status: 'available' as const },
+  { plotId: 'villa-V-05', plotNumber: 'V-05', size: 1850, facing: 'West', status: 'sold' as const },
+  { plotId: 'villa-V-06', plotNumber: 'V-06', size: 2100, facing: 'East', status: 'available' as const },
+  { plotId: 'villa-V-07', plotNumber: 'V-07', size: 2650, facing: 'North', status: 'available' as const },
+  { plotId: 'villa-V-08', plotNumber: 'V-08', size: 2850, facing: 'North-East', status: 'available' as const },
+  { plotId: 'villa-V-09', plotNumber: 'V-09', size: 1900, facing: 'East', status: 'available' as const },
+  { plotId: 'villa-V-10', plotNumber: 'V-10', size: 2500, facing: 'West', status: 'booked' as const },
+  { plotId: 'villa-V-11', plotNumber: 'V-11', size: 2100, facing: 'North', status: 'available' as const },
+  { plotId: 'villa-V-12', plotNumber: 'V-12', size: 3100, facing: 'East', status: 'available' as const },
+];
+
+export const projectsData: ProjectItem[] = rawProjectsData.map((p) => {
+  if (p.type === 'Apartments') {
+    const blocks = p.blocks || createApartmentBlocks();
+    return {
+      ...p,
+      blocks,
+      plots: p.plots || [],
+      totalBlocks: blocks.length,
+      totalFloors: 4,
+      totalUnits: 25,
+      availableUnits: 19,
+      bookedUnits: 3,
+      soldUnits: 3,
+    };
+  } else if (p.type === 'Villas') {
+    const blocks = p.blocks || createVillaBlocks();
+    const plots = p.plots || createVillaPlots();
+    return {
+      ...p,
+      blocks,
+      plots,
+      totalBlocks: blocks.length,
+      totalFloors: 2,
+      totalUnits: 12,
+      availableUnits: 8,
+      bookedUnits: 2,
+      soldUnits: 2,
+    };
+  } else {
+    const plots = p.plots || createPlots();
+    return {
+      ...p,
+      blocks: p.blocks || [],
+      plots,
+      totalBlocks: 1,
+      totalFloors: 1,
+      totalUnits: plots.length,
+      availableUnits: plots.filter((pl) => pl.status === 'available').length,
+      bookedUnits: plots.filter((pl) => pl.status === 'booked').length,
+      soldUnits: plots.filter((pl) => pl.status === 'sold').length,
+    };
+  }
+});
+
 export const teamData = [
   {
     name: 'Johan Sanford',
@@ -585,6 +808,7 @@ export const testimonialsData = [
     author: "Floyd Miles",
     role: "Bond Projects Coordinator",
     avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80",
+    rating: 5,
   },
   {
     title: "Totally Impressed!",
@@ -592,6 +816,7 @@ export const testimonialsData = [
     author: "Ronald Benson",
     role: "Marketing Director",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
+    rating: 5,
   },
   {
     title: "Excellent Communication",
@@ -599,6 +824,7 @@ export const testimonialsData = [
     author: "John McConnor",
     role: "Senior Marketing Manager",
     avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=120&auto=format&fit=crop&q=80",
+    rating: 5,
   },
   {
     title: "Highly Recommended",
@@ -606,6 +832,7 @@ export const testimonialsData = [
     author: "Alena Fisher",
     role: "Senior Marketing Manager",
     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
+    rating: 5,
   },
 ];
 

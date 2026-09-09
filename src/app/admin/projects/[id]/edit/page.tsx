@@ -3,6 +3,7 @@
 import React, { use, useEffect, useState } from 'react';
 import ProjectForm from '@/components/admin/ProjectForm';
 import { api } from '@/lib/api';
+import { useBreadcrumbs } from '@/lib/breadcrumbContext';
 
 interface EditProjectPageProps {
   params: Promise<{ id: string }>;
@@ -11,6 +12,7 @@ interface EditProjectPageProps {
 export default function EditProjectPage({ params }: EditProjectPageProps) {
   const resolvedParams = use(params);
   const { id } = resolvedParams;
+  const { setEntityTitle } = useBreadcrumbs();
 
   const [project, setProject] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -22,6 +24,9 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
         const res = await api.get(`/projects/${id}`);
         if (res.success && res.data) {
           setProject(res.data);
+          if (res.data.name) {
+            setEntityTitle(id, res.data.name);
+          }
         } else {
           setError('Project not found');
         }
@@ -33,7 +38,7 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
     }
 
     loadProject();
-  }, [id]);
+  }, [id, setEntityTitle]);
 
   if (isLoading) {
     return (

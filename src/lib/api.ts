@@ -105,4 +105,35 @@ export const api = {
 
     return data;
   },
+
+  // Multiple Files Upload Helper
+  uploadMultiple: async (
+    files: File[],
+    folder = 'kpn_promoters'
+  ): Promise<Array<{ url: string; publicId?: string }>> => {
+    if (!files || files.length === 0) return [];
+    const url = `${API_BASE_URL}/upload/multiple`;
+    const token = getAuthToken();
+    const formData = new FormData();
+    files.forEach((file) => formData.append('files', file));
+    formData.append('folder', folder);
+
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || 'Batch file upload failed');
+    }
+
+    return data.files || [];
+  },
 };

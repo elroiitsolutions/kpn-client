@@ -59,7 +59,7 @@ const navSections = [
   {
     title: 'WEBSITE CMS',
     items: [
-      { label: 'Homepage CMS', href: '/admin/cms/home', icon: Home },
+      // { label: 'Homepage CMS', href: '/admin/cms/home', icon: Home },
       { label: 'Header Menu', href: '/admin/cms/menu', icon: Menu },
       { label: 'Footer CMS', href: '/admin/cms/footer', icon: PanelBottom },
     ],
