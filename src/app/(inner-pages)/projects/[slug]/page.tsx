@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import Navbar from '@/components/layout/Navbar';
 import InnerPageHero from '@/components/sections/InnerPageHero';
 import { projectsData } from '@/data/siteData';
-import { getProjectBySlug, getProjectUnits, submitEnquiry } from '@/lib/cmsClient';
+import { getProjectBySlug, getProjects, getProjectUnits, submitEnquiry } from '@/lib/cmsClient';
 import RunningPillBadge from '@/components/ui/RunningPillBadge';
 import FadeIn from '@/components/animation/FadeIn';
 import UnitBookingModal from '@/components/project/UnitBookingModal';
@@ -52,20 +52,50 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
   const resolvedParams = use(params);
   const slug = resolvedParams.slug.toLowerCase();
 
-  // Category slug check ('apartments' or 'plots')
-  const isCategory = slug === 'apartments' || slug === 'plots';
+  // Category slug check ('apartments' | 'plots' | 'villas')
+  const isCategory = slug === 'apartments' || slug === 'plots' || slug === 'villas';
   const categoryName =
-    slug === 'apartments' ? 'Apartments' : slug === 'plots' ? 'Plots' : '';
+    slug === 'apartments' ? 'Apartments' : slug === 'plots' ? 'Plots' : slug === 'villas' ? 'Villas' : '';
+
+  // Interactive Unit Booking Modal state
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+
+  // Category projects state
+  const [categoryProjects, setCategoryProjects] = useState<any[]>(() =>
+    projectsData.filter((p) => p.type?.toLowerCase() === categoryName.toLowerCase())
+  );
 
   // Current project lookup
   const projectIndex = projectsData.findIndex((p) => p.slug === slug);
   const [project, setProject] = useState<any>(
     projectIndex !== -1 ? projectsData[projectIndex] : projectsData[0]
   );
-  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
+
+    if (isCategory) {
+      async function loadCategoryProjects() {
+        try {
+          const allProjects = await getProjects();
+          if (isMounted && Array.isArray(allProjects) && allProjects.length > 0) {
+            const filtered = allProjects.filter(
+              (p: any) => ((p as any).propertyType || p.type || '').toLowerCase() === categoryName.toLowerCase()
+            );
+            if (filtered.length > 0) {
+              setCategoryProjects(filtered);
+            }
+          }
+        } catch {
+          // Fallback to static siteData
+        }
+      }
+      loadCategoryProjects();
+      return () => {
+        isMounted = false;
+      };
+    }
+
     async function loadProjectDetails() {
       try {
         const live = await getProjectBySlug(slug);
@@ -74,9 +104,9 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
             ...prev,
             ...live,
             brochureUrl:
-              live.brochureUrl !== undefined
+              live.brochureUrl !== undefined && live.brochureUrl !== null && live.brochureUrl !== ''
                 ? live.brochureUrl
-                : (prev?.brochureUrl || ''),
+                : prev?.brochureUrl || projectsData[projectIndex]?.brochureUrl || '',
           }));
         }
       } catch (err) {
@@ -87,7 +117,7 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
     return () => {
       isMounted = false;
     };
-  }, [slug]);
+  }, [slug, isCategory, categoryName, projectIndex]);
 
   // Previous and Next navigation
   const prevProject =
@@ -460,12 +490,8 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
     },
   ];
 
-  // Category page view (/projects/apartments or /projects/plots)
+  // Category page view (/projects/apartments, /projects/plots, or /projects/villas)
   if (isCategory) {
-    const categoryProjects = projectsData.filter(
-      (p) => p.type === categoryName
-    );
-
     return (
       <>
         <Navbar variant="hero" />
@@ -479,7 +505,7 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
         <section className="bg-white px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
           <div className="mx-auto max-w-[1500px]">
             {/* Category Tabs */}
-            <div className="mb-12 flex items-center gap-3 border-b border-slate-100 pb-8">
+            <div className="mb-12 flex flex-wrap items-center gap-3 border-b border-slate-100 pb-8">
               <Link
                 href="/projects"
                 className="flex h-12 items-center justify-center rounded-full bg-slate-100 px-7 text-sm font-extrabold text-slate-700 transition-all hover:bg-slate-200"
@@ -505,6 +531,16 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                 }`}
               >
                 Plots
+              </Link>
+              <Link
+                href="/projects/villas"
+                className={`flex h-12 items-center justify-center rounded-full px-7 text-sm font-extrabold transition-all ${
+                  slug === 'villas'
+                    ? 'bg-[#f12131] text-white shadow-md'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                Villas
               </Link>
             </div>
 
@@ -719,21 +755,38 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                   </li>
                 </ul>
 
-                {Boolean(project.brochureUrl && project.brochureUrl.trim() !== '') && (
-                  <div className="pt-2">
-                    <a
-                      href={encodeURI(project.brochureUrl)}
-                      download
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#f12131] py-3.5 px-5 text-sm font-bold text-white shadow-md transition duration-300 hover:bg-red-600 hover:shadow-lg active:scale-[0.99]"
+                <div className="pt-3 space-y-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setIsBookingModalOpen(true)}
+                    className="group flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#29247c] py-3.5 px-5 text-sm font-bold text-white shadow-md transition duration-300 hover:bg-[#1f1b63] hover:shadow-lg active:scale-[0.99] cursor-pointer"
+                  >
+                    <Building className="h-4 w-4 text-red-400 group-hover:scale-110 transition-transform" />
+                    <span>Book Unit / Check Availability</span>
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </button>
+
+                  {Boolean(project.brochureUrl && project.brochureUrl.trim() !== '') && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(
+                          new CustomEvent('kpn_open_brochure_modal', {
+                            detail: {
+                              brochureUrl: project.brochureUrl,
+                              projectName: project.name,
+                            },
+                          })
+                        );
+                      }}
+                      className="group flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#f12131] py-3.5 px-5 text-sm font-bold text-white shadow-md transition duration-300 hover:bg-red-600 hover:shadow-lg active:scale-[0.99] cursor-pointer"
                     >
                       <FileText className="h-4 w-4" />
                       <span>Download Official Brochure</span>
                       <Download className="h-4 w-4 transition-transform group-hover:translate-y-0.5" />
-                    </a>
-                  </div>
-                )}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -841,12 +894,20 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
               </h2>
 
               {Boolean(project.brochureUrl && project.brochureUrl.trim() !== '') && (
-                <a
-                  href={encodeURI(project.brochureUrl)}
-                  download
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group inline-flex items-center gap-3 rounded-full bg-[#f12131] px-6 py-3.5 text-white shadow-md transition-all duration-300 hover:bg-red-600 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+                <button
+                  type="button"
+                  suppressHydrationWarning
+                  onClick={() => {
+                    window.dispatchEvent(
+                      new CustomEvent('kpn_open_brochure_modal', {
+                        detail: {
+                          brochureUrl: project.brochureUrl,
+                          projectName: project.name,
+                        },
+                      })
+                    );
+                  }}
+                  className="group inline-flex items-center gap-3 rounded-full bg-[#f12131] px-6 py-3.5 text-white shadow-md transition-all duration-300 hover:bg-red-600 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                 >
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-colors">
                     <FileText className="h-4 w-4" />
@@ -855,7 +916,7 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                   <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-white transition-colors">
                     <Download className="h-3.5 w-3.5" />
                   </div>
-                </a>
+                </button>
               )}
             </div>
 

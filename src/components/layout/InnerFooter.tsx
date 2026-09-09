@@ -21,10 +21,10 @@ const DEFAULT_FOOTER = {
   quickLinks: [
     { label: 'About Us', href: '/about-us' },
     { label: 'Why Choose Us', href: '/why-choose-us' },
-    { label: 'Our Team', href: '/our-team' },
-    { label: 'Solutions', href: '/our-solutions' },
-    { label: 'Partners', href: '/partners' },
-    { label: 'Core Values', href: '/core-values' },
+    { label: 'Careers', href: '/careers' },
+    { label: 'Our Awards', href: '/our-awards' },
+    { label: 'Investors', href: '/investors' },
+    { label: 'Our Ventures', href: '/our-ventures' },
   ],
   importantLinks: [
     { label: 'Celebrations', href: '/celebrations' },
