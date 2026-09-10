@@ -59,8 +59,7 @@ export default function RunningPillBadge({
         relative
         ${isDark ? 'bg-black text-white' : 'bg-white text-slate-800'}
         ${className}
-      `}
-    >
+      `}>
       <motion.div
         className="flex w-max items-center"
         animate={{

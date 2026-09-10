@@ -1,0 +1,391 @@
+'use client';
+
+import React, { useEffect, useState, useMemo } from 'react';
+import {
+  Image as ImageIcon,
+  Upload,
+  Plus,
+  Trash2,
+  Filter,
+  ExternalLink,
+  Copy,
+  Check,
+  Video,
+  FileText,
+  X,
+} from 'lucide-react';
+import { api } from '@/lib/api';
+import ConfirmModal from '@/components/admin/ConfirmModal';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
+
+export default function AdminMediaPage() {
+  const [mediaItems, setMediaItems] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [typeFilter, setTypeFilter] = useState('All');
+  const [isUploading, setIsUploading] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // New media modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newItem, setNewItem] = useState({
+    title: '',
+    description: '',
+    category: 'General',
+    mediaType: 'image',
+    fileUrl: '',
+    thumbnailUrl: '',
+    status: 'Published',
+  });
+
+  const loadMedia = async () => {
+    setIsLoading(true);
+    try {
+      const res = await api.get('/media');
+      if (res.success) setMediaItems(res.data || []);
+    } catch (err) {
+      console.warn('Failed to load media:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadMedia();
+  }, []);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const res = await api.upload(file, 'media_centre');
+      if (res.url) {
+        setNewItem((prev) => ({ ...prev, fileUrl: res.url, title: prev.title || file.name }));
+      }
+    } catch (err: any) {
+      alert(err.message || 'File upload failed');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSaveMedia = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await api.post('/media', newItem);
+      if (res.success) {
+        setMediaItems((prev) => [res.data, ...prev]);
+        setIsModalOpen(false);
+        setNewItem({
+          title: '',
+          description: '',
+          category: 'General',
+          mediaType: 'image',
+          fileUrl: '',
+          thumbnailUrl: '',
+          status: 'Published',
+        });
+      }
+    } catch (err: any) {
+      alert(err.message || 'Failed to save media');
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      const res = await api.delete(`/media/${deleteTarget.id}`);
+      if (res.success) {
+        setMediaItems((prev) => prev.filter((m) => m._id !== deleteTarget.id));
+        setDeleteTarget(null);
+      }
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCopy = (url: string) => {
+    navigator.clipboard.writeText(url);
+    setCopiedUrl(url);
+    setTimeout(() => setCopiedUrl(null), 2000);
+  };
+
+  const filteredItems = useMemo(() => {
+    if (typeFilter === 'All') return mediaItems;
+    return mediaItems.filter((m) => m.mediaType === typeFilter);
+  }, [mediaItems, typeFilter]);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-[#29247c]">
+            Media Centre CMS
+          </h1>
+          <p className="text-xs text-slate-500 font-medium">
+            Upload and organize photos, press documents, marketing videos, and events.
+          </p>
+        </div>
+
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex h-11 items-center gap-2 rounded-full bg-[#f12131] px-5 text-xs font-bold text-white shadow-md shadow-red-500/20 hover:bg-[#d81928] transition-all"
+        >
+          <Upload className="h-4 w-4" />
+          <span>Upload Media Item</span>
+        </button>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
+        {['All', 'image', 'video', 'news', 'press', 'event'].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setTypeFilter(tab)}
+            className={`rounded-full px-4 py-1.5 text-xs font-bold capitalize transition-all ${
+              typeFilter === tab
+                ? 'bg-[#29247c] text-white shadow-xs'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {/* Media Grid */}
+      {isLoading ? (
+        <div className="p-16 text-center text-xs font-bold text-slate-400 animate-pulse">
+          Loading media library...
+        </div>
+      ) : filteredItems.length === 0 ? (
+        <div className="rounded-[28px] border border-slate-200 bg-white p-16 text-center shadow-xs">
+          <ImageIcon className="mx-auto h-12 w-12 text-slate-300 mb-3" />
+          <p className="text-base font-extrabold text-slate-700">No media items found</p>
+          <p className="text-xs text-slate-400 mt-1">
+            Click &quot;Upload Media Item&quot; to add assets to your repository.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {filteredItems.map((item) => (
+            <div
+              key={item._id}
+              className="group overflow-hidden rounded-[24px] border border-slate-200/80 bg-white shadow-xs transition-all hover:border-slate-300 hover:shadow-md flex flex-col justify-between"
+            >
+              <div>
+                <div className="relative aspect-video w-full overflow-hidden bg-slate-100">
+                  {item.mediaType === 'video' ? (
+                    <div className="flex h-full w-full items-center justify-center bg-slate-900 text-white">
+                      <Video className="h-8 w-8 text-[#f12131]" />
+                    </div>
+                  ) : item.mediaType === 'press' || item.mediaType === 'news' ? (
+                    <div className="flex h-full w-full items-center justify-center bg-slate-100 text-slate-500">
+                      <FileText className="h-8 w-8" />
+                    </div>
+                  ) : (
+                    <img
+                      src={item.fileUrl}
+                      alt={item.title}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  )}
+                  <span className="absolute top-2.5 left-2.5 rounded-md bg-black/60 backdrop-blur-xs px-2 py-0.5 text-[9px] font-extrabold uppercase text-white">
+                    {item.mediaType}
+                  </span>
+                </div>
+
+                <div className="p-4 space-y-1">
+                  <h3 className="text-xs font-black text-[#29247c] line-clamp-1">
+                    {item.title}
+                  </h3>
+                  {item.description && (
+                    <p className="text-[11px] text-slate-500 line-clamp-2">
+                      {item.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-4 pt-0 flex items-center justify-between border-t border-slate-100 mt-2">
+                <button
+                  onClick={() => handleCopy(item.fileUrl)}
+                  className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 hover:text-[#29247c]"
+                >
+                  {copiedUrl === item.fileUrl ? (
+                    <>
+                      <Check className="h-3 w-3 text-emerald-600" />
+                      <span className="text-emerald-600">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3 w-3" />
+                      <span>Copy URL</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => setDeleteTarget({ id: item._id, title: item.title || 'Media Asset' })}
+                  className="text-slate-400 hover:text-red-600 transition-colors"
+                  title="Delete Media Asset"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Upload Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-[28px] sm:rounded-[32px] border border-slate-200 bg-white p-5 sm:p-8 shadow-2xl max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 sm:pb-4 mb-4 sm:mb-6">
+              <h2 className="text-base sm:text-lg font-black tracking-tight text-[#29247c]">
+                Add Media Item
+              </h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveMedia} className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
+                  Title / Caption*
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newItem.title}
+                  onChange={(e) => setNewItem({ ...newItem, title: e.target.value })}
+                  placeholder="e.g. Groundbreaking Ceremony 2026"
+                  className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
+                    Media Type
+                  </label>
+                  <Select
+                    value={newItem.mediaType}
+                    onValueChange={(val) => setNewItem({ ...newItem, mediaType: val })}
+                  >
+                    <SelectTrigger className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-800 shadow-none cursor-pointer">
+                      <SelectValue placeholder="Media Type" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl">
+                      <SelectItem value="image" className="text-xs font-bold py-2">Image</SelectItem>
+                      <SelectItem value="video" className="text-xs font-bold py-2">Video</SelectItem>
+                      <SelectItem value="news" className="text-xs font-bold py-2">News</SelectItem>
+                      <SelectItem value="press" className="text-xs font-bold py-2">Press Release</SelectItem>
+                      <SelectItem value="event" className="text-xs font-bold py-2">Event</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
+                    Category
+                  </label>
+                  <input
+                    type="text"
+                    value={newItem.category}
+                    onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
+                    placeholder="e.g. Marketing / Construction"
+                    className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">
+                  File Upload or URL*
+                </label>
+                <div className="space-y-2">
+                  <label className="flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-extrabold text-[#29247c] shadow-2xs hover:bg-slate-50 hover:border-[#29247c]/40 transition-all">
+                    <Upload className="h-4 w-4 text-[#f12131]" />
+                    <span>{isUploading ? 'Uploading Media...' : 'Choose Device File'}</span>
+                    <input
+                      type="file"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newItem.fileUrl}
+                    onChange={(e) => setNewItem({ ...newItem, fileUrl: e.target.value })}
+                    placeholder="or paste external URL (https://...)"
+                    className="h-9 w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 text-xs font-medium text-slate-700"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
+                  Description
+                </label>
+                <textarea
+                  rows={3}
+                  value={newItem.description}
+                  onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
+                  placeholder="Optional notes or details..."
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs font-semibold"
+                />
+              </div>
+
+              <div className="pt-3 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="h-10 px-5 rounded-full border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="h-10 px-6 rounded-full bg-[#f12131] text-xs font-bold text-white shadow-md hover:bg-[#d81928]"
+                >
+                  Save Media
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        title="Delete Media Asset?"
+        itemName={deleteTarget?.title}
+        message="Are you sure you want to delete this media asset? This action cannot be undone."
+        confirmText="Delete Media"
+        isLoading={isDeleting}
+        onConfirm={confirmDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
+    </div>
+  );
+}

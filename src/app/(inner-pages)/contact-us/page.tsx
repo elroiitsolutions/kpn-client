@@ -7,21 +7,98 @@ import Navbar from '@/components/layout/Navbar';
 import FadeIn from '@/components/animation/FadeIn';
 import StaggerContainer from '@/components/animation/StaggerContainer';
 import StaggerItem from '@/components/animation/StaggerItem';
+import { submitEnquiry } from '@/lib/cmsClient';
+import PhoneInputWithCountry from '@/components/ui/PhoneInputWithCountry';
+import { Country, DEFAULT_COUNTRY } from '@/lib/countryCodes';
+import { cleanName, validateName, cleanEmail, validateEmail, validatePhone } from '@/lib/formValidation';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    phone: '',
     email: '',
     message: '',
   });
+  const [selectedCountry, setSelectedCountry] = useState<Country>(DEFAULT_COUNTRY);
+  const [errors, setErrors] = useState<{ firstName?: string; lastName?: string; phone?: string; email?: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleFirstNameChange = (val: string) => {
+    const cleaned = cleanName(val);
+    setFormData((prev) => ({ ...prev, firstName: cleaned }));
+    if (errors.firstName) {
+      setErrors((prev) => ({ ...prev, firstName: validateName(cleaned).error }));
+    }
+  };
+
+  const handleLastNameChange = (val: string) => {
+    const cleaned = cleanName(val);
+    setFormData((prev) => ({ ...prev, lastName: cleaned }));
+    if (errors.lastName && cleaned) {
+      setErrors((prev) => ({ ...prev, lastName: validateName(cleaned).error }));
+    }
+  };
+
+  const handleEmailChange = (val: string) => {
+    const cleaned = cleanEmail(val);
+    setFormData((prev) => ({ ...prev, email: cleaned }));
+    if (errors.email) {
+      setErrors((prev) => ({ ...prev, email: validateEmail(cleaned, true).error }));
+    }
+  };
+
+  const handlePhoneChange = (val: string) => {
+    setFormData((prev) => ({ ...prev, phone: val }));
+    if (errors.phone) {
+      setErrors((prev) => ({ ...prev, phone: validatePhone(val, selectedCountry, true).error }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    alert(
-      'Thank you for contacting us! We will get back to you shortly.'
-    );
+    const firstNameRes = validateName(formData.firstName);
+    const lastNameRes = formData.lastName.trim() ? validateName(formData.lastName) : { isValid: true, error: '' };
+    const emailRes = validateEmail(formData.email, true);
+    const phoneRes = validatePhone(formData.phone, selectedCountry, true);
+
+    const newErrors = {
+      firstName: firstNameRes.error,
+      lastName: lastNameRes.error,
+      email: emailRes.error,
+      phone: phoneRes.error,
+    };
+    setErrors(newErrors);
+
+    if (!firstNameRes.isValid || !lastNameRes.isValid || !emailRes.isValid || !phoneRes.isValid) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await submitEnquiry({
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        phone: `${selectedCountry.dialCode} ${formData.phone.trim()}`,
+        email: formData.email.trim(),
+        message: formData.message.trim(),
+        source: 'Contact Page',
+      });
+      alert('Thank you for contacting us! We will get back to you shortly.');
+      setFormData({
+        firstName: '',
+        lastName: '',
+        phone: '',
+        email: '',
+        message: '',
+      });
+      setSelectedCountry(DEFAULT_COUNTRY);
+      setErrors({});
+    } catch {
+      alert('Thank you for contacting us! We will get back to you shortly.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -162,96 +239,109 @@ export default function ContactPage() {
 
                 {/* First Name + Last Name */}
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                  <div>
+                    <input
+                      type="text"
+                      required
+                      placeholder="First Name*"
+                      value={formData.firstName}
+                      onChange={(e) => handleFirstNameChange(e.target.value)}
+                      suppressHydrationWarning
+                      className={`h-[54px] w-full rounded-full border px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-500 transition ${
+                        errors.firstName
+                          ? 'border-red-400 bg-red-50/40 focus:ring-2 focus:ring-red-400/30'
+                          : 'border-0 bg-[#f3f3f3] focus:bg-[#eeeeee] focus:ring-2 focus:ring-[#f12131]/30'
+                      }`}
+                    />
+                    {errors.firstName && (
+                      <p className="mt-1.5 px-3 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
+                        {errors.firstName}
+                      </p>
+                    )}
+                  </div>
 
-                  <input
-                    type="text"
-                    required
-                    placeholder="First Name*"
-                    value={formData.firstName}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        firstName: e.target.value,
-                      }))
-                    }
-                    className="
-                      h-[54px]
-                      w-full
-                      rounded-full
-                      border-0
-                      bg-[#f3f3f3]
-                      px-7
-                      text-sm
-                      text-slate-800
-                      outline-none
-                      placeholder:text-slate-500
-                      transition
-                      focus:bg-[#eeeeee]
-                      focus:ring-2
-                      focus:ring-[#f12131]/30
-                    "
-                  />
-
-                  <input
-                    type="text"
-                    required
-                    placeholder="Last Name*"
-                    value={formData.lastName}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        lastName: e.target.value,
-                      }))
-                    }
-                    className="
-                      h-[54px]
-                      w-full
-                      rounded-full
-                      border-0
-                      bg-[#f3f3f3]
-                      px-7
-                      text-sm
-                      text-slate-800
-                      outline-none
-                      placeholder:text-slate-500
-                      transition
-                      focus:bg-[#eeeeee]
-                      focus:ring-2
-                      focus:ring-[#f12131]/30
-                    "
-                  />
-
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Last Name"
+                      value={formData.lastName}
+                      onChange={(e) => handleLastNameChange(e.target.value)}
+                      suppressHydrationWarning
+                      className={`h-[54px] w-full rounded-full border px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-500 transition ${
+                        errors.lastName
+                          ? 'border-red-400 bg-red-50/40 focus:ring-2 focus:ring-red-400/30'
+                          : 'border-0 bg-[#f3f3f3] focus:bg-[#eeeeee] focus:ring-2 focus:ring-[#f12131]/30'
+                      }`}
+                    />
+                    {errors.lastName && (
+                      <p className="mt-1.5 px-3 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
+                        {errors.lastName}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                {/* Email */}
-                <input
-                  type="email"
-                  required
-                  placeholder="Email*"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      email: e.target.value,
-                    }))
-                  }
-                  className="
-                    h-[54px]
-                    w-full
-                    rounded-full
-                    border-0
-                    bg-[#f3f3f3]
-                    px-7
-                    text-sm
-                    text-slate-800
-                    outline-none
-                    placeholder:text-slate-500
-                    transition
-                    focus:bg-[#eeeeee]
-                    focus:ring-2
-                    focus:ring-[#f12131]/30
-                  "
-                />
+                {/* Phone & Email Row */}
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <div>
+                    <PhoneInputWithCountry
+                      variant="pill"
+                      phone={formData.phone}
+                      selectedCountry={selectedCountry}
+                      onPhoneChange={handlePhoneChange}
+                      onCountryChange={(c) => {
+                        setSelectedCountry(c);
+                        if (formData.phone) {
+                          setErrors((prev) => ({
+                            ...prev,
+                            phone: validatePhone(formData.phone, c, true).error,
+                          }));
+                        }
+                      }}
+                      error={errors.phone}
+                      required
+                      onBlur={() => {
+                        if (formData.phone) {
+                          setErrors((prev) => ({
+                            ...prev,
+                            phone: validatePhone(formData.phone, selectedCountry, true).error,
+                          }));
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <input
+                      type="email"
+                      required
+                      placeholder="Email* (e.g. name@gmail.com)"
+                      value={formData.email}
+                      onChange={(e) => handleEmailChange(e.target.value)}
+                      onBlur={() => {
+                        if (formData.email) {
+                          setErrors((prev) => ({
+                            ...prev,
+                            email: validateEmail(formData.email, true).error,
+                          }));
+                        }
+                      }}
+                      pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.com"
+                      title="Email must include '@' and end with '.com' (e.g. name@gmail.com)"
+                      suppressHydrationWarning
+                      className={`h-[54px] w-full rounded-full border px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-500 transition ${
+                        errors.email
+                          ? 'border-red-400 bg-red-50/40 focus:ring-2 focus:ring-red-400/30'
+                          : 'border-0 bg-[#f3f3f3] focus:bg-[#eeeeee] focus:ring-2 focus:ring-[#f12131]/30'
+                      }`}
+                    />
+                    {errors.email && (
+                      <p className="mt-1.5 px-3 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
+                        {errors.email}
+                      </p>
+                    )}
+                  </div>
+                </div>
 
                 {/* Message */}
                 <textarea

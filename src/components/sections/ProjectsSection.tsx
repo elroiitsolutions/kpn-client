@@ -1,16 +1,51 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin, ArrowRight } from 'lucide-react';
 import { projectsData } from '@/data/siteData';
+import { getHomepageCMS } from '@/lib/cmsClient';
 import RunningPillBadge from '../ui/RunningPillBadge';
 
 export default function ProjectsSection() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const featuredProjects = projectsData.slice(0, 4);
+  const [featuredProjects, setFeaturedProjects] = useState<any[]>(projectsData.slice(0, 4));
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadFeatured() {
+      try {
+        const cms = await getHomepageCMS();
+        if (isMounted && cms?.featuredProjectIds && cms.featuredProjectIds.length > 0) {
+          const list = cms.featuredProjectIds
+            .filter(Boolean)
+            .map((p: any) => ({
+              id: p._id || p.id || p.slug,
+              name: p.name,
+              slug: p.slug,
+              location: p.location,
+              bhk: p.bhk,
+              type: p.propertyType || p.type || 'Apartments',
+              status: p.status || 'Ongoing',
+              budget: p.budget,
+              image: p.image || '/images/projects/project_1.jpg',
+              address: p.address,
+            }));
+          if (list.length > 0) {
+            setFeaturedProjects(list);
+          }
+        }
+      } catch (err) {
+        console.warn('Using fallback featured projects');
+      }
+    }
+    loadFeatured();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Pinned Scroll: tracks the runway progress [0, 1] across desktop & mobile
   const { scrollYProgress } = useScroll({
@@ -121,7 +156,7 @@ export default function ProjectsSection() {
                             color: 'transparent',
                           }}
                         >
-                          {project.id}
+                          {String(index + 1).padStart(2, '0')}
                         </span>
 
                         <div className="space-y-1 pb-0.5">
