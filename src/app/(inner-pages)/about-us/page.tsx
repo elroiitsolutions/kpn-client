@@ -2,6 +2,7 @@ import Navbar from '@/components/layout/Navbar';
 import InnerPageHero from '@/components/sections/InnerPageHero';
 import AboutIntroSection from '@/components/sections/about/AboutIntroSection';
 import TimelineSection from '@/components/sections/about/TimelineSection';
+import VisionMissionSection from '@/components/sections/about/VisionMissionSection';
 import LearnMoreSection from '@/components/sections/about/LearnMoreSection';
 import TestimonialsSection from '@/components/sections/TestimonialsSection';
 
@@ -20,6 +21,8 @@ export default function AboutUsPage() {
       <AboutIntroSection />
 
       <TimelineSection />
+
+      <VisionMissionSection />
 
       <LearnMoreSection />
 
