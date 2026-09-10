@@ -21,9 +21,8 @@ export default function StaggerContainer({
   const shouldReduceMotion = useReducedMotion();
 
   const containerVariants: Variants = {
-    hidden: { opacity: 0 },
+    hidden: {},
     visible: {
-      opacity: 1,
       transition: {
         staggerChildren: shouldReduceMotion ? 0 : staggerDelay,
         delayChildren: shouldReduceMotion ? 0 : initialDelay,
@@ -36,7 +35,7 @@ export default function StaggerContainer({
       variants={containerVariants}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once, amount: 0.15, margin: '0px 0px -60px 0px' }}
+      viewport={{ once, amount: 'some', margin: '0px' }}
       className={className}
     >
       {children}

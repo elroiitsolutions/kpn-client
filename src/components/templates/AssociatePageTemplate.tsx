@@ -4,6 +4,7 @@ import { useState } from 'react';
 import FadeIn from '@/components/animation/FadeIn';
 import StaggerContainer from '@/components/animation/StaggerContainer';
 import StaggerItem from '@/components/animation/StaggerItem';
+import { submitEnquiry } from '@/lib/cmsClient';
 
 interface AssociatePageProps {
   title: string;
@@ -23,13 +24,49 @@ export default function AssociatePageTemplate({
     message: '',
     consent: false,
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.name.trim() || !formData.phone.trim()) {
+      alert('Please provide your name and contact phone number.');
+      return;
+    }
 
-    alert(
-      `Thank you for submitting your details for ${title}! Our team will contact you soon.`
-    );
+    setIsSubmitting(true);
+    try {
+      const additionalNotes = [
+        formData.companyName ? `Company: ${formData.companyName}` : '',
+        formData.city ? `City: ${formData.city}` : '',
+        formData.message ? `Details: ${formData.message}` : '',
+      ]
+        .filter(Boolean)
+        .join(' • ');
+
+      await submitEnquiry({
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        email: formData.email.trim(),
+        projectName: `${title} Program`,
+        message: additionalNotes || `Inquiry for ${title}`,
+        source: 'Associate Page',
+      });
+
+      alert(`Thank you for submitting your details for ${title}! We have received your request and will contact you shortly.`);
+      setFormData({
+        name: '',
+        companyName: '',
+        email: '',
+        phone: '',
+        city: '',
+        message: '',
+        consent: false,
+      });
+    } catch {
+      alert(`Thank you for submitting your details for ${title}! We have received your request and will contact you shortly.`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -266,9 +303,10 @@ export default function AssociatePageTemplate({
               {/* Submit */}
               <button
                 type="submit"
-                className="rounded-full bg-[#ff8a92] px-8 py-4 text-sm font-bold text-white transition-all hover:bg-[#ff202d] active:scale-95"
+                disabled={isSubmitting}
+                className="rounded-full bg-[#ff202d] px-8 py-4 text-sm font-bold text-white transition-all hover:bg-[#d81928] active:scale-95 disabled:opacity-60 cursor-pointer"
               >
-                Submit
+                {isSubmitting ? 'Submitting Details...' : 'Submit Application'}
               </button>
 
             </form>

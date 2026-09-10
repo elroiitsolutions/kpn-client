@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { testimonialsData } from '@/data/siteData';
+import { getTestimonials, TestimonialItem } from '@/lib/cmsClient';
 
 const partnerLogos = [
   {
@@ -135,10 +136,25 @@ function PartnerLogo({
 }
 
 export default function TestimonialsSection() {
+  const [items, setItems] = useState<TestimonialItem[]>(testimonialsData);
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(1);
 
-  const total = testimonialsData.length;
+  useEffect(() => {
+    async function loadCMS() {
+      try {
+        const fetched = await getTestimonials();
+        if (fetched && fetched.length > 0) {
+          setItems(fetched);
+        }
+      } catch (err) {
+        console.warn('Fallback testimonials used');
+      }
+    }
+    loadCMS();
+  }, []);
+
+  const total = items.length || 1;
 
   const next = () => {
     setDirection(1);
@@ -159,7 +175,7 @@ export default function TestimonialsSection() {
     return () => window.clearInterval(interval);
   }, [total]);
 
-  const testimonial = testimonialsData[current];
+  const testimonial = items[current] || items[0] || testimonialsData[0];
 
   const duplicatedLogos = useMemo(
     () => [...partnerLogos, ...partnerLogos],

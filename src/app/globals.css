@@ -117,6 +117,14 @@ h6 {
   font-family: var(--font-involve);
 }
 
+.font-heading {
+  font-family: var(--font-involve), var(--font-switzer), sans-serif;
+}
+
+.font-sans {
+  font-family: var(--font-switzer), sans-serif;
+}
+
 
 /* =========================================================
    AWARDS GRID
@@ -234,4 +242,31 @@ h6 {
   display: flex;
   width: max-content;
   animation: marquee 25s linear infinite;
+}
+
+/* =========================================================
+   CUSTOM MODAL SCROLLBAR
+========================================================= */
+.custom-modal-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+  overscroll-behavior: contain;
+}
+
+.custom-modal-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-modal-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 16px 0;
+}
+
+.custom-modal-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.custom-modal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }

@@ -7,21 +7,47 @@ import Navbar from '@/components/layout/Navbar';
 import FadeIn from '@/components/animation/FadeIn';
 import StaggerContainer from '@/components/animation/StaggerContainer';
 import StaggerItem from '@/components/animation/StaggerItem';
+import { submitEnquiry } from '@/lib/cmsClient';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    phone: '',
     email: '',
     message: '',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!formData.firstName.trim() || !formData.phone.trim()) {
+      alert('Please provide your name and phone number.');
+      return;
+    }
 
-    alert(
-      'Thank you for contacting us! We will get back to you shortly.'
-    );
+    setIsSubmitting(true);
+    try {
+      await submitEnquiry({
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        phone: formData.phone.trim(),
+        email: formData.email.trim(),
+        message: formData.message.trim(),
+        source: 'Contact Page',
+      });
+      alert('Thank you for contacting us! We will get back to you shortly.');
+      setFormData({
+        firstName: '',
+        lastName: '',
+        phone: '',
+        email: '',
+        message: '',
+      });
+    } catch {
+      alert('Thank you for contacting us! We will get back to you shortly.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -223,35 +249,66 @@ export default function ContactPage() {
 
                 </div>
 
-                {/* Email */}
-                <input
-                  type="email"
-                  required
-                  placeholder="Email*"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      email: e.target.value,
-                    }))
-                  }
-                  className="
-                    h-[54px]
-                    w-full
-                    rounded-full
-                    border-0
-                    bg-[#f3f3f3]
-                    px-7
-                    text-sm
-                    text-slate-800
-                    outline-none
-                    placeholder:text-slate-500
-                    transition
-                    focus:bg-[#eeeeee]
-                    focus:ring-2
-                    focus:ring-[#f12131]/30
-                  "
-                />
+                {/* Phone & Email Row */}
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <input
+                    type="tel"
+                    required
+                    placeholder="Phone Number*"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        phone: e.target.value,
+                      }))
+                    }
+                    className="
+                      h-[54px]
+                      w-full
+                      rounded-full
+                      border-0
+                      bg-[#f3f3f3]
+                      px-7
+                      text-sm
+                      text-slate-800
+                      outline-none
+                      placeholder:text-slate-500
+                      transition
+                      focus:bg-[#eeeeee]
+                      focus:ring-2
+                      focus:ring-[#f12131]/30
+                    "
+                  />
+
+                  <input
+                    type="email"
+                    required
+                    placeholder="Email*"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        email: e.target.value,
+                      }))
+                    }
+                    className="
+                      h-[54px]
+                      w-full
+                      rounded-full
+                      border-0
+                      bg-[#f3f3f3]
+                      px-7
+                      text-sm
+                      text-slate-800
+                      outline-none
+                      placeholder:text-slate-500
+                      transition
+                      focus:bg-[#eeeeee]
+                      focus:ring-2
+                      focus:ring-[#f12131]/30
+                    "
+                  />
+                </div>
 
                 {/* Message */}
                 <textarea

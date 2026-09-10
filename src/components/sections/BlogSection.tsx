@@ -1,14 +1,32 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
-import { blogData } from '@/data/siteData';
+import { blogData, BlogPostItem } from '@/data/siteData';
+import { getBlogs } from '@/lib/cmsClient';
 import RunningPillBadge from '../ui/RunningPillBadge';
 import FadeIn from '../animation/FadeIn';
 import StaggerContainer from '../animation/StaggerContainer';
 import StaggerItem from '../animation/StaggerItem';
 
 export default function BlogSection() {
+  const [posts, setPosts] = useState<BlogPostItem[]>(blogData.slice(0, 3));
+
+  useEffect(() => {
+    async function loadLatest() {
+      try {
+        const fetched = await getBlogs();
+        if (fetched && fetched.length > 0) {
+          setPosts(fetched.slice(0, 3));
+        }
+      } catch {
+        // fallback preserved
+      }
+    }
+    loadLatest();
+  }, []);
+
   return (
     <section id="blog" className="py-24 lg:py-32 bg-white">
       <div className="mx-auto max-w-[1600px] px-6 lg:px-12">
@@ -38,12 +56,12 @@ export default function BlogSection() {
           staggerDelay={0.12}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"
         >
-          {blogData.map((post, idx) => (
+          {posts.map((post, idx) => (
             <StaggerItem
-              key={idx}
+              key={post.id || idx}
               className="group flex flex-col justify-between cursor-pointer"
             >
-              <div>
+              <Link href={`/blogs/${post.slug}`}>
                 {/* Image */}
                 <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[32px] shadow-lg">
                   <img
@@ -68,7 +86,7 @@ export default function BlogSection() {
                 <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mt-4 leading-snug tracking-tight group-hover:text-[#f12131] transition-colors duration-300">
                   {post.title}
                 </h3>
-              </div>
+              </Link>
             </StaggerItem>
           ))}
         </StaggerContainer>

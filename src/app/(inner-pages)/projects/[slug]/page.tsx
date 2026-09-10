@@ -6,7 +6,10 @@ import { motion } from 'framer-motion';
 import Navbar from '@/components/layout/Navbar';
 import InnerPageHero from '@/components/sections/InnerPageHero';
 import { projectsData } from '@/data/siteData';
+import { getProjectBySlug, getProjects, getProjectUnits, submitEnquiry } from '@/lib/cmsClient';
+import RunningPillBadge from '@/components/ui/RunningPillBadge';
 import FadeIn from '@/components/animation/FadeIn';
+import UnitBookingModal from '@/components/project/UnitBookingModal';
 import {
   MapPin,
   Layers,
@@ -15,6 +18,8 @@ import {
   Calendar,
   CircleDollarSign,
   Shield,
+  FileText,
+  Download,
   Camera,
   Dumbbell,
   Gamepad2,
@@ -35,6 +40,8 @@ import {
   ZoomOut,
   Share2,
   Play,
+  HelpCircle,
+  ChevronUp,
 } from 'lucide-react';
 
 interface PageProps {
@@ -45,15 +52,72 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
   const resolvedParams = use(params);
   const slug = resolvedParams.slug.toLowerCase();
 
-  // Category slug check ('apartments' or 'plots')
-  const isCategory = slug === 'apartments' || slug === 'plots';
+  // Category slug check ('apartments' | 'plots' | 'villas')
+  const isCategory = slug === 'apartments' || slug === 'plots' || slug === 'villas';
   const categoryName =
-    slug === 'apartments' ? 'Apartments' : slug === 'plots' ? 'Plots' : '';
+    slug === 'apartments' ? 'Apartments' : slug === 'plots' ? 'Plots' : slug === 'villas' ? 'Villas' : '';
+
+  // Interactive Unit Booking Modal state
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+
+  // Category projects state
+  const [categoryProjects, setCategoryProjects] = useState<any[]>(() =>
+    projectsData.filter((p) => p.type?.toLowerCase() === categoryName.toLowerCase())
+  );
 
   // Current project lookup
   const projectIndex = projectsData.findIndex((p) => p.slug === slug);
-  const project =
-    projectIndex !== -1 ? projectsData[projectIndex] : projectsData[0];
+  const [project, setProject] = useState<any>(
+    projectIndex !== -1 ? projectsData[projectIndex] : projectsData[0]
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (isCategory) {
+      async function loadCategoryProjects() {
+        try {
+          const allProjects = await getProjects();
+          if (isMounted && Array.isArray(allProjects) && allProjects.length > 0) {
+            const filtered = allProjects.filter(
+              (p: any) => ((p as any).propertyType || p.type || '').toLowerCase() === categoryName.toLowerCase()
+            );
+            if (filtered.length > 0) {
+              setCategoryProjects(filtered);
+            }
+          }
+        } catch {
+          // Fallback to static siteData
+        }
+      }
+      loadCategoryProjects();
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    async function loadProjectDetails() {
+      try {
+        const live = await getProjectBySlug(slug);
+        if (isMounted && live) {
+          setProject((prev: any) => ({
+            ...prev,
+            ...live,
+            brochureUrl:
+              live.brochureUrl !== undefined && live.brochureUrl !== null && live.brochureUrl !== ''
+                ? live.brochureUrl
+                : prev?.brochureUrl || projectsData[projectIndex]?.brochureUrl || '',
+          }));
+        }
+      } catch (err) {
+        console.warn('Could not load dynamic project from CMS');
+      }
+    }
+    loadProjectDetails();
+    return () => {
+      isMounted = false;
+    };
+  }, [slug, isCategory, categoryName, projectIndex]);
 
   // Previous and Next navigation
   const prevProject =
@@ -66,22 +130,55 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
   // Active Media Tab state: 'Photos' | 'Plans' | 'Video' | 'Street View'
   const [activeMediaTab, setActiveMediaTab] = useState<string>('Photos');
 
-  // Media Gallery Photos List
-  const projectPhotos = [
-    { src: project.image, title: `${project.name} - Exterior View` },
-    { src: '/images/projects/project_2.jpg', title: `${project.name} - Architectural Detail` },
-    { src: '/images/projects/project_3.jpg', title: `${project.name} - Terrace & Balcony` },
-    { src: '/images/projects/project_4.jpg', title: `${project.name} - Living Space` },
-    { src: '/images/projects/project_5.jpg', title: `${project.name} - Aerial View` },
+  // Dynamic Media Gallery Photos List (Pulls from CMS project.image and project.galleryImages)
+  const rawPhotos: string[] = [
+    ...(project?.image ? [project.image] : []),
+    ...(Array.isArray(project?.galleryImages)
+      ? project.galleryImages.filter((img: string) => img && img !== project.image)
+      : []),
   ];
 
-  // Floor Plans List
-  const projectPlans = [
-    { src: '/images/projects/p1.webp', title: '1 BHK Master Plan (550 Sq. Ft.)' },
-    { src: '/images/projects/p2.webp', title: '2 BHK Luxury Plan (850 Sq. Ft.)' },
-    { src: '/images/projects/p3.webp', title: '3 BHK Premium Plan (1200 Sq. Ft.)' },
-    { src: '/images/projects/p4.webp', title: 'Executive Floor Plan (1500 Sq. Ft.)' },
-  ];
+  const projectPhotos =
+    rawPhotos.length > 0
+      ? rawPhotos.map((src: string, idx: number) => ({
+          src,
+          title:
+            idx === 0
+              ? `${project?.name || 'Project'} - Exterior View`
+              : `${project?.name || 'Project'} - Photo ${idx + 1}`,
+        }))
+      : [
+          { src: project?.image || '/images/projects/apt_lenid.jpg', title: `${project?.name || 'Project'} - Exterior View` },
+          { src: '/images/projects/project_2.jpg', title: `${project?.name || 'Project'} - Architectural Detail` },
+          { src: '/images/projects/project_3.jpg', title: `${project?.name || 'Project'} - Terrace & Balcony` },
+          { src: '/images/projects/project_4.jpg', title: `${project?.name || 'Project'} - Living Space` },
+          { src: '/images/projects/project_5.jpg', title: `${project?.name || 'Project'} - Aerial View` },
+        ];
+
+  // Dynamic Floor Plans List (Pulls from CMS project.floorPlans)
+  const rawPlans: any[] =
+    Array.isArray(project?.floorPlans) && project.floorPlans.length > 0
+      ? project.floorPlans
+      : [];
+
+  const projectPlans =
+    rawPlans.length > 0
+      ? rawPlans.map((plan: any, idx: number) => ({
+          src:
+            typeof plan === 'string'
+              ? plan
+              : plan.imageUrl || plan.src || '/images/projects/p1.webp',
+          title:
+            typeof plan === 'object' && plan.title
+              ? `${plan.title}${plan.sqft ? ` (${plan.sqft})` : ''}`
+              : `Floor Plan ${idx + 1}`,
+        }))
+      : [
+          { src: '/images/projects/p1.webp', title: '1 BHK Master Plan (550 Sq. Ft.)' },
+          { src: '/images/projects/p2.webp', title: '2 BHK Luxury Plan (850 Sq. Ft.)' },
+          { src: '/images/projects/p3.webp', title: '3 BHK Premium Plan (1200 Sq. Ft.)' },
+          { src: '/images/projects/p4.webp', title: 'Executive Floor Plan (1500 Sq. Ft.)' },
+        ];
 
   // Carousel width & container measurement
   const carouselContainerRef = useRef<HTMLDivElement>(null);
@@ -107,9 +204,21 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
   }, [activeMediaTab]);
 
   // Carousel active virtual index for seamless 3-set infinite track
-  const [photoVirtualIndex, setPhotoVirtualIndex] = useState(5);
-  const [planVirtualIndex, setPlanVirtualIndex] = useState(3);
+  const [photoVirtualIndex, setPhotoVirtualIndex] = useState(projectPhotos.length || 5);
+  const [planVirtualIndex, setPlanVirtualIndex] = useState(projectPlans.length || 3);
   const [allowTransition, setAllowTransition] = useState(true);
+
+  useEffect(() => {
+    if (projectPhotos.length > 0) {
+      setPhotoVirtualIndex(projectPhotos.length);
+    }
+  }, [projectPhotos.length]);
+
+  useEffect(() => {
+    if (projectPlans.length > 0) {
+      setPlanVirtualIndex(projectPlans.length);
+    }
+  }, [projectPlans.length]);
 
   // Drag state for uninterrupted real-time sliding
   const [dragOffset, setDragOffset] = useState(0);
@@ -205,6 +314,28 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
   const [isZoomed, setIsZoomed] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
+  // Lock background scrolling when lightbox is open
+  useEffect(() => {
+    if (!lightboxOpen) return;
+
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+    const originalBodyPaddingRight = document.body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+      document.body.style.paddingRight = originalBodyPaddingRight;
+    };
+  }, [lightboxOpen]);
+
   const [lightboxDragOffset, setLightboxDragOffset] = useState(0);
   const [isLightboxDragging, setIsLightboxDragging] = useState(false);
   const lightboxStartXRef = useRef(0);
@@ -285,20 +416,82 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
     }
   };
 
+  // Dynamic lead inquiry state
+  const [inquiryFirstName, setInquiryFirstName] = useState('');
+  const [inquiryLastName, setInquiryLastName] = useState('');
+  const [inquiryPhone, setInquiryPhone] = useState('');
+  const [inquiryEmail, setInquiryEmail] = useState('');
+  const [inquiryMessage, setInquiryMessage] = useState('');
+  const [inquirySubmitted, setInquirySubmitted] = useState(false);
+  const [isSubmittingInquiry, setIsSubmittingInquiry] = useState(false);
+  const [inquiryError, setInquiryError] = useState<string | null>(null);
+
   // Inquiry form submit
-  const handleInquirySubmit = (e: React.FormEvent) => {
+  const handleInquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert(
-      `Thank you for requesting information on ${project.name}! Our team will contact you shortly.`
-    );
+    setInquiryError(null);
+
+    const fullName = `${inquiryFirstName} ${inquiryLastName}`.trim();
+    if (!fullName) {
+      setInquiryError('Please enter your name.');
+      return;
+    }
+
+    if (!inquiryPhone.trim()) {
+      setInquiryError('Please enter your phone number.');
+      return;
+    }
+
+    setIsSubmittingInquiry(true);
+    try {
+      const res = await submitEnquiry({
+        name: fullName,
+        phone: inquiryPhone.trim(),
+        email: inquiryEmail.trim(),
+        projectName: project.name,
+        message: inquiryMessage.trim(),
+        source: 'Project Detail',
+      });
+      if (res && res.success) {
+        setInquirySubmitted(true);
+      } else {
+        setInquiryError(res?.message || 'Could not submit inquiry. Please try again.');
+      }
+    } catch (err: any) {
+      setInquiryError(err?.message || 'Network error. Please try again.');
+    } finally {
+      setIsSubmittingInquiry(false);
+    }
   };
 
-  // Category page view (/projects/apartments or /projects/plots)
-  if (isCategory) {
-    const categoryProjects = projectsData.filter(
-      (p) => p.type === categoryName
-    );
+  // FAQ Accordion State
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
+  const projectFaqs = [
+    {
+      question: `What are the key specifications and floor plans available at ${project.name}?`,
+      answer: `${project.name} offers premium ${project.bhk} layouts ranging from 550 to 1200 Sq. Ft. built with high-grade RCC frame structures, vitrified tile flooring, modular electrical fittings, and Vastu-compliant architecture.`,
+    },
+    {
+      question: 'Are bank loan approvals available for purchasing this property?',
+      answer: 'Yes, our projects are approved by leading nationalized and private banks including SBI, HDFC, ICICI, Axis Bank, and LIC Housing Finance. We offer full assistance with hassle-free loan processing.',
+    },
+    {
+      question: 'What is the current construction status and expected possession date?',
+      answer: `This project status is currently ${project.status}. For detailed unit availability, stage-wise construction schedule, and exact possession timelines, please submit an inquiry form or contact our customer desk.`,
+    },
+    {
+      question: 'What safety standards and security features are provided?',
+      answer: 'The project features 24x7 security personnel, gated entry/exit checkpoints, CCTV surveillance, automated fire-fighting systems, power backup, and dedicated maintenance support.',
+    },
+    {
+      question: 'How can I schedule a physical site visit or request a brochure?',
+      answer: 'You can easily request a callback or schedule a site visit by filling out the "Request more information" form above, or by contacting our sales team directly.',
+    },
+  ];
+
+  // Category page view (/projects/apartments, /projects/plots, or /projects/villas)
+  if (isCategory) {
     return (
       <>
         <Navbar variant="hero" />
@@ -312,7 +505,7 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
         <section className="bg-white px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
           <div className="mx-auto max-w-[1500px]">
             {/* Category Tabs */}
-            <div className="mb-12 flex items-center gap-3 border-b border-slate-100 pb-8">
+            <div className="mb-12 flex flex-wrap items-center gap-3 border-b border-slate-100 pb-8">
               <Link
                 href="/projects"
                 className="flex h-12 items-center justify-center rounded-full bg-slate-100 px-7 text-sm font-extrabold text-slate-700 transition-all hover:bg-slate-200"
@@ -338,6 +531,16 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                 }`}
               >
                 Plots
+              </Link>
+              <Link
+                href="/projects/villas"
+                className={`flex h-12 items-center justify-center rounded-full px-7 text-sm font-extrabold transition-all ${
+                  slug === 'villas'
+                    ? 'bg-[#f12131] text-white shadow-md'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                Villas
               </Link>
             </div>
 
@@ -471,6 +674,23 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                 className="h-[450px] w-full object-cover sm:h-[550px]"
               />
             </div>
+
+            {/* Centered Book Now CTA Button (Step 2: After Image & Before Project Description) */}
+            <div className="my-8 flex flex-col items-center justify-center text-center">
+              <button
+                type="button"
+                onClick={() => setIsBookingModalOpen(true)}
+                className="group relative inline-flex items-center gap-3 rounded-full bg-[#f12131] px-9 py-4 text-sm sm:text-base font-black text-white shadow-xl shadow-red-500/25 hover:bg-[#d81928] hover:shadow-2xl hover:shadow-red-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 cursor-pointer"
+              >
+                <span className="flex h-2.5 w-2.5 rounded-full bg-white animate-ping" />
+                <span>Explore Units & Book Now</span>
+                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1.5" />
+              </button>
+              <p className="text-xs text-slate-500 font-semibold mt-2.5 flex items-center gap-1.5">
+                <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
+                Live Block, Floor & Unit Availability Navigator
+              </p>
+            </div>
           </div>
 
           {/* =========================================================
@@ -481,54 +701,224 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
               <h2 className="text-3xl font-extrabold text-[#29247c] sm:text-4xl">
                 Project description
               </h2>
-              <p className="text-base font-normal leading-relaxed text-slate-500">
-                Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.
+              <p className="text-base font-medium leading-relaxed text-slate-600">
+                {project.description ||
+                  `${project.name} is a premier development situated in ${project.location}. Offering CMDA & RERA approved infrastructure, strategic transit access, and exceptional value appreciation.`}
               </p>
-              <p className="text-base font-normal leading-relaxed text-slate-500">
-                Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur quae ab illoinventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.
-              </p>
+
+              {project.highlights && project.highlights.length > 0 && (
+                <div className="pt-4">
+                  <h3 className="text-xl font-bold text-[#29247c] mb-4">
+                    Key Project Highlights
+                  </h3>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {project.highlights.map((h: string, i: number) => (
+                      <div key={i} className="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#f12131] text-xs font-bold text-white">
+                          ✓
+                        </span>
+                        <span className="text-xs font-semibold text-slate-700 leading-relaxed">{h}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="lg:col-span-5">
-              <div className="space-y-4 rounded-[28px] border border-slate-100 bg-slate-50/60 p-8">
+              <div className="space-y-6 rounded-[28px] border border-slate-100 bg-slate-50/60 p-8 shadow-sm">
                 <h3 className="text-xl font-bold text-[#29247c]">
                   Key Details
                 </h3>
                 <ul className="space-y-3.5 text-sm leading-relaxed text-slate-600">
                   <li className="flex items-start gap-2">
                     <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f12131]" />
-                    <span><strong className="text-slate-800">Location:</strong> Central Business District / {project.location}.</span>
+                    <span><strong className="text-slate-800">Location:</strong> {project.address || project.location}.</span>
+                  </li>
+                  {project.plotSizes && (
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f12131]" />
+                      <span><strong className="text-slate-800">Plot Extents:</strong> {project.plotSizes}.</span>
+                    </li>
+                  )}
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f12131]" />
+                    <span><strong className="text-slate-800">Type:</strong> {project.type} ({project.bhk}).</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f12131]" />
-                    <span><strong className="text-slate-800">Total Built-Up Area:</strong> 350,000 sq. ft.</span>
+                    <span><strong className="text-slate-800">Status:</strong> {project.status} (CMDA & RERA Approved).</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f12131]" />
-                    <span><strong className="text-slate-800">Number of Floors:</strong> 20, including two underground levels for parking.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f12131]" />
-                    <span><strong className="text-slate-800">Special Features:</strong> Vertical garden facade, collaborative workspaces, and an energy-efficient HVAC system.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f12131]" />
-                    <span><strong className="text-slate-800">Amenities:</strong> Gym, café, daycare, and rooftop event space.</span>
+                    <span><strong className="text-slate-800">Pricing:</strong> {project.budget}.</span>
                   </li>
                 </ul>
+
+                <div className="pt-3 space-y-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setIsBookingModalOpen(true)}
+                    className="group flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#29247c] py-3.5 px-5 text-sm font-bold text-white shadow-md transition duration-300 hover:bg-[#1f1b63] hover:shadow-lg active:scale-[0.99] cursor-pointer"
+                  >
+                    <Building className="h-4 w-4 text-red-400 group-hover:scale-110 transition-transform" />
+                    <span>Book Unit / Check Availability</span>
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </button>
+
+                  {Boolean(project.brochureUrl && project.brochureUrl.trim() !== '') && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(
+                          new CustomEvent('kpn_open_brochure_modal', {
+                            detail: {
+                              brochureUrl: project.brochureUrl,
+                              projectName: project.name,
+                            },
+                          })
+                        );
+                      }}
+                      className="group flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#f12131] py-3.5 px-5 text-sm font-bold text-white shadow-md transition duration-300 hover:bg-red-600 hover:shadow-lg active:scale-[0.99] cursor-pointer"
+                    >
+                      <FileText className="h-4 w-4" />
+                      <span>Download Official Brochure</span>
+                      <Download className="h-4 w-4 transition-transform group-hover:translate-y-0.5" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
+          {/* =========================================================
+              BROCHURE LOCATION ADVANTAGES MATRIX (IF AVAILABLE)
+          ========================================================= */}
+          {project.locationAdvantages && (
+            <div className="mt-16">
+              <h2 className="mb-8 text-3xl font-extrabold text-[#29247c]">
+                Location Advantages
+              </h2>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {/* Schools & Colleges */}
+                {project.locationAdvantages.schoolsColleges && (
+                  <div className="rounded-[24px] border border-slate-100 bg-white p-6 shadow-sm">
+                    <div className="mb-4 flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-[#f12131]">
+                        <Building className="h-5 w-5" />
+                      </div>
+                      <h4 className="font-extrabold text-[#29247c]">Schools & Colleges</h4>
+                    </div>
+                    <ul className="space-y-2 text-xs font-semibold text-slate-600">
+                      {project.locationAdvantages.schoolsColleges.map((item: string, idx: number) => (
+                        <li key={idx} className="flex items-center gap-2">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#f12131]" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Hospitals */}
+                {project.locationAdvantages.hospitals && (
+                  <div className="rounded-[24px] border border-slate-100 bg-white p-6 shadow-sm">
+                    <div className="mb-4 flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-[#f12131]">
+                        <Shield className="h-5 w-5" />
+                      </div>
+                      <h4 className="font-extrabold text-[#29247c]">Hospitals</h4>
+                    </div>
+                    <ul className="space-y-2 text-xs font-semibold text-slate-600">
+                      {project.locationAdvantages.hospitals.map((item: string, idx: number) => (
+                        <li key={idx} className="flex items-center gap-2">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#f12131]" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Public Facilities */}
+                {project.locationAdvantages.publicFacilities && (
+                  <div className="rounded-[24px] border border-slate-100 bg-white p-6 shadow-sm">
+                    <div className="mb-4 flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-[#f12131]">
+                        <MapPin className="h-5 w-5" />
+                      </div>
+                      <h4 className="font-extrabold text-[#29247c]">Public Facilities</h4>
+                    </div>
+                    <ul className="space-y-2 text-xs font-semibold text-slate-600">
+                      {project.locationAdvantages.publicFacilities.map((item: string, idx: number) => (
+                        <li key={idx} className="flex items-center gap-2">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#f12131]" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Corporate Offices */}
+                {project.locationAdvantages.corporateOffices && (
+                  <div className="rounded-[24px] border border-slate-100 bg-white p-6 shadow-sm">
+                    <div className="mb-4 flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-[#f12131]">
+                        <Layers className="h-5 w-5" />
+                      </div>
+                      <h4 className="font-extrabold text-[#29247c]">Corporate Offices</h4>
+                    </div>
+                    <ul className="space-y-2 text-xs font-semibold text-slate-600">
+                      {project.locationAdvantages.corporateOffices.map((item: string, idx: number) => (
+                        <li key={idx} className="flex items-center gap-2">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#f12131]" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>                    
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           <hr className="my-20 border-t border-slate-100" />
 
           {/* =========================================================
               FEATURES & AMENITIES (8 CARDS)
           ========================================================= */}
           <div>
-            <h2 className="mb-12 text-3xl font-extrabold text-[#29247c] sm:text-4xl">
-              Features & amenities
-            </h2>
+            <div className="mb-12 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="text-3xl font-extrabold text-[#29247c] sm:text-4xl">
+                Features & amenities
+              </h2>
+
+              {Boolean(project.brochureUrl && project.brochureUrl.trim() !== '') && (
+                <button
+                  type="button"
+                  suppressHydrationWarning
+                  onClick={() => {
+                    window.dispatchEvent(
+                      new CustomEvent('kpn_open_brochure_modal', {
+                        detail: {
+                          brochureUrl: project.brochureUrl,
+                          projectName: project.name,
+                        },
+                      })
+                    );
+                  }}
+                  className="group inline-flex items-center gap-3 rounded-full bg-[#f12131] px-6 py-3.5 text-white shadow-md transition-all duration-300 hover:bg-red-600 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-colors">
+                    <FileText className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm font-extrabold">Download Brochure</span>
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-white transition-colors">
+                    <Download className="h-3.5 w-3.5" />
+                  </div>
+                </button>
+              )}
+            </div>
 
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-[28px] border border-slate-100 bg-slate-50/70 p-8 text-center transition duration-300 hover:bg-white hover:shadow-lg">
@@ -873,14 +1263,48 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                   </div>
                 ) : (
                   <div className="relative h-[450px] sm:h-[550px] w-full bg-black">
-                    <video
-                      controls
-                      autoPlay
-                      className="h-full w-full object-contain"
-                    >
-                      <source src="/images/videos/hero-bg.mp4" type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
+                    {(() => {
+                      const videoUrl = project.walkthroughVideoUrl || '';
+                      const ytMatch = videoUrl.match(
+                        /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/
+                      );
+                      if (ytMatch) {
+                        return (
+                          <iframe
+                            title={`${project.name} Walkthrough Video`}
+                            src={`https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`}
+                            className="h-full w-full border-0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        );
+                      }
+                      const vimeoMatch = videoUrl.match(/vimeo\.com\/(?:video\/)?([0-9]+)/);
+                      if (vimeoMatch) {
+                        return (
+                          <iframe
+                            title={`${project.name} Walkthrough Video`}
+                            src={`https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`}
+                            className="h-full w-full border-0"
+                            allow="autoplay; fullscreen; picture-in-picture"
+                            allowFullScreen
+                          />
+                        );
+                      }
+                      return (
+                        <video
+                          controls
+                          autoPlay
+                          className="h-full w-full object-contain"
+                        >
+                          <source
+                            src={videoUrl || '/images/videos/hero-bg.mp4'}
+                            type="video/mp4"
+                          />
+                          Your browser does not support the video tag.
+                        </video>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
@@ -1021,57 +1445,108 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                 Request more information
               </h2>
 
-              <form onSubmit={handleInquirySubmit} className="space-y-6">
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                  <input
-                    type="text"
-                    required
-                    placeholder="First Name*"
-                    suppressHydrationWarning
-                    className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
-                  />
-                  <input
-                    type="text"
-                    required
-                    placeholder="Last Name*"
-                    suppressHydrationWarning
-                    className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
-                  />
-                </div>
-
-                <input
-                  type="email"
-                  required
-                  placeholder="Email*"
-                  suppressHydrationWarning
-                  className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
-                />
-
-                <textarea
-                  required
-                  rows={5}
-                  placeholder="Message..."
-                  suppressHydrationWarning
-                  className="w-full resize-none rounded-[28px] border-0 bg-slate-100/80 p-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
-                />
-
-                <div className="flex justify-center pt-2">
+              {inquirySubmitted ? (
+                <div className="rounded-[28px] border border-emerald-200 bg-emerald-50/90 p-8 text-center shadow-sm animate-in fade-in duration-300">
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md">
+                    ✓
+                  </div>
+                  <h3 className="text-xl font-extrabold text-[#29247c]">
+                    Thank you! Your enquiry has been received.
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-600">
+                    Our sales team will get in touch with you shortly regarding {project.name}.
+                  </p>
                   <button
-                    type="submit"
-                    suppressHydrationWarning
-                    className="group flex h-14 items-center gap-5 rounded-full border border-slate-200 bg-white pl-8 pr-2 text-sm font-extrabold text-slate-900 shadow-md transition hover:shadow-lg"
+                    type="button"
+                    onClick={() => {
+                      setInquirySubmitted(false);
+                      setInquiryFirstName('');
+                      setInquiryLastName('');
+                      setInquiryPhone('');
+                      setInquiryEmail('');
+                      setInquiryMessage('');
+                    }}
+                    className="mt-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-6 py-2.5 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition"
                   >
-                    <span>Submit</span>
-                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f12131] text-white transition-transform duration-300 group-hover:translate-x-1">
-                      <ArrowRight className="h-5 w-5" />
-                    </span>
+                    Send another inquiry
                   </button>
                 </div>
-              </form>
+              ) : (
+                <form onSubmit={handleInquirySubmit} className="space-y-5 text-left">
+                  {inquiryError && (
+                    <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-semibold text-red-700">
+                      {inquiryError}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <input
+                      type="text"
+                      required
+                      placeholder="First Name*"
+                      value={inquiryFirstName}
+                      onChange={(e) => setInquiryFirstName(e.target.value)}
+                      suppressHydrationWarning
+                      className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Last Name"
+                      value={inquiryLastName}
+                      onChange={(e) => setInquiryLastName(e.target.value)}
+                      suppressHydrationWarning
+                      className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <input
+                      type="tel"
+                      required
+                      placeholder="Phone Number*"
+                      value={inquiryPhone}
+                      onChange={(e) => setInquiryPhone(e.target.value)}
+                      suppressHydrationWarning
+                      className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
+                    />
+                    <input
+                      type="email"
+                      placeholder="Email Address"
+                      value={inquiryEmail}
+                      onChange={(e) => setInquiryEmail(e.target.value)}
+                      suppressHydrationWarning
+                      className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
+                    />
+                  </div>
+
+                  <textarea
+                    rows={4}
+                    placeholder="Message or specific requirements (optional)..."
+                    value={inquiryMessage}
+                    onChange={(e) => setInquiryMessage(e.target.value)}
+                    suppressHydrationWarning
+                    className="w-full resize-none rounded-[28px] border-0 bg-slate-100/80 p-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
+                  />
+
+                  <div className="flex justify-center pt-2">
+                    <button
+                      type="submit"
+                      disabled={isSubmittingInquiry}
+                      suppressHydrationWarning
+                      className="group flex h-14 items-center gap-5 rounded-full border border-slate-200 bg-white pl-8 pr-2 text-sm font-extrabold text-slate-900 shadow-md transition hover:shadow-lg disabled:opacity-60 cursor-pointer"
+                    >
+                      <span>{isSubmittingInquiry ? 'Submitting...' : 'Submit Inquiry'}</span>
+                      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f12131] text-white transition-transform duration-300 group-hover:translate-x-1">
+                        <ArrowRight className="h-5 w-5" />
+                      </span>
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           </FadeIn>
 
-            {/* Bottom Project Navigation */}
+          {/* Bottom Project Navigation */}
             <div className="mt-24">
               <div className="flex items-center justify-between rounded-full border border-slate-200 bg-white p-2 sm:px-8 sm:py-4 shadow-sm">
                 <Link
@@ -1089,6 +1564,89 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                   <span>next project</span>
                   <ChevronRight className="h-4 w-4 text-[#f12131]" />
                 </Link>
+              </div>
+            </div>
+            {/* =========================================================
+              FAQ SECTION (Matching kpndemos.netlify.app/faqs design)
+            ========================================================= */}
+            <div className="mt-24 pt-12">
+              {/* Header: Centered Label Badge & Large Heading */}
+              <div className="mx-auto max-w-4xl text-center">
+                <FadeIn direction="up" distance={30}>
+                <RunningPillBadge text="FIND YOUR ANSWERS" />
+                  <h2 className="mt-6 text-4xl font-extrabold tracking-tight text-[#382b88] sm:text-5xl lg:text-[64px] lg:leading-[1.05]">
+                    Read most frequent
+                    <br />
+                    questions
+                  </h2>
+                </FadeIn>
+              </div>
+
+              {/* Accordion Items Stream with Left Purple Icon Badge & Right Chevron */}
+              <div className="mx-auto mt-16 max-w-4xl space-y-0">
+                {projectFaqs.map((faq, index) => {
+                  const isOpen = openFaqIndex === index;
+                  return (
+                    <FadeIn
+                      key={index}
+                      direction="up"
+                      distance={20}
+                      delay={index * 0.06}
+                    >
+                      <div className="border-b border-slate-200/80 py-6 transition-colors">
+                        <button
+                          type="button"
+                          suppressHydrationWarning
+                          onClick={() =>
+                            setOpenFaqIndex(isOpen ? null : index)
+                          }
+                          className="flex w-full items-start justify-between gap-6 text-left"
+                        >
+                          {/* Question Badge Icon + Question Text */}
+                          <div className="flex items-center gap-5 sm:gap-6">
+                            <div
+                              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white shadow-sm transition-colors duration-300 ${
+                                isOpen ? 'bg-[#f12131]' : 'bg-[#382b88]'
+                              }`}
+                            >
+                              <HelpCircle className="h-6 w-6" />
+                            </div>
+                            <span className="text-lg font-bold text-slate-900 sm:text-xl md:text-[22px]">
+                              {faq.question}
+                            </span>
+                          </div>
+
+                          {/* Right Chevron Indicator */}
+                          <span className="mt-2 text-slate-500 transition-transform duration-300">
+                            {isOpen ? (
+                              <ChevronUp className="h-5 w-5 text-[#382b88]" />
+                            ) : (
+                              <ChevronRight className="h-5 w-5 text-slate-400" />
+                            )}
+                          </span>
+                        </button>
+
+                        {/* Collapsible Answer */}
+                        <motion.div
+                          initial={false}
+                          animate={{
+                            height: isOpen ? 'auto' : 0,
+                            opacity: isOpen ? 1 : 0,
+                          }}
+                          transition={{
+                            duration: 0.35,
+                            ease: [0.22, 1, 0.36, 1],
+                          }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pl-16 sm:pl-17 pr-6 pt-4 text-base font-normal leading-relaxed text-slate-600 sm:text-lg">
+                            {faq.answer}
+                          </div>
+                        </motion.div>
+                      </div>
+                    </FadeIn>
+                  );
+                })}
               </div>
             </div>
 
@@ -1195,6 +1753,13 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
           </div>
         </div>
       )}
+
+      {/* Interactive Unit Booking Modal */}
+      <UnitBookingModal
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        project={project}
+      />
     </>
   );
 }

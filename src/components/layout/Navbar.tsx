@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -9,8 +9,14 @@ import {
   Menu,
   X,
   ChevronDown,
+  Heart,
+  Scale,
+  Search,
 } from 'lucide-react';
+import { getMenu } from '@/lib/cmsClient';
 import { navigationLinks } from '@/data/siteData';
+import { useWishlistCompare } from '@/context/WishlistCompareContext';
+import SmartSearchModal from '@/components/ui/SmartSearchModal';
 
 interface NavbarProps {
   variant?: 'default' | 'hero';
@@ -22,6 +28,28 @@ export default function Navbar({
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileDropdown, setMobileDropdown] = useState<string | null>(null);
+  const [links, setLinks] = useState(navigationLinks);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadDynamicMenu() {
+      try {
+        const dynamicMenu = await getMenu();
+        if (isMounted && dynamicMenu && dynamicMenu.length > 0) {
+          setLinks(dynamicMenu);
+        }
+      } catch (err) {
+        console.warn('Could not load dynamic menu, using static siteData');
+      }
+    }
+    loadDynamicMenu();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+  const { wishlistIds, compareIds } = useWishlistCompare();
+
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const pathname = usePathname();
 
@@ -146,7 +174,7 @@ export default function Navbar({
             lg:flex
           "
         >
-          {navigationLinks.map((link) => {
+          {links.map((link) => {
             const hasChildren =
               Array.isArray(link.children) &&
               link.children.length > 0;
@@ -372,6 +400,64 @@ export default function Navbar({
             </a>
           </div>
 
+          {/* Search, Wishlist & Compare Buttons with Custom Hover Tooltips */}
+          <div className="flex items-center gap-3">
+            {/* Search Icon */}
+            <div className="relative group">
+              <button
+                id="smart-search-trigger"
+                onClick={() => setSearchOpen(true)}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition duration-200 hover:bg-red-50 hover:text-[#f12131] hover:scale-105 active:scale-95"
+                type="button"
+                suppressHydrationWarning
+              >
+                <Search className="h-5 w-5" />
+              </button>
+              <div className="pointer-events-none absolute -bottom-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:translate-y-1 z-50 whitespace-nowrap rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white shadow-xl">
+                Search
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-b-slate-900" />
+              </div>
+            </div>
+
+            {/* Wishlist Icon */}
+            <div className="relative group">
+              <Link
+                href="/wishlist"
+                className="relative flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition duration-200 hover:bg-red-50 hover:text-[#f12131] hover:scale-105 active:scale-95"
+              >
+                <Heart className="h-5 w-5" />
+                {wishlistIds.length > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#f12131] text-[10px] font-bold text-white shadow-sm">
+                    {wishlistIds.length}
+                  </span>
+                )}
+              </Link>
+              <div className="pointer-events-none absolute -bottom-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:translate-y-1 z-50 whitespace-nowrap rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white shadow-xl">
+                Wishlist
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-b-slate-900" />
+              </div>
+            </div>
+
+            {/* Compare Icon */}
+            <div className="relative group">
+              <Link
+                href="/compare"
+                className="relative flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition duration-200 hover:bg-red-50 hover:text-[#f12131] hover:scale-105 active:scale-95"
+              >
+                <Scale className="h-5 w-5" />
+                {compareIds.length > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#382b88] text-[10px] font-bold text-white shadow-sm">
+                    {compareIds.length}
+                  </span>
+                )}
+              </Link>
+              <div className="pointer-events-none absolute -bottom-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:translate-y-1 z-50 whitespace-nowrap rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white shadow-xl">
+                Compare Projects
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-b-slate-900" />
+              </div>
+            </div>
+          </div>
+
           <Link
             href="/contact-us"
             className="
@@ -411,6 +497,16 @@ export default function Navbar({
             lg:hidden
           "
         >
+          {/* Mobile Search Button */}
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-red-50 hover:text-[#f12131]"
+            title="Search Projects"
+            type="button"
+          >
+            <Search className="h-4 w-4" />
+          </button>
+
           {/* Mobile CTA */}
 
           <Link
@@ -512,7 +608,7 @@ export default function Navbar({
 
               <nav className="flex flex-col">
 
-                {navigationLinks.map((link) => {
+                {links.map((link) => {
                   const hasChildren =
                     Array.isArray(link.children) &&
                     link.children.length > 0;
@@ -692,34 +788,42 @@ export default function Navbar({
               </nav>
 
 
-              {/* MOBILE CONTACT AREA */}
-
-              <div
-                className="
-                  mt-4
-                  border-t
-                  border-gray-100
-                  pt-4
-                "
-              >
-                <div
-                  className="
-                    mb-3
-                    flex
-                    items-center
-                    gap-2
-                    text-sm
-                    font-bold
-                  "
+              {/* MOBILE WISHLIST & COMPARE */}
+              <div className="mt-2 grid grid-cols-2 gap-2 border-t border-gray-100 pt-3">
+                <Link
+                  href="/wishlist"
+                  onClick={closeMobileMenu}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-slate-50 py-2.5 text-xs font-bold text-slate-700 hover:bg-red-50 hover:text-[#f12131] transition-colors"
                 >
-                  <span className="text-[#29247c]">
-                    Call Us:
-                  </span>
+                  <Heart className="h-4 w-4 text-[#f12131]" />
+                  <span>Wishlist</span>
+                  {wishlistIds.length > 0 && (
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#f12131] text-[10px] font-black text-white">
+                      {wishlistIds.length}
+                    </span>
+                  )}
+                </Link>
 
-                  <a
-                    href="tel:+917338834233"
-                    className="text-[#f12131]"
-                  >
+                <Link
+                  href="/compare"
+                  onClick={closeMobileMenu}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-slate-50 py-2.5 text-xs font-bold text-slate-700 hover:bg-red-50 hover:text-[#f12131] transition-colors"
+                >
+                  <Scale className="h-4 w-4 text-[#29247c]" />
+                  <span>Compare</span>
+                  {compareIds.length > 0 && (
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#29247c] text-[10px] font-black text-white">
+                      {compareIds.length}
+                    </span>
+                  )}
+                </Link>
+              </div>
+
+              {/* MOBILE CONTACT AREA */}
+              <div className="mt-3 border-t border-gray-100 pt-3">
+                <div className="mb-3 flex items-center gap-2 text-sm font-bold">
+                  <span className="text-[#29247c]">Call Us:</span>
+                  <a href="tel:+917338834233" className="text-[#f12131]">
                     +91 7338834233
                   </a>
                 </div>
@@ -727,19 +831,7 @@ export default function Navbar({
                 <Link
                   href="/contact-us"
                   onClick={closeMobileMenu}
-                  className="
-                    flex
-                    w-full
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-[#f12131]
-                    px-5
-                    py-3.5
-                    text-sm
-                    font-bold
-                    text-white
-                  "
+                  className="flex w-full items-center justify-center rounded-full bg-[#f12131] px-5 py-3.5 text-sm font-bold text-white shadow-md hover:bg-[#d91d2c] transition-colors"
                 >
                   Get In Touch
                 </Link>
@@ -750,6 +842,11 @@ export default function Navbar({
         </AnimatePresence>
 
       </div>
+
+      <SmartSearchModal
+        isOpen={searchOpen}
+        onClose={() => setSearchOpen(false)}
+      />
     </motion.header>
   );
 }

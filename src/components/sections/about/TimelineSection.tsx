@@ -103,9 +103,9 @@ export default function TimelineSection() {
                   left-0
                   right-32
                   sm:right-48
-                  lg:right-[20vw]
+                  lg:right-[-45vw]
                   top-[245px]
-                  sm:top-[270px]
+                  sm:top-[250px]
                   h-[2px]
                   bg-slate-200
                   z-0
@@ -158,7 +158,7 @@ export default function TimelineSection() {
                     <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-slate-300 bg-white shadow-sm transition-transform duration-300 hover:scale-110 hover:border-[#f12131]">
                       <div
                         className={`h-2.5 w-2.5 rounded-full ${
-                          index === 0 ? 'bg-[#f12131]' : 'bg-[#251c68]'
+                          index === 0 ? 'bg-[#251c68]' : 'bg-[#251c68]'
                         }`}
                       />
                     </div>
