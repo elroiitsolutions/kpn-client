@@ -22,8 +22,8 @@ export default function KPNEntryHero() {
   /* =========================================================
      INITIAL VIDEO BOX SIZE
   ========================================================= */
-  const INITIAL_VIDEO_WIDTH = "480px";
-  const INITIAL_VIDEO_HEIGHT = "480px";
+  const INITIAL_VIDEO_WIDTH = "300px";
+  const INITIAL_VIDEO_HEIGHT = "300px";
 
   /* =========================================================
      KEEP REFS IN SYNC & NOTIFY HERO SECTION
@@ -42,10 +42,13 @@ export default function KPNEntryHero() {
     const video = videoRef.current;
     if (video) {
       if (faded) {
-        // Pause portal video when faded so it does not compete for GPU video decoder
-        if (!video.paused) {
-          video.pause();
-        }
+        // Pause portal video after fade completes so it plays during the zoom-fade and then frees GPU
+        const timer = window.setTimeout(() => {
+          if (fadedRef.current && video && !video.paused) {
+            video.pause();
+          }
+        }, 1500);
+        return () => window.clearTimeout(timer);
       } else {
         // Resume portal video when portal is shown
         if (video.paused) {
@@ -102,41 +105,28 @@ export default function KPNEntryHero() {
   };
 
   /* =========================================================
-     TRIGGER ZOOM IN & SMOOTH FADE
+     TRIGGER ZOOM IN & SIMULTANEOUS FADE
   ========================================================= */
   const triggerZoomIn = () => {
     if (enteredRef.current) return;
-    // Lock scroll for the 1.6s duration so rapid wheel ticks don't break playback
+    // Lock scroll for transition duration
     lockScroll(1700);
     enteredRef.current = true;
+    fadedRef.current = true;
     setEntered(true);
-
-    // Zoom completes at 1.6s; smoothly fade to hero section at 1.8s
-    if (fadeTimerRef.current) window.clearTimeout(fadeTimerRef.current);
-    fadeTimerRef.current = window.setTimeout(() => {
-      if (enteredRef.current) {
-        fadedRef.current = true;
-        setFaded(true);
-      }
-    }, 1800);
+    setFaded(true);
   };
 
   /* =========================================================
      TRIGGER ZOOM OUT (REVERSE ANIMATION)
   ========================================================= */
   const triggerZoomOut = () => {
-    lockScroll(1800);
-    if (fadeTimerRef.current) window.clearTimeout(fadeTimerRef.current);
+    lockScroll(1700);
 
-    // 1. Fade video back in
     fadedRef.current = false;
+    enteredRef.current = false;
     setFaded(false);
-
-    // 2. Zoom out back to circular box & portal image
-    window.setTimeout(() => {
-      enteredRef.current = false;
-      setEntered(false);
-    }, 150);
+    setEntered(false);
   };
 
   /* =========================================================
@@ -158,26 +148,17 @@ export default function KPNEntryHero() {
 
       /* =====================================================
          SCROLL DOWN:
-         PORTAL ZOOM → FULLSCREEN VIDEO → FADE TO HERO SECTION
+         PORTAL ZOOM + SIMULTANEOUS FADE TO HERO SECTION
       ===================================================== */
       if (event.deltaY > 0) {
-        // At initial opening: trigger zoom in
+        // At initial opening: trigger zoom in and simultaneous fade
         if (!enteredRef.current && !fadedRef.current) {
           event.preventDefault();
           triggerZoomIn();
           return;
         }
 
-        // If in fullscreen video after zoom completes and not yet faded: scroll down immediately fades to hero
-        if (enteredRef.current && !fadedRef.current) {
-          event.preventDefault();
-          if (fadeTimerRef.current) window.clearTimeout(fadeTimerRef.current);
-          fadedRef.current = true;
-          setFaded(true);
-          return;
-        }
-
-        // After faded, normal page scrolling works naturally
+        // After entered/faded, normal page scrolling works naturally
         return;
       }
 
@@ -186,15 +167,8 @@ export default function KPNEntryHero() {
          REVERSE ZOOM OUT TO PORTAL IMAGE
       ===================================================== */
       if (event.deltaY < 0) {
-        // If at top of the page (scrollY <= 5) and faded is true: reverse zoom out
-        if (fadedRef.current && window.scrollY <= 5) {
-          event.preventDefault();
-          triggerZoomOut();
-          return;
-        }
-
-        // If in fullscreen video before fade: zoom back out to box
-        if (enteredRef.current && !fadedRef.current) {
+        // If at top of the page (scrollY <= 5) and faded/entered: reverse zoom out
+        if ((fadedRef.current || enteredRef.current) && window.scrollY <= 5) {
           event.preventDefault();
           triggerZoomOut();
           return;
@@ -222,7 +196,6 @@ export default function KPNEntryHero() {
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchend", handleTouchEnd);
       if (unlockTimerRef.current) window.clearTimeout(unlockTimerRef.current);
-      if (fadeTimerRef.current) window.clearTimeout(fadeTimerRef.current);
     };
   }, []);
 
@@ -230,23 +203,18 @@ export default function KPNEntryHero() {
     <motion.div
       ref={heroRef}
       initial={{ opacity: 1 }}
-      animate={{ opacity: faded ? 0 : 1 }}
-      transition={{ duration: 0.5, ease: "easeInOut" }}
+      animate={{ opacity: (entered || faded) ? 0 : 1 }}
+      transition={{ duration: 1.5, ease: "easeInOut" }}
       style={{
-        pointerEvents: faded ? "none" : "auto",
-        visibility: faded ? "hidden" : "visible",
-        transition: faded ? "visibility 0s 0.5s" : "visibility 0s 0s",
+        pointerEvents: (entered || faded) ? "none" : "auto",
+        visibility: (entered || faded) ? "hidden" : "visible",
+        transition: (entered || faded) ? "visibility 0s 1.5s" : "visibility 0s 0s",
       }}
-      className="fixed inset-0 z-[200] h-screen w-full overflow-hidden bg-black"
+      className="fixed inset-0 z-[200] h-screen w-full overflow-hidden bg-white"
       onClick={() => {
         if (lockRef.current) return;
         if (!enteredRef.current && !fadedRef.current) {
           triggerZoomIn();
-        } else if (enteredRef.current && !fadedRef.current) {
-          // If already zooming/entered, click smoothly fades out
-          if (fadeTimerRef.current) window.clearTimeout(fadeTimerRef.current);
-          fadedRef.current = true;
-          setFaded(true);
         }
       }}
     >
@@ -296,13 +264,11 @@ export default function KPNEntryHero() {
             position: "absolute",
             zIndex: 0,
             overflow: "hidden",
-            background: "black",
+            background: "white",
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
             transformStyle: "preserve-3d",
-            boxShadow: entered
-              ? "none"
-              : "0 25px 70px rgba(0,0,0,0.65)",
+            boxShadow: "none",
           }}
           className="
             will-change-[width,height,left,top,border-radius]
@@ -329,6 +295,7 @@ export default function KPNEntryHero() {
               transform: "translateZ(0)",
               backfaceVisibility: "hidden",
               WebkitBackfaceVisibility: "hidden",
+              backgroundColor: "white",
             }}
           >
             <source
@@ -337,29 +304,6 @@ export default function KPNEntryHero() {
             />
           </video>
         </motion.div>
-        {/* ===================================================
-            BLACK OVERLAY (Disabled so video is vividly visible)
-        =================================================== */}
-        <motion.div
-          initial={{
-            opacity: 0.35,
-          }}
-          animate={{
-            opacity: entered ? 0 : 0.35,
-          }}
-          transition={{
-            duration: 1,
-            ease: "easeOut",
-          }}
-          className="
-            pointer-events-none
-            absolute
-            hidden
-            inset-0
-            z-10
-            bg-black
-          "
-        />
         {/* ===================================================
             PORTAL IMAGE
             IMPORTANT FIX:

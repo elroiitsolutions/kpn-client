@@ -1,20 +1,20 @@
 export const timelineData = [
   {
-    year: '1983',
+    year: '2004',
     image: '/images/features/b1.png',
     description:
       'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusam doloremque laudtium, totam rem aperiam, eaque ipsa.',
   },
 
   {
-    year: '1996',
+    year: '2006',
     image: '/images/features/b2.png',
     description:
       'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusam doloremque laudtium, totam rem aperiam, eaque ipsa.',
   },
 
   {
-    year: '2005',
+    year: '2007',
     image: '/images/features/b3.png',
     description:
       'Natus error sit voluptatem accusantium doloremque laudtium.',
