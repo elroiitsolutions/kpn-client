@@ -10,6 +10,9 @@ import { getProjectBySlug, getProjects, getProjectUnits, submitEnquiry } from '@
 import RunningPillBadge from '@/components/ui/RunningPillBadge';
 import FadeIn from '@/components/animation/FadeIn';
 import UnitBookingModal from '@/components/project/UnitBookingModal';
+import PhoneInputWithCountry from '@/components/ui/PhoneInputWithCountry';
+import { Country, DEFAULT_COUNTRY } from '@/lib/countryCodes';
+import { cleanName, validateName, cleanEmail, validateEmail, validatePhone } from '@/lib/formValidation';
 import {
   MapPin,
   Layers,
@@ -422,31 +425,76 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
   const [inquiryPhone, setInquiryPhone] = useState('');
   const [inquiryEmail, setInquiryEmail] = useState('');
   const [inquiryMessage, setInquiryMessage] = useState('');
+  const [inquiryCountry, setInquiryCountry] = useState<Country>(DEFAULT_COUNTRY);
+  const [inquiryFieldErrors, setInquiryFieldErrors] = useState<{
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    email?: string;
+  }>({});
   const [inquirySubmitted, setInquirySubmitted] = useState(false);
   const [isSubmittingInquiry, setIsSubmittingInquiry] = useState(false);
   const [inquiryError, setInquiryError] = useState<string | null>(null);
+
+  const handleInquiryFirstNameChange = (val: string) => {
+    const cleaned = cleanName(val);
+    setInquiryFirstName(cleaned);
+    if (inquiryFieldErrors.firstName) {
+      setInquiryFieldErrors((prev) => ({ ...prev, firstName: validateName(cleaned).error }));
+    }
+  };
+
+  const handleInquiryLastNameChange = (val: string) => {
+    const cleaned = cleanName(val);
+    setInquiryLastName(cleaned);
+    if (inquiryFieldErrors.lastName && cleaned) {
+      setInquiryFieldErrors((prev) => ({ ...prev, lastName: validateName(cleaned).error }));
+    }
+  };
+
+  const handleInquiryEmailChange = (val: string) => {
+    const cleaned = cleanEmail(val);
+    setInquiryEmail(cleaned);
+    if (inquiryFieldErrors.email) {
+      setInquiryFieldErrors((prev) => ({ ...prev, email: validateEmail(cleaned, false).error }));
+    }
+  };
+
+  const handleInquiryPhoneChange = (val: string) => {
+    setInquiryPhone(val);
+    if (inquiryFieldErrors.phone) {
+      setInquiryFieldErrors((prev) => ({ ...prev, phone: validatePhone(val, inquiryCountry, true).error }));
+    }
+  };
 
   // Inquiry form submit
   const handleInquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setInquiryError(null);
 
+    const firstNameRes = validateName(inquiryFirstName);
+    const lastNameRes = inquiryLastName.trim() ? validateName(inquiryLastName) : { isValid: true, error: '' };
+    const emailRes = validateEmail(inquiryEmail, false);
+    const phoneRes = validatePhone(inquiryPhone, inquiryCountry, true);
+
+    const newErrors = {
+      firstName: firstNameRes.error,
+      lastName: lastNameRes.error,
+      email: emailRes.error,
+      phone: phoneRes.error,
+    };
+    setInquiryFieldErrors(newErrors);
+
+    if (!firstNameRes.isValid || !lastNameRes.isValid || !emailRes.isValid || !phoneRes.isValid) {
+      return;
+    }
+
     const fullName = `${inquiryFirstName} ${inquiryLastName}`.trim();
-    if (!fullName) {
-      setInquiryError('Please enter your name.');
-      return;
-    }
-
-    if (!inquiryPhone.trim()) {
-      setInquiryError('Please enter your phone number.');
-      return;
-    }
-
     setIsSubmittingInquiry(true);
     try {
       const res = await submitEnquiry({
         name: fullName,
-        phone: inquiryPhone.trim(),
+        phone: `${inquiryCountry.dialCode} ${inquiryPhone.trim()}`,
         email: inquiryEmail.trim(),
         projectName: project.name,
         message: inquiryMessage.trim(),
@@ -454,6 +502,7 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
       });
       if (res && res.success) {
         setInquirySubmitted(true);
+        setInquiryFieldErrors({});
       } else {
         setInquiryError(res?.message || 'Could not submit inquiry. Please try again.');
       }
@@ -1480,43 +1529,106 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                   )}
 
                   <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <input
-                      type="text"
-                      required
-                      placeholder="First Name*"
-                      value={inquiryFirstName}
-                      onChange={(e) => setInquiryFirstName(e.target.value)}
-                      suppressHydrationWarning
-                      className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Last Name"
-                      value={inquiryLastName}
-                      onChange={(e) => setInquiryLastName(e.target.value)}
-                      suppressHydrationWarning
-                      className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
-                    />
+                    <div>
+                      <input
+                        type="text"
+                        required
+                        placeholder="First Name*"
+                        value={inquiryFirstName}
+                        onChange={(e) => handleInquiryFirstNameChange(e.target.value)}
+                        suppressHydrationWarning
+                        className={`h-14 w-full rounded-full border px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30 ${
+                          inquiryFieldErrors.firstName
+                            ? 'border-red-400 bg-red-50/40 text-red-900'
+                            : 'border-0 bg-slate-100/80'
+                        }`}
+                      />
+                      {inquiryFieldErrors.firstName && (
+                        <p className="mt-1.5 px-4 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
+                          {inquiryFieldErrors.firstName}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Last Name"
+                        value={inquiryLastName}
+                        onChange={(e) => handleInquiryLastNameChange(e.target.value)}
+                        suppressHydrationWarning
+                        className={`h-14 w-full rounded-full border px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30 ${
+                          inquiryFieldErrors.lastName
+                            ? 'border-red-400 bg-red-50/40 text-red-900'
+                            : 'border-0 bg-slate-100/80'
+                        }`}
+                      />
+                      {inquiryFieldErrors.lastName && (
+                        <p className="mt-1.5 px-4 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
+                          {inquiryFieldErrors.lastName}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <input
-                      type="tel"
-                      required
-                      placeholder="Phone Number*"
-                      value={inquiryPhone}
-                      onChange={(e) => setInquiryPhone(e.target.value)}
-                      suppressHydrationWarning
-                      className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
-                    />
-                    <input
-                      type="email"
-                      placeholder="Email Address"
-                      value={inquiryEmail}
-                      onChange={(e) => setInquiryEmail(e.target.value)}
-                      suppressHydrationWarning
-                      className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30"
-                    />
+                    <div>
+                      <PhoneInputWithCountry
+                        variant="pill"
+                        phone={inquiryPhone}
+                        selectedCountry={inquiryCountry}
+                        onPhoneChange={handleInquiryPhoneChange}
+                        onCountryChange={(c) => {
+                          setInquiryCountry(c);
+                          if (inquiryPhone) {
+                            setInquiryFieldErrors((prev) => ({
+                              ...prev,
+                              phone: validatePhone(inquiryPhone, c, true).error,
+                            }));
+                          }
+                        }}
+                        error={inquiryFieldErrors.phone}
+                        required
+                        onBlur={() => {
+                          if (inquiryPhone) {
+                            setInquiryFieldErrors((prev) => ({
+                              ...prev,
+                              phone: validatePhone(inquiryPhone, inquiryCountry, true).error,
+                            }));
+                          }
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <input
+                        type="email"
+                        placeholder="Email Address (e.g. name@gmail.com)"
+                        value={inquiryEmail}
+                        onChange={(e) => handleInquiryEmailChange(e.target.value)}
+                        onBlur={() => {
+                          if (inquiryEmail) {
+                            setInquiryFieldErrors((prev) => ({
+                              ...prev,
+                              email: validateEmail(inquiryEmail, false).error,
+                            }));
+                          }
+                        }}
+                        pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.com"
+                        title="Email must include '@' and end with '.com' (e.g. name@gmail.com)"
+                        suppressHydrationWarning
+                        className={`h-14 w-full rounded-full border px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30 ${
+                          inquiryFieldErrors.email
+                            ? 'border-red-400 bg-red-50/40 text-red-900'
+                            : 'border-0 bg-slate-100/80'
+                        }`}
+                      />
+                      {inquiryFieldErrors.email && (
+                        <p className="mt-1.5 px-4 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
+                          {inquiryFieldErrors.email}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   <textarea

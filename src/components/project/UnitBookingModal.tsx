@@ -25,6 +25,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import PhoneInputWithCountry from '@/components/ui/PhoneInputWithCountry';
+import { Country, DEFAULT_COUNTRY } from '@/lib/countryCodes';
+import { cleanName, validateName, cleanEmail, validateEmail, validatePhone } from '@/lib/formValidation';
 
 interface UnitBookingModalProps {
   isOpen: boolean;
@@ -261,6 +264,31 @@ export default function UnitBookingModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<Country>(DEFAULT_COUNTRY);
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; phone?: string; email?: string }>({});
+
+  const handleNameChange = (val: string) => {
+    const cleaned = cleanName(val);
+    setName(cleaned);
+    if (fieldErrors.name) {
+      setFieldErrors((prev) => ({ ...prev, name: validateName(cleaned).error }));
+    }
+  };
+
+  const handleEmailChange = (val: string) => {
+    const cleaned = cleanEmail(val);
+    setEmail(cleaned);
+    if (fieldErrors.email) {
+      setFieldErrors((prev) => ({ ...prev, email: validateEmail(cleaned, false).error }));
+    }
+  };
+
+  const handlePhoneChange = (val: string) => {
+    setPhone(val);
+    if (fieldErrors.phone) {
+      setFieldErrors((prev) => ({ ...prev, phone: validatePhone(val, selectedCountry, true).error }));
+    }
+  };
 
   // Prevent background scrolling when modal is open
   useEffect(() => {
@@ -355,8 +383,20 @@ export default function UnitBookingModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !phone.trim()) {
-      setSubmitError('Please enter your full name and phone number.');
+
+    const nameRes = validateName(name);
+    const emailRes = validateEmail(email, false);
+    const phoneRes = validatePhone(phone, selectedCountry, true);
+
+    const newErrors = {
+      name: nameRes.error,
+      email: emailRes.error,
+      phone: phoneRes.error,
+    };
+    setFieldErrors(newErrors);
+
+    if (!nameRes.isValid || !emailRes.isValid || !phoneRes.isValid) {
+      setSubmitError('Please correct the highlighted errors before submitting.');
       return;
     }
 
@@ -376,7 +416,7 @@ export default function UnitBookingModal({
 
       await submitEnquiry({
         name: name.trim(),
-        phone: phone.trim(),
+        phone: `${selectedCountry.dialCode} ${phone.trim()}`,
         email: email.trim(),
         projectId: project._id || project.id,
         projectName: project.name,
@@ -402,6 +442,8 @@ export default function UnitBookingModal({
     setSelectedPlot(null);
     setIsSubmitted(false);
     setSubmitError(null);
+    setFieldErrors({});
+    setSelectedCountry(DEFAULT_COUNTRY);
   };
 
   // Lock background scrolling completely when modal is open and handle ESC key
@@ -886,11 +928,20 @@ export default function UnitBookingModal({
                       type="text"
                       required
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={(e) => handleNameChange(e.target.value)}
                       placeholder="e.g. Anand Kumar"
-                      className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-xs sm:text-sm font-semibold text-slate-800 outline-none focus:border-[#f12131] focus:ring-2 focus:ring-[#f12131]/20 shadow-xs"
+                      className={`h-12 w-full rounded-2xl border bg-white pl-11 pr-4 text-xs sm:text-sm font-semibold text-slate-800 outline-none focus:ring-2 shadow-xs ${
+                        fieldErrors.name
+                          ? 'border-red-400 bg-red-50/30 focus:border-red-500 focus:ring-red-400/20'
+                          : 'border-slate-200 focus:border-[#f12131] focus:ring-[#f12131]/20'
+                      }`}
                     />
                   </div>
+                  {fieldErrors.name && (
+                    <p className="mt-1.5 px-2 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
+                      {fieldErrors.name}
+                    </p>
+                  )}
                 </div>
 
                 {/* PHONE NUMBER */}
@@ -898,17 +949,30 @@ export default function UnitBookingModal({
                   <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-500 mb-1.5">
                     PHONE NUMBER*
                   </label>
-                  <div className="relative">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <input
-                      type="tel"
-                      required
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="e.g. +91 98400 12345"
-                      className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-xs sm:text-sm font-semibold text-slate-800 outline-none focus:border-[#f12131] focus:ring-2 focus:ring-[#f12131]/20 shadow-xs"
-                    />
-                  </div>
+                  <PhoneInputWithCountry
+                    phone={phone}
+                    selectedCountry={selectedCountry}
+                    onPhoneChange={handlePhoneChange}
+                    onCountryChange={(c) => {
+                      setSelectedCountry(c);
+                      if (phone) {
+                        setFieldErrors((prev) => ({
+                          ...prev,
+                          phone: validatePhone(phone, c, true).error,
+                        }));
+                      }
+                    }}
+                    error={fieldErrors.phone}
+                    required
+                    onBlur={() => {
+                      if (phone) {
+                        setFieldErrors((prev) => ({
+                          ...prev,
+                          phone: validatePhone(phone, selectedCountry, true).error,
+                        }));
+                      }
+                    }}
+                  />
                 </div>
 
                 {/* EMAIL ADDRESS */}
@@ -921,11 +985,30 @@ export default function UnitBookingModal({
                     <input
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => handleEmailChange(e.target.value)}
+                      onBlur={() => {
+                        if (email) {
+                          setFieldErrors((prev) => ({
+                            ...prev,
+                            email: validateEmail(email, false).error,
+                          }));
+                        }
+                      }}
+                      pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.com"
+                      title="Email must include '@' and end with '.com' (e.g. name@gmail.com)"
                       placeholder="e.g. anand@gmail.com"
-                      className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-xs sm:text-sm font-semibold text-slate-800 outline-none focus:border-[#f12131] focus:ring-2 focus:ring-[#f12131]/20 shadow-xs"
+                      className={`h-12 w-full rounded-2xl border bg-white pl-11 pr-4 text-xs sm:text-sm font-semibold text-slate-800 outline-none focus:ring-2 shadow-xs ${
+                        fieldErrors.email
+                          ? 'border-red-400 bg-red-50/30 focus:border-red-500 focus:ring-red-400/20'
+                          : 'border-slate-200 focus:border-[#f12131] focus:ring-[#f12131]/20'
+                      }`}
                     />
                   </div>
+                  {fieldErrors.email && (
+                    <p className="mt-1.5 px-2 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
+                      {fieldErrors.email}
+                    </p>
+                  )}
                 </div>
 
                 {/* PREFERRED SITE VISIT DATE */}

@@ -4,6 +4,9 @@ import { useState } from 'react';
 import RunningPillBadge from '../ui/RunningPillBadge';
 import FadeIn from '../animation/FadeIn';
 import { submitEnquiry } from '@/lib/cmsClient';
+import PhoneInputWithCountry from '@/components/ui/PhoneInputWithCountry';
+import { Country, DEFAULT_COUNTRY } from '@/lib/countryCodes';
+import { cleanName, validateName, cleanEmail, validateEmail, validatePhone } from '@/lib/formValidation';
 import {
   Select,
   SelectTrigger,
@@ -19,27 +22,70 @@ export default function ContactFormSection() {
     phone: '',
     inquiry: '',
   });
+  const [selectedCountry, setSelectedCountry] = useState<Country>(DEFAULT_COUNTRY);
+  const [errors, setErrors] = useState<{ name?: string; email?: string; phone?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
+  const handleNameChange = (val: string) => {
+    const cleaned = cleanName(val);
+    setFormData((prev) => ({ ...prev, name: cleaned }));
+    if (errors.name) {
+      setErrors((prev) => ({ ...prev, name: validateName(cleaned).error }));
+    }
+  };
+
+  const handleEmailChange = (val: string) => {
+    const cleaned = cleanEmail(val);
+    setFormData((prev) => ({ ...prev, email: cleaned }));
+    if (errors.email) {
+      setErrors((prev) => ({ ...prev, email: validateEmail(cleaned, true).error }));
+    }
+  };
+
+  const handlePhoneChange = (val: string) => {
+    setFormData((prev) => ({ ...prev, phone: val }));
+    if (errors.phone) {
+      setErrors((prev) => ({ ...prev, phone: validatePhone(val, selectedCountry, true).error }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.phone.trim()) return;
+
+    const nameRes = validateName(formData.name);
+    const emailRes = validateEmail(formData.email, true);
+    const phoneRes = validatePhone(formData.phone, selectedCountry, true);
+
+    const newErrors = {
+      name: nameRes.error,
+      email: emailRes.error,
+      phone: phoneRes.error,
+    };
+    setErrors(newErrors);
+
+    if (!nameRes.isValid || !emailRes.isValid || !phoneRes.isValid) {
+      return;
+    }
 
     setIsSubmitting(true);
     try {
       await submitEnquiry({
         name: formData.name.trim(),
-        phone: formData.phone.trim(),
+        phone: `${selectedCountry.dialCode} ${formData.phone.trim()}`,
         email: formData.email.trim(),
-        message: formData.inquiry.trim(),
-        source: 'Website',
+        message: formData.inquiry ? `Inquiry regarding: ${formData.inquiry}` : 'General Inquiry',
+        source: 'Website Contact Section',
       });
       setSubmitted(true);
-      alert('Thank you for your inquiry! Our sales team will reach out.');
+      alert('Thank you for your inquiry! Our sales team will reach out shortly.');
       setFormData({ name: '', email: '', phone: '', inquiry: '' });
+      setSelectedCountry(DEFAULT_COUNTRY);
+      setErrors({});
     } catch {
-      alert('Thank you for your inquiry! Our sales team will reach out.');
+      alert('Thank you for your inquiry! Our sales team will reach out shortly.');
+      setFormData({ name: '', email: '', phone: '', inquiry: '' });
+      setErrors({});
     } finally {
       setIsSubmitting(false);
     }
@@ -88,50 +134,95 @@ export default function ContactFormSection() {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Row 1: Name and Email */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <input
-                      type="text"
-                      required
-                      placeholder="Your Name*"
-                      value={formData.name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
-                      }
-                      suppressHydrationWarning
-                      className="w-full rounded-full border border-slate-100 bg-slate-50/80 px-6 py-4 text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-400/60 focus:border-transparent transition-all"
-                    />
-                    <input
-                      type="email"
-                      required
-                      placeholder="Email*"
-                      value={formData.email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
-                      suppressHydrationWarning
-                      className="w-full rounded-full border border-slate-100 bg-slate-50/80 px-6 py-4 text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-400/60 focus:border-transparent transition-all"
-                    />
+                    <div>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Your Name*"
+                        value={formData.name}
+                        onChange={(e) => handleNameChange(e.target.value)}
+                        suppressHydrationWarning
+                        className={`w-full h-14 rounded-full border px-6 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 transition-all ${
+                          errors.name
+                            ? 'border-red-400 bg-red-50/40 text-red-900 focus:ring-red-400/40'
+                            : 'border-slate-100 bg-slate-50/80 focus:ring-red-400/60 focus:border-transparent'
+                        }`}
+                      />
+                      {errors.name && (
+                        <p className="mt-1.5 px-3 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
+                          {errors.name}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <input
+                        type="email"
+                        required
+                        placeholder="Email Address* (e.g. name@gmail.com)"
+                        value={formData.email}
+                        onChange={(e) => handleEmailChange(e.target.value)}
+                        onBlur={() => {
+                          if (formData.email) {
+                            setErrors((prev) => ({
+                              ...prev,
+                              email: validateEmail(formData.email, true).error,
+                            }));
+                          }
+                        }}
+                        pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.com"
+                        title="Email must include '@' and end with '.com' (e.g. name@gmail.com)"
+                        suppressHydrationWarning
+                        className={`w-full h-14 rounded-full border px-6 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 transition-all ${
+                          errors.email
+                            ? 'border-red-400 bg-red-50/40 text-red-900 focus:ring-red-400/40'
+                            : 'border-slate-100 bg-slate-50/80 focus:ring-red-400/60 focus:border-transparent'
+                        }`}
+                      />
+                      {errors.email && (
+                        <p className="mt-1.5 px-3 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
+                          {errors.email}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   {/* Row 2: Phone and Inquiry */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <input
-                      type="tel"
-                      required
-                      placeholder="Phone Number*"
-                      value={formData.phone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, phone: e.target.value })
-                      }
-                      suppressHydrationWarning
-                      className="w-full rounded-full border border-slate-100 bg-slate-50/80 px-6 py-4 text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-400/60 focus:border-transparent transition-all"
-                    />
+                    <div>
+                      <PhoneInputWithCountry
+                        variant="pill"
+                        phone={formData.phone}
+                        selectedCountry={selectedCountry}
+                        onPhoneChange={handlePhoneChange}
+                        onCountryChange={(c) => {
+                          setSelectedCountry(c);
+                          if (formData.phone) {
+                            setErrors((prev) => ({
+                              ...prev,
+                              phone: validatePhone(formData.phone, c, true).error,
+                            }));
+                          }
+                        }}
+                        error={errors.phone}
+                        required
+                        onBlur={() => {
+                          if (formData.phone) {
+                            setErrors((prev) => ({
+                              ...prev,
+                              phone: validatePhone(formData.phone, selectedCountry, true).error,
+                            }));
+                          }
+                        }}
+                      />
+                    </div>
                     <Select
                       value={formData.inquiry}
                       onValueChange={(val) =>
                         setFormData({ ...formData, inquiry: val })
                       }
                     >
-                      <SelectTrigger className="w-full h-[54px] rounded-full border border-slate-100 bg-slate-50/80 px-6 text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-400/60 focus:border-transparent transition-all shadow-none cursor-pointer">
+                      <SelectTrigger suppressHydrationWarning className="w-full h-[54px] rounded-full border border-slate-100 bg-slate-50/80 px-6 text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-400/60 focus:border-transparent transition-all shadow-none cursor-pointer">
                         <SelectValue placeholder="You inquiry about..." />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border border-slate-100 bg-white p-2 shadow-2xl">
