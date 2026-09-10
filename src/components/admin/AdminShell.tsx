@@ -277,9 +277,9 @@ export default function AdminShell({ children }: AdminShellProps) {
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 p-6 lg:p-8 bg-[#f8fafc]">
+        <div className="flex-1 p-6 lg:p-8 bg-[#f8fafc]">
           <div className="mx-auto max-w-[1500px] w-full font-sans">{children}</div>
-        </main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

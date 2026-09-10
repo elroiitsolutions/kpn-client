@@ -252,10 +252,10 @@ export default function AdminMediaPage() {
 
       {/* Upload Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-[32px] border border-slate-200 bg-white p-6 sm:p-8 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
-              <h2 className="text-lg font-black tracking-tight text-[#29247c]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-[28px] sm:rounded-[32px] border border-slate-200 bg-white p-5 sm:p-8 shadow-2xl max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 sm:pb-4 mb-4 sm:mb-6">
+              <h2 className="text-base sm:text-lg font-black tracking-tight text-[#29247c]">
                 Add Media Item
               </h2>
               <button
@@ -281,7 +281,7 @@ export default function AdminMediaPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
                     Media Type
@@ -318,27 +318,27 @@ export default function AdminMediaPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
+                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">
                   File Upload or URL*
                 </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    required
-                    value={newItem.fileUrl}
-                    onChange={(e) => setNewItem({ ...newItem, fileUrl: e.target.value })}
-                    placeholder="https://... or click Upload"
-                    className="h-10 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold"
-                  />
-                  <label className="flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-xl bg-slate-800 px-4 text-xs font-bold text-white hover:bg-slate-700">
-                    <Upload className="h-3.5 w-3.5" />
-                    <span>Upload</span>
+                <div className="space-y-2">
+                  <label className="flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-extrabold text-[#29247c] shadow-2xs hover:bg-slate-50 hover:border-[#29247c]/40 transition-all">
+                    <Upload className="h-4 w-4 text-[#f12131]" />
+                    <span>{isUploading ? 'Uploading Media...' : 'Choose Device File'}</span>
                     <input
                       type="file"
                       onChange={handleFileUpload}
                       className="hidden"
                     />
                   </label>
+                  <input
+                    type="text"
+                    required
+                    value={newItem.fileUrl}
+                    onChange={(e) => setNewItem({ ...newItem, fileUrl: e.target.value })}
+                    placeholder="or paste external URL (https://...)"
+                    className="h-9 w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 text-xs font-medium text-slate-700"
+                  />
                 </div>
               </div>
 

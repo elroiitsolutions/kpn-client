@@ -349,23 +349,17 @@ export default function AdminCelebrationsPage() {
         </div>
       )}
 
-      {/* Add / Edit Modal */}
+      {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-[32px] border border-slate-200 bg-white p-6 sm:p-8 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
-              <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-[#f12131]">
-                  <PartyPopper className="h-5 w-5" />
-                </div>
-                <h2 className="text-lg font-black tracking-tight text-[#29247c]">
-                  {editingId ? 'Edit Celebration' : 'Add New Celebration'}
-                </h2>
-              </div>
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-[28px] sm:rounded-[32px] border border-slate-200 bg-white p-5 sm:p-8 shadow-2xl max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 sm:pb-4 mb-4 sm:mb-6">
+              <h2 className="text-base sm:text-lg font-black tracking-tight text-[#29247c]">
+                {editingId ? 'Edit Celebration Event' : 'Add Celebration / Ceremony'}
+              </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors"
+                className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -374,46 +368,46 @@ export default function AdminCelebrationsPage() {
             <form onSubmit={handleSaveCelebration} className="space-y-4">
               <div>
                 <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
-                  Celebration Heading / Title*
+                  Event Title*
                 </label>
                 <input
                   type="text"
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="e.g. GOA Trip 2025 or Bangalore Office Opening"
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#29247c]/20"
+                  placeholder="e.g. Munnar Retreat 2025"
+                  className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-800 focus:bg-white focus:outline-none"
                 />
               </div>
 
               <div>
                 <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
-                  Subheading / Tagline*
+                  Catchy Subheading / Tagline*
                 </label>
                 <input
                   type="text"
                   required
                   value={formData.subheading}
                   onChange={(e) => setFormData({ ...formData, subheading: e.target.value })}
-                  placeholder="e.g. Goa 2025 – Where Every Sunset Tells a Story!"
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#29247c]/20"
+                  placeholder="e.g. Breathe the clouds, live the moments."
+                  className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-800 focus:bg-white focus:outline-none"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
                     Category*
                   </label>
                   <Select
                     value={formData.category}
-                    onValueChange={(val) => setFormData({ ...formData, category: val })}
+                    onValueChange={(val) => setFormData({ ...formData, category: val as any })}
                   >
-                    <SelectTrigger className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-800 focus:bg-white focus:outline-none shadow-none cursor-pointer">
+                    <SelectTrigger className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-800 outline-none shadow-none cursor-pointer">
                       <SelectValue placeholder="Category" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl">
-                      {CATEGORIES.map((cat) => (
+                      {CATEGORIES.filter((c) => c !== 'All').map((cat) => (
                         <SelectItem key={cat} value={cat} className="text-xs font-bold py-2">
                           {cat}
                         </SelectItem>
@@ -424,7 +418,7 @@ export default function AdminCelebrationsPage() {
 
                 <div>
                   <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
-                    Year*
+                    Year (e.g. 2025)*
                   </label>
                   <input
                     type="text"
@@ -437,36 +431,15 @@ export default function AdminCelebrationsPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
-                  Date Label (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  placeholder="e.g. January 2025"
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-800 focus:bg-white focus:outline-none"
-                />
-              </div>
-
               {/* Image Preview & Upload */}
               <div>
-                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
+                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">
                   Photo / Image*
                 </label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    required
-                    value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    placeholder="/images/celebrations/... or https://..."
-                    className="h-10 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-800 focus:bg-white focus:outline-none"
-                  />
-                  <label className="flex h-10 cursor-pointer items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-xs">
-                    <Upload className="h-3.5 w-3.5" />
-                    <span>{isUploading ? 'Uploading...' : 'Upload'}</span>
+                <div className="space-y-2">
+                  <label className="flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-extrabold text-[#29247c] shadow-2xs hover:bg-slate-50 hover:border-[#29247c]/40 transition-all">
+                    <Upload className="h-4 w-4 text-[#f12131]" />
+                    <span>{isUploading ? 'Uploading Image...' : 'Choose Device Photo'}</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -475,10 +448,18 @@ export default function AdminCelebrationsPage() {
                       disabled={isUploading}
                     />
                   </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.image}
+                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                    placeholder="or paste image URL (/images/... or https://...)"
+                    className="h-9 w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 text-xs font-medium text-slate-700"
+                  />
                 </div>
 
                 {formData.image && (
-                  <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+                  <div className="mt-2.5 relative aspect-[16/9] w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
                     <img
                       src={formData.image}
                       alt="Preview"

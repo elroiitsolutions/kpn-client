@@ -23,6 +23,7 @@ export default function AdminAwardsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -53,6 +54,7 @@ export default function AdminAwardsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setIsUploading(true);
     try {
       const res = await api.upload(file, 'awards');
       if (res.url) {
@@ -60,6 +62,8 @@ export default function AdminAwardsPage() {
       }
     } catch (err: any) {
       alert(err.message || 'File upload failed');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -223,11 +227,11 @@ export default function AdminAwardsPage() {
 
       {/* Add / Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-[32px] border border-slate-200 bg-white p-6 sm:p-8 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
-              <h2 className="text-lg font-black tracking-tight text-[#29247c]">
-                {editingId ? 'Edit Award' : 'Add New Award'}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-[28px] sm:rounded-[32px] border border-slate-200 bg-white p-5 sm:p-8 shadow-2xl max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 sm:pb-4 mb-4 sm:mb-6">
+              <h2 className="text-base sm:text-lg font-black tracking-tight text-[#29247c]">
+                {editingId ? 'Edit Award' : 'Add Award / Recognition'}
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -247,22 +251,22 @@ export default function AdminAwardsPage() {
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="e.g. Trusted Developer of the Year"
+                  placeholder="e.g. Best Residential Developer 2025"
                   className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
-                    Organization*
+                    Organization / Awarded By*
                   </label>
                   <input
                     type="text"
                     required
                     value={formData.organization}
                     onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
-                    placeholder="e.g. Economic Times"
+                    placeholder="e.g. Times Business Awards"
                     className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold"
                   />
                 </div>
@@ -283,31 +287,46 @@ export default function AdminAwardsPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
-                  Award Certificate Image URL or Upload*
+                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">
+                  Award Certificate / Badge Image*
                 </label>
-                <div className="flex gap-2">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    {formData.image ? (
+                      <img
+                        src={formData.image}
+                        alt="Award preview"
+                        className="h-11 w-14 shrink-0 rounded-xl object-contain bg-slate-50 border border-slate-200 p-1 shadow-2xs"
+                      />
+                    ) : (
+                      <div className="h-11 w-14 shrink-0 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 text-[10px] font-black">
+                        BADGE
+                      </div>
+                    )}
+                    <label className="flex h-10 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-extrabold text-[#29247c] shadow-2xs hover:bg-slate-50 hover:border-[#29247c]/40 transition-all">
+                      <Upload className="h-4 w-4 text-[#f12131]" />
+                      <span>{isUploading ? 'Uploading Image...' : 'Choose Device Photo'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                        disabled={isUploading}
+                      />
+                    </label>
+                  </div>
                   <input
                     type="text"
                     required
                     value={formData.image}
                     onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    className="h-10 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold"
+                    placeholder="or paste image URL (https://...)"
+                    className="h-9 w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 text-xs font-medium text-slate-700"
                   />
-                  <label className="flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-xl bg-slate-800 px-4 text-xs font-bold text-white hover:bg-slate-700">
-                    <Upload className="h-3.5 w-3.5" />
-                    <span>Upload</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                    />
-                  </label>
                 </div>
               </div>
 
-              <div className="pt-3 flex justify-end gap-3">
+              <div className="pt-3 flex justify-end gap-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}

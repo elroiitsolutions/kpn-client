@@ -259,7 +259,7 @@ export default function AdminProjectsPage() {
                           </span>
                         </span>
                         <Link
-                          href={`/admin/projects/${project._id}/units`}
+                          href={`/admin/projects/${project.slug || project._id}/units`}
                           className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[10px] font-extrabold text-[#29247c] hover:border-[#f12131] hover:text-[#f12131] hover:bg-rose-50 transition-all w-fit"
                         >
                           <Layers className="h-3 w-3 text-[#f12131]" />
@@ -315,7 +315,7 @@ export default function AdminProjectsPage() {
 
                         {/* Edit Project */}
                         <Link
-                          href={`/admin/projects/${project._id}/edit`}
+                          href={`/admin/projects/${project.slug || project._id}/edit`}
                           title="Edit Project"
                           className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-700 hover:border-[#29247c] hover:bg-[#29247c] hover:text-white transition-all"
                         >

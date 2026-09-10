@@ -26,6 +26,7 @@ export default function KpnChatbot() {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   // Lead capture states
   const [leadName, setLeadName] = useState('');
@@ -216,7 +217,7 @@ export default function KpnChatbot() {
       {/* ==================================================================== */}
       {/* FLOATING CHAT BUTTON & NOTIFICATION POPUP */}
       {/* ==================================================================== */}
-      <div className="fixed bottom-22 right-6 z-50 flex items-center">
+      <div className="fixed bottom-38 right-6 z-50 flex items-center">
         {/* Unread Message Notification Bubble (Positioned to the left) */}
         {showNotification && !isOpen && (
           <div className="absolute right-16 bottom-0 w-[260px] animate-in fade-in slide-in-from-right-3 rounded-2xl bg-white p-3.5 shadow-2xl border border-slate-100 ring-1 ring-slate-900/5 transition-all">
@@ -254,6 +255,8 @@ export default function KpnChatbot() {
         {/* Floating Action Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
           aria-label="Open KPN AI Chatbot"
           className="group relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-tr from-[#29247c] to-[#3f38aa] text-white shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_30px_rgb(41,36,124,0.4)] active:scale-95"
           suppressHydrationWarning
@@ -271,6 +274,37 @@ export default function KpnChatbot() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#f12131] opacity-75" />
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#f12131]" />
               </span>
+            </div>
+          )}
+
+          {/* Hover Text Banner (matches WhatsApp button style) */}
+          {!isOpen && !showNotification && (
+            <div
+              className={`
+                absolute
+                right-16
+                top-1/2
+                -translate-y-1/2
+                whitespace-nowrap
+                rounded-full
+                bg-slate-900
+                px-4
+                py-1.5
+                text-xs
+                font-bold
+                text-white
+                shadow-xl
+                transition-all
+                duration-300
+                pointer-events-none
+                ${
+                  isHovered
+                    ? 'opacity-100 translate-x-0'
+                    : 'opacity-0 translate-x-2'
+                }
+              `}
+            >
+              <span>Chat with chatbot</span>
             </div>
           )}
         </button>
