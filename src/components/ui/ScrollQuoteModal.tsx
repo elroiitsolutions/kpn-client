@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { X, CheckCircle2, User, Mail, Phone, MessageSquare, Send } from 'lucide-react';
+import { X, CheckCircle2, Send } from 'lucide-react';
 import { submitEnquiry } from '@/lib/cmsClient';
+import PhoneInputWithCountry from '@/components/ui/PhoneInputWithCountry';
+import { Country, DEFAULT_COUNTRY } from '@/lib/countryCodes';
+import { cleanName, validateName, cleanEmail, validateEmail, validatePhone } from '@/lib/formValidation';
 
 export default function ScrollQuoteModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,6 +17,8 @@ export default function ScrollQuoteModal() {
     phone: '',
     message: '',
   });
+  const [selectedCountry, setSelectedCountry] = useState<Country>(DEFAULT_COUNTRY);
+  const [errors, setErrors] = useState<{ name?: string; email?: string; phone?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -26,7 +31,7 @@ export default function ScrollQuoteModal() {
       const scrollHeight = (document.documentElement.scrollHeight || document.body.scrollHeight || 1) - window.innerHeight;
       const scrollPercentage = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
 
-      // Trigger popup when scrolled past 20% or 300px
+      // Trigger popup when scrolled past 4500px or scrollPercentage > 400
       if (scrollTop > 4500 || scrollPercentage > 400) {
         setIsOpen(true);
         setHasShown(true);
@@ -60,15 +65,52 @@ export default function ScrollQuoteModal() {
     setIsOpen(false);
   };
 
+  const handleNameChange = (val: string) => {
+    const cleaned = cleanName(val);
+    setFormData((prev) => ({ ...prev, name: cleaned }));
+    if (errors.name) {
+      setErrors((prev) => ({ ...prev, name: validateName(cleaned).error }));
+    }
+  };
+
+  const handleEmailChange = (val: string) => {
+    const cleaned = cleanEmail(val);
+    setFormData((prev) => ({ ...prev, email: cleaned }));
+    if (errors.email) {
+      setErrors((prev) => ({ ...prev, email: validateEmail(cleaned, false).error }));
+    }
+  };
+
+  const handlePhoneChange = (val: string) => {
+    setFormData((prev) => ({ ...prev, phone: val }));
+    if (errors.phone) {
+      setErrors((prev) => ({ ...prev, phone: validatePhone(val, selectedCountry, true).error }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.phone.trim()) return;
+
+    const nameRes = validateName(formData.name);
+    const emailRes = validateEmail(formData.email, false);
+    const phoneRes = validatePhone(formData.phone, selectedCountry, true);
+
+    const newErrors = {
+      name: nameRes.error,
+      email: emailRes.error,
+      phone: phoneRes.error,
+    };
+    setErrors(newErrors);
+
+    if (!nameRes.isValid || !emailRes.isValid || !phoneRes.isValid) {
+      return;
+    }
 
     setIsSubmitting(true);
     try {
       await submitEnquiry({
         name: formData.name.trim(),
-        phone: formData.phone.trim(),
+        phone: `${selectedCountry.dialCode} ${formData.phone.trim()}`,
         email: formData.email.trim(),
         message: formData.message.trim(),
         source: 'Scroll Popup Quote',
@@ -106,7 +148,7 @@ export default function ScrollQuoteModal() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 20 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className="relative z-10 w-full max-w-[540px] overflow-hidden rounded-[32px] bg-white p-8 sm:p-10 text-slate-800 shadow-2xl border border-slate-100 font-sans"
+            className="relative z-10 w-full max-w-[540px] rounded-[32px] bg-white p-8 sm:p-10 text-slate-800 shadow-2xl border border-slate-100 font-sans"
           >
             {/* Close Button */}
             <button
@@ -145,44 +187,84 @@ export default function ScrollQuoteModal() {
             ) : (
               <form onSubmit={handleSubmit} className="mt-7 space-y-4">
                 {/* Full Name */}
-                <div className="relative">
+                <div>
                   <input
                     type="text"
                     required
                     suppressHydrationWarning
                     placeholder="Enter your full name *"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="h-13 w-full rounded-2xl border border-slate-200 bg-slate-50/70 px-5 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none transition hover:border-slate-300 focus:border-[#29247c] focus:bg-white focus:ring-4 focus:ring-[#29247c]/10"
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    className={`h-13 w-full rounded-2xl border bg-slate-50/70 px-5 text-sm font-semibold text-slate-900 placeholder:text-slate-400 outline-none transition hover:border-slate-300 focus:bg-white focus:ring-4 ${
+                      errors.name
+                        ? 'border-red-400 bg-red-50/40 text-red-900 focus:border-red-500 focus:ring-red-400/20'
+                        : 'border-slate-200 focus:border-[#29247c] focus:ring-[#29247c]/10'
+                    }`}
+                  />
+                  {errors.name && (
+                    <p className="mt-1.5 px-1 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
+                      {errors.name}
+                    </p>
+                  )}
+                </div>
+
+                {/* Mobile Number with Country Code & Search */}
+                <div>
+                  <PhoneInputWithCountry
+                    phone={formData.phone}
+                    selectedCountry={selectedCountry}
+                    onPhoneChange={handlePhoneChange}
+                    onCountryChange={(c) => {
+                      setSelectedCountry(c);
+                      if (formData.phone) {
+                        setErrors((prev) => ({
+                          ...prev,
+                          phone: validatePhone(formData.phone, c, true).error,
+                        }));
+                      }
+                    }}
+                    error={errors.phone}
+                    required
+                    onBlur={() => {
+                      if (formData.phone) {
+                        setErrors((prev) => ({
+                          ...prev,
+                          phone: validatePhone(formData.phone, selectedCountry, true).error,
+                        }));
+                      }
+                    }}
                   />
                 </div>
 
-                {/* Email & Phone grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Email */}
-                  <div>
-                    <input
-                      type="email"
-                      suppressHydrationWarning
-                      placeholder="Email Address"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="h-13 w-full rounded-2xl border border-slate-200 bg-slate-50/70 px-5 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none transition hover:border-slate-300 focus:border-[#29247c] focus:bg-white focus:ring-4 focus:ring-[#29247c]/10"
-                    />
-                  </div>
-
-                  {/* Phone */}
-                  <div>
-                    <input
-                      type="tel"
-                      required
-                      suppressHydrationWarning
-                      placeholder="Mobile Number *"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="h-13 w-full rounded-2xl border border-slate-200 bg-slate-50/70 px-5 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none transition hover:border-slate-300 focus:border-[#29247c] focus:bg-white focus:ring-4 focus:ring-[#29247c]/10"
-                    />
-                  </div>
+                {/* Email Address */}
+                <div>
+                  <input
+                    type="email"
+                    suppressHydrationWarning
+                    placeholder="Email Address (e.g. name@gmail.com)"
+                    value={formData.email}
+                    onChange={(e) => handleEmailChange(e.target.value)}
+                    onBlur={() => {
+                      if (formData.email) {
+                        setErrors((prev) => ({
+                          ...prev,
+                          email: validateEmail(formData.email, false).error,
+                        }));
+                      }
+                    }}
+                    pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.com"
+                    title="Email must include '@' and end with '.com' (e.g. name@gmail.com)"
+                    className={`h-13 w-full rounded-2xl border bg-slate-50/70 px-5 text-sm font-semibold text-slate-900 placeholder:text-slate-400 outline-none transition hover:border-slate-300 focus:bg-white focus:ring-4 ${
+                      errors.email
+                        ? 'border-red-400 bg-red-50/40 text-red-900 focus:border-red-500 focus:ring-red-400/20'
+                        : 'border-slate-200 focus:border-[#29247c] focus:ring-[#29247c]/10'
+                    }`}
+                  />
+                  {errors.email && (
+                    <p className="mt-1.5 px-1 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
+                      {errors.email}
+                    </p>
+                  )}
                 </div>
 
                 {/* Message / Specific Requirement */}

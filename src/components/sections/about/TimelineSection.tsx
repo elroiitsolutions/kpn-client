@@ -78,7 +78,7 @@ export default function TimelineSection() {
             </div>
 
             <h2 className="text-3xl font-extrabold tracking-tight text-[#251c68] sm:text-4xl lg:text-5xl">
-              40+ years of a remarkable journey
+              20+ years of a remarkable journey
             </h2>
           </div>
         </div>

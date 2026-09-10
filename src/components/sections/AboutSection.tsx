@@ -1,104 +1,155 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
-import { Play } from 'lucide-react';
+import { ArrowRight, ShieldCheck } from 'lucide-react';
 import Counter from '../ui/Counter';
 import RunningPillBadge from '../ui/RunningPillBadge';
 import FadeIn from '../animation/FadeIn';
 import StaggerContainer from '../animation/StaggerContainer';
 import StaggerItem from '../animation/StaggerItem';
-import ImageReveal from '../animation/ImageReveal';
 
 export default function AboutSection() {
   return (
-    <section className="relative z-20 -mt-6 rounded-t-[40px] mx-20 w-auto bg-white pb-20 pt-16 md:rounded-t-[60px] lg:pb-28 lg:pt-20">
-      <div className="mx-auto max-w-[1600px] px-6 lg:px-12">
-        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-16">
-          {/* Left Copy */}
-          <StaggerContainer staggerDelay={0.12} className="space-y-6 lg:col-span-7">
+    <section
+      id="about"
+      className="relative z-20 -mt-8 w-full rounded-t-[36px] bg-white pb-16 pt-16 md:rounded-t-[50px] lg:pb-24 lg:pt-20 shadow-2xl shadow-slate-900/5"
+    >
+      <div className="mx-auto max-w-[1520px] px-5 sm:px-8 lg:px-12">
+        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-14 xl:gap-16">
+          
+          {/* =========================================
+              LEFT COLUMN: Header, Counters & Details
+             ========================================= */}
+          <StaggerContainer staggerDelay={0.12} className="space-y-7 lg:col-span-7 xl:col-span-7">
+            
             <StaggerItem>
-              <RunningPillBadge text="WHO WE ARE" />
-            </StaggerItem>
-
-            <StaggerItem>
-              <h2 className="text-3xl font-bold leading-[1.25] text-[#29247c] sm:text-4xl lg:text-[44px]">
-                We developed landmark real estate projects that deliver lasting value to investors and communities.
-              </h2>
-            </StaggerItem>
-
-            <StaggerItem>
-              <p className="max-w-2xl text-base font-normal leading-relaxed text-slate-500">
-                To empower businesses with cutting-edge web solutions that enhance their digital presence and drive growth. Our solutions are designed to meet the needs of modern enterprises, ensuring they thrive in today&apos;s competitive online landscape.
-              </p>
-            </StaggerItem>
-
-            <StaggerItem>
-              <div>
-                <Link
-                  href="#contact"
-                  className="inline-block text-base font-bold text-[#f12131] underline underline-offset-4 decoration-[#f12131] transition-colors hover:text-red-700 hover:scale-[1.02] transform duration-200"
-                >
-                  Let&apos;s create something extraordinary!
-                </Link>
+              <div className="inline-flex items-center gap-2">
+                <RunningPillBadge text="ABOUT KPN PROMOTERS" />
               </div>
             </StaggerItem>
 
+            {/* Main Title */}
             <StaggerItem>
-              <hr className="my-8 border-t border-slate-200/80" />
+              <h2 className="text-3xl font-extrabold tracking-tight text-[#221e68] sm:text-4xl lg:text-[42px] lg:leading-[1.2]">
+                KPN PROMOTERS: TRUSTED
+                <br className="hidden sm:inline" />
+                {' '}HOME BUILDERS IN CHENNAI
+              </h2>
+            </StaggerItem>
 
-              <div className="space-y-3">
-                <div className="flex items-center -space-x-3">
-                  <img
-                    className="h-12 w-12 rounded-full border-2 border-white object-cover shadow-sm transition-transform duration-300 hover:scale-110 hover:z-10"
-                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-                    alt="Client 1"
-                  />
-                  <img
-                    className="h-12 w-12 rounded-full border-2 border-white object-cover shadow-sm transition-transform duration-300 hover:scale-110 hover:z-10"
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
-                    alt="Client 2"
-                  />
-                  <img
-                    className="h-12 w-12 rounded-full border-2 border-white object-cover shadow-sm transition-transform duration-300 hover:scale-110 hover:z-10"
-                    src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80"
-                    alt="Client 3"
-                  />
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-white bg-[#f12131] text-lg font-bold text-white shadow-sm">
-                    +
+            {/* 3 Interactive Stat Counters */}
+            <StaggerItem>
+              <div className="grid grid-cols-3 gap-4 border-y border-slate-100 py-6 sm:gap-6">
+                
+                {/* Stat 1 */}
+                <div className="flex flex-col">
+                  <div className="text-3xl font-black tracking-tight text-[#221e68] sm:text-4xl lg:text-5xl">
+                    <Counter value={20} suffix="+" />
                   </div>
+                  <span className="mt-1 text-xs font-semibold text-slate-600 sm:text-sm">
+                    Years Of Experience
+                  </span>
                 </div>
-                <p className="text-sm font-medium text-slate-500">
-                  More than <span className="font-bold text-slate-900">25k+</span> happy clients
+
+                {/* Stat 2 */}
+                <div className="flex flex-col border-x border-slate-100 px-3 sm:px-6">
+                  <div className="text-3xl font-black tracking-tight text-[#221e68] sm:text-4xl lg:text-5xl">
+                    <Counter value={80} suffix="+" />
+                  </div>
+                  <span className="mt-1 text-xs font-semibold text-slate-600 sm:text-sm">
+                    Completed Projects
+                  </span>
+                </div>
+
+                {/* Stat 3 */}
+                <div className="flex flex-col">
+                  <div className="text-3xl font-black tracking-tight text-[#221e68] sm:text-4xl lg:text-5xl">
+                    <Counter value={2} suffix="k+" />
+                  </div>
+                  <span className="mt-1 text-xs font-semibold text-slate-600 sm:text-sm">
+                    Happy Customers
+                  </span>
+                </div>
+              </div>
+            </StaggerItem>
+
+            {/* Paragraph Content */}
+            <StaggerItem>
+              <div className="space-y-4 text-base font-normal leading-relaxed text-slate-600 sm:text-lg">
+                <p>
+                  At <strong className="font-semibold text-slate-900">KPN Promoters Pvt Ltd</strong>,
+                  we&apos;re dedicated to building high-quality homes in and around Chennai, combining thoughtful design,
+                  lasting construction, and customer-focused service. From well-planned plots to modern residential
+                  spaces, each project reflects our commitment to excellence, transparency, and value.
                 </p>
+                <p>
+                  With a legacy of trust and over a decade of experience, we focus on timely delivery,
+                  sustainable practices, and long-term relationships. Whether you&apos;re buying your first home
+                  or investing for the future, <strong className="font-semibold text-slate-900">KPN Promoters</strong> is here
+                  to turn your vision into reality.
+                </p>
+              </div>
+            </StaggerItem>
+
+            {/* Trust Highlights & CTA */}
+            <StaggerItem>
+              <div className="flex flex-wrap items-center gap-4 pt-2 sm:gap-6">
+                <Link
+                  href="/projects"
+                  className="group inline-flex items-center gap-3 rounded-full bg-[#f12131] px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-500/25 transition-all hover:bg-red-700 hover:shadow-xl hover:shadow-red-500/35 active:scale-95"
+                >
+                  <span>Explore Projects</span>
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+
+                <Link
+                  href="/about-us"
+                  className="group inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50/80 px-6 py-3.5 text-sm font-semibold text-slate-800 transition-colors hover:border-slate-300 hover:bg-slate-100 active:scale-95"
+                >
+                  <span>About Our Legacy</span>
+                </Link>
               </div>
             </StaggerItem>
           </StaggerContainer>
 
-          {/* Right Stats & Video Card */}
-          <div className="flex flex-col items-center justify-center lg:col-span-5 lg:items-start">
-            <FadeIn direction="up" delay={0.1} className="w-full text-center lg:text-left">
-              <div className="flex items-center justify-center lg:justify-start text-7xl font-extrabold tracking-tight text-[#29247c] sm:text-8xl lg:text-[110px] leading-none">
-                <Counter value={285} />
-                <span className="text-[#f12131]">+</span>
-              </div>
-              <p className="mt-2 text-lg font-medium text-slate-500">
-                completed projects
-              </p>
-            </FadeIn>
+          {/* =========================================
+              RIGHT COLUMN: Chairman Details Card
+             ========================================= */}
+          <div className="flex justify-center lg:col-span-5 xl:col-span-5">
+            <FadeIn direction="up" delay={0.2} className="w-full max-w-[560px]">
+              <div className="group relative overflow-hidden rounded-[28px] border border-slate-100 bg-white p-2 shadow-2xl shadow-slate-200/70 transition-all duration-500 hover:shadow-red-500/10 sm:p-3 md:rounded-[36px]">
+                
+                {/* Background Ambient Glow */}
+                <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-red-500/10 blur-3xl transition-opacity duration-500 group-hover:opacity-100" />
+                <div className="pointer-events-none absolute -bottom-20 -left-20 h-56 w-56 rounded-full bg-blue-600/10 blur-3xl transition-opacity duration-500 group-hover:opacity-100" />
 
-            <FadeIn direction="up" delay={0.25} className="w-full">
-              <ImageReveal className="relative mt-8 w-full max-w-md overflow-hidden rounded-[32px] shadow-2xl group cursor-pointer">
-                <img
-                  src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&auto=format&fit=crop&q=80"
-                  alt="Project Landmark"
-                  className="h-[380px] w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute bottom-6 right-6 flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-2xl transition-all duration-300 group-hover:scale-110 group-hover:bg-[#f12131] group-hover:text-white">
-                  <Play className="h-6 w-6 fill-current text-black ml-1 group-hover:text-white group-hover:fill-white transition-colors" />
+                {/* Chairman Visual Graphic */}
+                <div className="relative overflow-hidden rounded-[22px] bg-slate-50 md:rounded-[30px]">
+                  <Image
+                    src="/images/about/kpn-promoters-about.png"
+                    alt="V Kanniyappan B.Com - Chairman of KPN Promoters Pvt Ltd"
+                    width={878}
+                    height={711}
+                    priority
+                    className="h-auto w-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+                  />
                 </div>
-              </ImageReveal>
+
+                {/* Subtle verified badge pill on bottom */}
+                <div className="mt-3 flex items-center justify-between px-3 py-1 text-xs text-slate-500">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                    Verified Leadership
+                  </span>
+                  <span className="font-semibold text-[#221e68]">
+                    Established 2004
+                  </span>
+                </div>
+              </div>
             </FadeIn>
           </div>
+
         </div>
       </div>
     </section>

@@ -5,6 +5,9 @@ import FadeIn from '@/components/animation/FadeIn';
 import StaggerContainer from '@/components/animation/StaggerContainer';
 import StaggerItem from '@/components/animation/StaggerItem';
 import { submitEnquiry } from '@/lib/cmsClient';
+import PhoneInputWithCountry from '@/components/ui/PhoneInputWithCountry';
+import { Country, DEFAULT_COUNTRY } from '@/lib/countryCodes';
+import { cleanName, validateName, cleanEmail, validateEmail, validatePhone } from '@/lib/formValidation';
 
 interface AssociatePageProps {
   title: string;
@@ -24,12 +27,50 @@ export default function AssociatePageTemplate({
     message: '',
     consent: false,
   });
+  const [selectedCountry, setSelectedCountry] = useState<Country>(DEFAULT_COUNTRY);
+  const [errors, setErrors] = useState<{ name?: string; email?: string; phone?: string; city?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleNameChange = (val: string) => {
+    const cleaned = cleanName(val);
+    setFormData((prev) => ({ ...prev, name: cleaned }));
+    if (errors.name) {
+      setErrors((prev) => ({ ...prev, name: validateName(cleaned).error }));
+    }
+  };
+
+  const handleEmailChange = (val: string) => {
+    const cleaned = cleanEmail(val);
+    setFormData((prev) => ({ ...prev, email: cleaned }));
+    if (errors.email) {
+      setErrors((prev) => ({ ...prev, email: validateEmail(cleaned, true).error }));
+    }
+  };
+
+  const handlePhoneChange = (val: string) => {
+    setFormData((prev) => ({ ...prev, phone: val }));
+    if (errors.phone) {
+      setErrors((prev) => ({ ...prev, phone: validatePhone(val, selectedCountry, true).error }));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.phone.trim()) {
-      alert('Please provide your name and contact phone number.');
+
+    const nameRes = validateName(formData.name);
+    const emailRes = validateEmail(formData.email, true);
+    const phoneRes = validatePhone(formData.phone, selectedCountry, true);
+    const cityRes = formData.city.trim() ? { isValid: true, error: '' } : { isValid: false, error: 'City is required' };
+
+    const newErrors = {
+      name: nameRes.error,
+      email: emailRes.error,
+      phone: phoneRes.error,
+      city: cityRes.error,
+    };
+    setErrors(newErrors);
+
+    if (!nameRes.isValid || !emailRes.isValid || !phoneRes.isValid || !cityRes.isValid) {
       return;
     }
 
@@ -45,7 +86,7 @@ export default function AssociatePageTemplate({
 
       await submitEnquiry({
         name: formData.name.trim(),
-        phone: formData.phone.trim(),
+        phone: `${selectedCountry.dialCode} ${formData.phone.trim()}`,
         email: formData.email.trim(),
         projectName: `${title} Program`,
         message: additionalNotes || `Inquiry for ${title}`,
@@ -62,6 +103,8 @@ export default function AssociatePageTemplate({
         message: '',
         consent: false,
       });
+      setSelectedCountry(DEFAULT_COUNTRY);
+      setErrors({});
     } catch {
       alert(`Thank you for submitting your details for ${title}! We have received your request and will contact you shortly.`);
     } finally {
@@ -181,20 +224,26 @@ export default function AssociatePageTemplate({
             >
 
               {/* Name */}
-              <input
-                type="text"
-                required
-                placeholder="Name*"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    name: e.target.value,
-                  })
-                }
-                className="h-14 w-full rounded-full border-0 bg-slate-100 px-7 text-sm text-slate-800 outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-rose-500"
-              />
-
+              <div>
+                <input
+                  type="text"
+                  required
+                  placeholder="Name*"
+                  value={formData.name}
+                  onChange={(e) => handleNameChange(e.target.value)}
+                  suppressHydrationWarning
+                  className={`h-14 w-full rounded-full border px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-500 transition ${
+                    errors.name
+                      ? 'border-red-400 bg-red-50/40 focus:ring-2 focus:ring-red-400/30'
+                      : 'border-0 bg-slate-100 focus:ring-2 focus:ring-rose-500'
+                  }`}
+                />
+                {errors.name && (
+                  <p className="mt-1.5 px-4 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
+                    {errors.name}
+                  </p>
+                )}
+              </div>
 
               {/* Company */}
               <input
@@ -207,56 +256,97 @@ export default function AssociatePageTemplate({
                     companyName: e.target.value,
                   })
                 }
-                className="h-14 w-full rounded-full border-0 bg-slate-100 px-7 text-sm text-slate-800 outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-rose-500"
+                suppressHydrationWarning
+                className="h-14 w-full rounded-full border-0 bg-slate-100 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-rose-500"
               />
-
 
               {/* Email */}
-              <input
-                type="email"
-                required
-                placeholder="E-mail*"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    email: e.target.value,
-                  })
-                }
-                className="h-14 w-full rounded-full border-0 bg-slate-100 px-7 text-sm text-slate-800 outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-rose-500"
-              />
-
+              <div>
+                <input
+                  type="email"
+                  required
+                  placeholder="E-mail* (e.g. name@gmail.com)"
+                  value={formData.email}
+                  onChange={(e) => handleEmailChange(e.target.value)}
+                  onBlur={() => {
+                    if (formData.email) {
+                      setErrors((prev) => ({
+                        ...prev,
+                        email: validateEmail(formData.email, true).error,
+                      }));
+                    }
+                  }}
+                  pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.com"
+                  title="Email must include '@' and end with '.com' (e.g. name@gmail.com)"
+                  suppressHydrationWarning
+                  className={`h-14 w-full rounded-full border px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-500 transition ${
+                    errors.email
+                      ? 'border-red-400 bg-red-50/40 focus:ring-2 focus:ring-red-400/30'
+                      : 'border-0 bg-slate-100 focus:ring-2 focus:ring-rose-500'
+                  }`}
+                />
+                {errors.email && (
+                  <p className="mt-1.5 px-4 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
+                    {errors.email}
+                  </p>
+                )}
+              </div>
 
               {/* Phone */}
-              <input
-                type="tel"
-                required
-                placeholder="Phone*"
-                value={formData.phone}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    phone: e.target.value,
-                  })
-                }
-                className="h-14 w-full rounded-full border-0 bg-slate-100 px-7 text-sm text-slate-800 outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-rose-500"
-              />
-
+              <div>
+                <PhoneInputWithCountry
+                  variant="pill"
+                  phone={formData.phone}
+                  selectedCountry={selectedCountry}
+                  onPhoneChange={handlePhoneChange}
+                  onCountryChange={(c) => {
+                    setSelectedCountry(c);
+                    if (formData.phone) {
+                      setErrors((prev) => ({
+                        ...prev,
+                        phone: validatePhone(formData.phone, c, true).error,
+                      }));
+                    }
+                  }}
+                  error={errors.phone}
+                  required
+                  onBlur={() => {
+                    if (formData.phone) {
+                      setErrors((prev) => ({
+                        ...prev,
+                        phone: validatePhone(formData.phone, selectedCountry, true).error,
+                      }));
+                    }
+                  }}
+                />
+              </div>
 
               {/* City */}
-              <input
-                type="text"
-                required
-                placeholder="City*"
-                value={formData.city}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    city: e.target.value,
-                  })
-                }
-                className="h-14 w-full rounded-full border-0 bg-slate-100 px-7 text-sm text-slate-800 outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-rose-500"
-              />
+              <div>
+                <input
+                  type="text"
+                  required
+                  placeholder="City*"
+                  value={formData.city}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      city: e.target.value,
+                    })
+                  }
+                  suppressHydrationWarning
+                  className={`h-14 w-full rounded-full border px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-500 transition ${
+                    errors.city
+                      ? 'border-red-400 bg-red-50/40 focus:ring-2 focus:ring-red-400/30'
+                      : 'border-0 bg-slate-100 focus:ring-2 focus:ring-rose-500'
+                  }`}
+                />
+                {errors.city && (
+                  <p className="mt-1.5 px-4 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
+                    {errors.city}
+                  </p>
+                )}
+              </div>
 
 
               {/* Message */}

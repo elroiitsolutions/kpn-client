@@ -188,6 +188,8 @@ export default function BlogDetailClient({
                     type="email"
                     required
                     placeholder="Email Address *"
+                    pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.com"
+                    title="Email must include '@' and end with '.com' (e.g. name@gmail.com)"
                     className="h-14 w-full rounded-full border-0 bg-slate-100/80 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#f12131]/30 transition-all"
                   />
                   <input
