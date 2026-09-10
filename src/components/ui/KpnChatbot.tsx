@@ -19,6 +19,9 @@ import {
 } from 'lucide-react';
 import { ChatMessage } from '@/data/chatbotKnowledge';
 import { ProjectItem } from '@/data/siteData';
+import PhoneInputWithCountry from '@/components/ui/PhoneInputWithCountry';
+import { Country, DEFAULT_COUNTRY } from '@/lib/countryCodes';
+import { cleanName, validateName, validatePhone } from '@/lib/formValidation';
 
 export default function KpnChatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,6 +34,8 @@ export default function KpnChatbot() {
   // Lead capture states
   const [leadName, setLeadName] = useState('');
   const [leadPhone, setLeadPhone] = useState('');
+  const [leadCountry, setLeadCountry] = useState<Country>(DEFAULT_COUNTRY);
+  const [leadErrors, setLeadErrors] = useState<{ name?: string; phone?: string }>({});
   const [leadSubmitted, setLeadSubmitted] = useState(false);
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
@@ -124,16 +129,26 @@ export default function KpnChatbot() {
   // Submit site visit / lead form
   const handleLeadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!leadPhone.trim()) return;
+
+    const nameRes = leadName.trim() ? validateName(leadName) : { isValid: true, error: '' };
+    const phoneRes = validatePhone(leadPhone, leadCountry, true);
+
+    setLeadErrors({
+      name: nameRes.error,
+      phone: phoneRes.error,
+    });
+
+    if (!nameRes.isValid || !phoneRes.isValid) return;
 
     setIsSubmittingLead(true);
+    const fullPhone = `${leadCountry.dialCode} ${leadPhone.trim()}`;
     try {
       const res = await fetch('/api/lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: leadName,
-          phone: leadPhone,
+          name: leadName.trim(),
+          phone: fullPhone,
           notes: 'Chatbot site visit request',
         }),
       });
@@ -143,7 +158,7 @@ export default function KpnChatbot() {
       const confMsg: ChatMessage = {
         id: `lead-conf-${Date.now()}`,
         role: 'assistant',
-        content: `🎉 Thank you **${leadName || 'Valued Buyer'}**! Our senior property manager has received your request (**${leadPhone}**) and will call you shortly to arrange your free site visit.`,
+        content: `🎉 Thank you **${leadName.trim() || 'Valued Buyer'}**! Our senior property manager has received your request (**${fullPhone}**) and will call you shortly to arrange your free site visit.`,
         timestamp: 'Just now',
       };
       setMessages((prev) => [...prev, confMsg]);
@@ -445,26 +460,73 @@ export default function KpnChatbot() {
                       Drop your phone number to receive project details and schedule your visit.
                     </p>
 
-                    <form onSubmit={handleLeadSubmit} className="space-y-2">
-                      <input
-                        type="text"
-                        placeholder="Your Name (Optional)"
-                        value={leadName}
-                        onChange={(e) => setLeadName(e.target.value)}
-                        className="h-8 w-full rounded-lg border border-slate-300 bg-white px-3 text-xs outline-none focus:border-[#29247c]"
-                      />
-                      <input
-                        type="tel"
-                        required
-                        placeholder="Phone Number *"
-                        value={leadPhone}
-                        onChange={(e) => setLeadPhone(e.target.value)}
-                        className="h-8 w-full rounded-lg border border-slate-300 bg-white px-3 text-xs outline-none focus:border-[#29247c]"
-                      />
+                    <form onSubmit={handleLeadSubmit} className="space-y-2.5">
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="Your Name (Optional)"
+                          value={leadName}
+                          onChange={(e) => {
+                            const cleaned = cleanName(e.target.value);
+                            setLeadName(cleaned);
+                            if (leadErrors.name) {
+                              setLeadErrors((prev) => ({ ...prev, name: validateName(cleaned).error }));
+                            }
+                          }}
+                          suppressHydrationWarning
+                          className={`h-9 w-full rounded-xl border px-3 text-xs outline-none transition ${
+                            leadErrors.name
+                              ? 'border-red-400 bg-red-50/40 text-red-900'
+                              : 'border-slate-300 bg-white focus:border-[#29247c]'
+                          }`}
+                        />
+                        {leadErrors.name && (
+                          <p className="mt-1 px-1 text-[10px] font-semibold text-red-600">
+                            {leadErrors.name}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <PhoneInputWithCountry
+                          phone={leadPhone}
+                          selectedCountry={leadCountry}
+                          onPhoneChange={(val) => {
+                            setLeadPhone(val);
+                            if (leadErrors.phone) {
+                              setLeadErrors((prev) => ({
+                                ...prev,
+                                phone: validatePhone(val, leadCountry, true).error,
+                              }));
+                            }
+                          }}
+                          onCountryChange={(c) => {
+                            setLeadCountry(c);
+                            if (leadPhone) {
+                              setLeadErrors((prev) => ({
+                                ...prev,
+                                phone: validatePhone(leadPhone, c, true).error,
+                              }));
+                            }
+                          }}
+                          error={leadErrors.phone}
+                          required
+                          onBlur={() => {
+                            if (leadPhone) {
+                              setLeadErrors((prev) => ({
+                                ...prev,
+                                phone: validatePhone(leadPhone, leadCountry, true).error,
+                              }));
+                            }
+                          }}
+                        />
+                      </div>
+
                       <button
                         type="submit"
                         disabled={isSubmittingLead}
-                        className="w-full rounded-lg bg-[#f12131] py-2 text-center text-xs font-bold text-white shadow-xs transition hover:bg-[#d01927] disabled:opacity-50"
+                        suppressHydrationWarning
+                        className="w-full rounded-xl bg-[#f12131] py-2.5 text-center text-xs font-bold text-white shadow-xs transition hover:bg-[#d01927] disabled:opacity-50 cursor-pointer"
                       >
                         {isSubmittingLead ? 'Submitting...' : 'Request Free Site Visit'}
                       </button>

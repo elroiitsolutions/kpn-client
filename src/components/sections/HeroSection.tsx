@@ -1,19 +1,96 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/layout/Navbar';
 
 export default function HeroSection() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.defaultMuted = true;
+    video.muted = true;
+
+    const playVideo = () => {
+      if (video.paused) {
+        const promise = video.play();
+        if (promise !== undefined) {
+          promise.catch(() => {
+            // Browser autoplay policy retry on interaction
+          });
+        }
+      }
+    };
+
+    const pauseVideo = () => {
+      if (!video.paused) {
+        video.pause();
+      }
+    };
+
+    const handlePortalFade = (e: Event) => {
+      const customEvent = e as CustomEvent<{ faded: boolean }>;
+      if (customEvent.detail?.faded) {
+        playVideo();
+      } else {
+        pauseVideo();
+      }
+    };
+
+    window.addEventListener('kpn-portal-fade', handlePortalFade);
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden && (typeof window !== 'undefined' && (window as any).__kpnPortalFaded)) {
+        playVideo();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Initial gesture unlock fallback
+    const handleGesture = () => {
+      if (typeof window !== 'undefined' && (window as any).__kpnPortalFaded) {
+        playVideo();
+      }
+    };
+    window.addEventListener('pointerdown', handleGesture, { passive: true });
+    window.addEventListener('keydown', handleGesture, { passive: true });
+
+    // Initial state: play only if portal has already faded, otherwise keep paused to preserve GPU decoder
+    if (typeof window !== 'undefined' && (window as any).__kpnPortalFaded) {
+      playVideo();
+    } else {
+      pauseVideo();
+    }
+
+    return () => {
+      window.removeEventListener('kpn-portal-fade', handlePortalFade);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pointerdown', handleGesture);
+      window.removeEventListener('keydown', handleGesture);
+    };
+  }, []);
+
   return (
-    <section id="main-content" className="relative min-h-[100vh] w-full overflow-hidden bg-slate-800">
+    <section id="main-content" className="relative z-10 min-h-[100vh] w-full overflow-hidden bg-slate-800">
       <video
+        ref={videoRef}
         autoPlay
         loop
         muted
         playsInline
+        preload="auto"
+        disablePictureInPicture
+        controls={false}
         className="absolute inset-0 z-0 h-full w-full object-cover"
+        style={{
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
+        }}
       >
         <source src="/images/videos/hero-bg.mp4" type="video/mp4" />
       </video>

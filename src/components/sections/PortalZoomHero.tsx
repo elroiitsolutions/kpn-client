@@ -1,272 +1,264 @@
 "use client";
-
 import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-
-const words = [
-  "LUXURY APARTMENTS",
-  "GATED COMMUNITIES",
-  "PREMIUM PLOTS",
-  "EXCLUSIVE VILLAS",
-  "FUTURE LIVING",
-  "TIMELESS QUALITY",
-];
+import { motion } from "framer-motion";
 
 export default function KPNEntryHero() {
   const [entered, setEntered] = useState(false);
-  const [wordIndex, setWordIndex] = useState(0);
-  const [heroVisible, setHeroVisible] = useState(true);
-
+  const [faded, setFaded] = useState(false);
   const enteredRef = useRef(false);
-  const heroVisibleRef = useRef(true);
-
-  const heroRef = useRef<HTMLElement>(null);
-
+  const fadedRef = useRef(false);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const lockRef = useRef(false);
+  const fadeTimerRef = useRef<number | null>(null);
   const unlockTimerRef = useRef<number | null>(null);
 
   /* =========================================================
      PORTAL POSITION
-     ========================================================= */
-
+  ========================================================= */
   const PORTAL_X = "50%";
   const PORTAL_Y = "49.32%";
 
   /* =========================================================
      INITIAL VIDEO BOX SIZE
-
-     ⭐ CHANGE ONLY THESE TWO VALUES ⭐
-
-     Bigger:
-       520px × 300px
-
-     Smaller:
-       400px × 230px
-
-     Very big:
-       650px × 370px
-     ========================================================= */
-
-  const INITIAL_VIDEO_WIDTH = "520px";
-  const INITIAL_VIDEO_HEIGHT = "300px";
+  ========================================================= */
+  const INITIAL_VIDEO_WIDTH = "480px";
+  const INITIAL_VIDEO_HEIGHT = "480px";
 
   /* =========================================================
-     KEEP REFS IN SYNC
-     ========================================================= */
-
+     KEEP REFS IN SYNC & NOTIFY HERO SECTION
+  ========================================================= */
   useEffect(() => {
     enteredRef.current = entered;
   }, [entered]);
 
   useEffect(() => {
-    heroVisibleRef.current = heroVisible;
-  }, [heroVisible]);
+    fadedRef.current = faded;
+    if (typeof window !== 'undefined') {
+      (window as any).__kpnPortalFaded = faded;
+      window.dispatchEvent(new CustomEvent('kpn-portal-fade', { detail: { faded } }));
+    }
+
+    const video = videoRef.current;
+    if (video) {
+      if (faded) {
+        // Pause portal video when faded so it does not compete for GPU video decoder
+        if (!video.paused) {
+          video.pause();
+        }
+      } else {
+        // Resume portal video when portal is shown
+        if (video.paused) {
+          video.play().catch(() => {});
+        }
+      }
+    }
+  }, [faded]);
 
   /* =========================================================
-     CENTER WORDS
-     ========================================================= */
-
+     INITIAL PORTAL VIDEO AUTOPLAY
+  ========================================================= */
   useEffect(() => {
-    const timer = window.setInterval(() => {
-      setWordIndex((prev) => (prev + 1) % words.length);
-    }, 2200);
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.defaultMuted = true;
+    video.muted = true;
+
+    const playPortalVideo = () => {
+      if (video.paused && !fadedRef.current) {
+        video.play().catch(() => {});
+      }
+    };
+
+    playPortalVideo();
+
+    // Fallback if browser requires initial user gesture
+    const handleGesture = () => {
+      playPortalVideo();
+      window.removeEventListener('pointerdown', handleGesture);
+      window.removeEventListener('keydown', handleGesture);
+    };
+    window.addEventListener('pointerdown', handleGesture, { passive: true });
+    window.addEventListener('keydown', handleGesture, { passive: true });
 
     return () => {
-      window.clearInterval(timer);
+      window.removeEventListener('pointerdown', handleGesture);
+      window.removeEventListener('keydown', handleGesture);
     };
   }, []);
 
   /* =========================================================
-     GET HERO POSITION
-     ========================================================= */
-
-  const getSectionTop = (element: HTMLElement | null) => {
-    if (!element) return 0;
-
-    return element.getBoundingClientRect().top + window.scrollY;
-  };
-
-  /* =========================================================
-     EXACT SCROLL
-     ========================================================= */
-
-  const scrollToHero = (
-    behavior: ScrollBehavior = "smooth"
-  ) => {
-    const hero = heroRef.current;
-
-    if (!hero) return;
-
-    const top = getSectionTop(hero);
-
-    window.scrollTo({
-      top,
-      left: 0,
-      behavior,
-    });
-  };
-
-  /* =========================================================
      LOCK SCROLL
-     ========================================================= */
-
+  ========================================================= */
   const lockScroll = (duration: number) => {
     lockRef.current = true;
-
     if (unlockTimerRef.current) {
       window.clearTimeout(unlockTimerRef.current);
     }
-
     unlockTimerRef.current = window.setTimeout(() => {
       lockRef.current = false;
     }, duration);
   };
 
   /* =========================================================
-     WHEEL CONTROL
+     TRIGGER ZOOM IN & SMOOTH FADE
+  ========================================================= */
+  const triggerZoomIn = () => {
+    if (enteredRef.current) return;
+    // Lock scroll for the 1.6s duration so rapid wheel ticks don't break playback
+    lockScroll(1700);
+    enteredRef.current = true;
+    setEntered(true);
 
-     INITIAL:
-       BIG VIDEO BOX
+    // Zoom completes at 1.6s; smoothly fade to hero section at 1.8s
+    if (fadeTimerRef.current) window.clearTimeout(fadeTimerRef.current);
+    fadeTimerRef.current = window.setTimeout(() => {
+      if (enteredRef.current) {
+        fadedRef.current = true;
+        setFaded(true);
+      }
+    }, 1800);
+  };
 
-            ↓ SCROLL
+  /* =========================================================
+     TRIGGER ZOOM OUT (REVERSE ANIMATION)
+  ========================================================= */
+  const triggerZoomOut = () => {
+    lockScroll(1800);
+    if (fadeTimerRef.current) window.clearTimeout(fadeTimerRef.current);
 
-       FULLSCREEN VIDEO
+    // 1. Fade video back in
+    fadedRef.current = false;
+    setFaded(false);
 
-            ↑ SCROLL
+    // 2. Zoom out back to circular box & portal image
+    window.setTimeout(() => {
+      enteredRef.current = false;
+      setEntered(false);
+    }, 150);
+  };
 
-       BIG VIDEO BOX
-     ========================================================= */
-
+  /* =========================================================
+     WHEEL & TOUCH CONTROL
+  ========================================================= */
   useEffect(() => {
     const handleWheel = (event: WheelEvent) => {
       if (Math.abs(event.deltaY) < 5) {
         return;
       }
 
-      const hero = heroRef.current;
-
-      if (!hero) {
-        return;
-      }
-
-      const heroTop = getSectionTop(hero);
-      const currentScroll = window.scrollY;
-
-      const tolerance = 30;
-
-      const atHero =
-        Math.abs(currentScroll - heroTop) <= tolerance;
-
-      /* =====================================================
-         LOCK DURING ANIMATION
-         ===================================================== */
-
+      // If transition is currently locked, prevent interruption
       if (lockRef.current) {
-        if (atHero) {
+        if (!fadedRef.current) {
           event.preventDefault();
         }
-
         return;
       }
 
       /* =====================================================
-         SCROLL DOWN
-
-         BIG VIDEO BOX → FULLSCREEN
-         ===================================================== */
-
+         SCROLL DOWN:
+         PORTAL ZOOM → FULLSCREEN VIDEO → FADE TO HERO SECTION
+      ===================================================== */
       if (event.deltaY > 0) {
-        if (atHero && !enteredRef.current) {
+        // At initial opening: trigger zoom in
+        if (!enteredRef.current && !fadedRef.current) {
           event.preventDefault();
-
-          lockScroll(1650);
-
-          enteredRef.current = true;
-          setEntered(true);
-
+          triggerZoomIn();
           return;
         }
 
-        /*
-          After fullscreen, normal page scrolling works.
-        */
+        // If in fullscreen video after zoom completes and not yet faded: scroll down immediately fades to hero
+        if (enteredRef.current && !fadedRef.current) {
+          event.preventDefault();
+          if (fadeTimerRef.current) window.clearTimeout(fadeTimerRef.current);
+          fadedRef.current = true;
+          setFaded(true);
+          return;
+        }
 
+        // After faded, normal page scrolling works naturally
         return;
       }
 
       /* =====================================================
-         SCROLL UP
-
-         FULLSCREEN → BIG VIDEO BOX
-         ===================================================== */
-
+         SCROLL UP:
+         REVERSE ZOOM OUT TO PORTAL IMAGE
+      ===================================================== */
       if (event.deltaY < 0) {
-        if (atHero && enteredRef.current) {
+        // If at top of the page (scrollY <= 5) and faded is true: reverse zoom out
+        if (fadedRef.current && window.scrollY <= 5) {
           event.preventDefault();
-
-          lockScroll(1650);
-
-          enteredRef.current = false;
-          setEntered(false);
-
-          heroVisibleRef.current = true;
-          setHeroVisible(true);
-
-          window.requestAnimationFrame(() => {
-            scrollToHero("auto");
-          });
-
+          triggerZoomOut();
           return;
         }
 
-        return;
+        // If in fullscreen video before fade: zoom back out to box
+        if (enteredRef.current && !fadedRef.current) {
+          event.preventDefault();
+          triggerZoomOut();
+          return;
+        }
       }
     };
 
-    window.addEventListener("wheel", handleWheel, {
-      passive: false,
-    });
+    // Touch support for mobile
+    let touchStartY = 0;
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+    };
+    const handleTouchEnd = (e: TouchEvent) => {
+      const deltaY = touchStartY - e.changedTouches[0].clientY;
+      if (Math.abs(deltaY) < 30) return;
+      handleWheel({ deltaY, preventDefault: () => {} } as any);
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: false });
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchend", handleTouchEnd, { passive: true });
 
     return () => {
       window.removeEventListener("wheel", handleWheel);
-
-      if (unlockTimerRef.current) {
-        window.clearTimeout(unlockTimerRef.current);
-      }
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchend", handleTouchEnd);
+      if (unlockTimerRef.current) window.clearTimeout(unlockTimerRef.current);
+      if (fadeTimerRef.current) window.clearTimeout(fadeTimerRef.current);
     };
   }, []);
 
   return (
-    <main className="relative w-full bg-black">
-
-      {/* =====================================================
-          HERO
-      ===================================================== */}
-
-      <section
-        ref={heroRef}
-        className="
-          relative
-          z-20
-          h-screen
-          w-full
-          overflow-hidden
-          bg-black
-        "
-      >
-
+    <motion.div
+      ref={heroRef}
+      initial={{ opacity: 1 }}
+      animate={{ opacity: faded ? 0 : 1 }}
+      transition={{ duration: 0.5, ease: "easeInOut" }}
+      style={{
+        pointerEvents: faded ? "none" : "auto",
+        visibility: faded ? "hidden" : "visible",
+        transition: faded ? "visibility 0s 0.5s" : "visibility 0s 0s",
+      }}
+      className="fixed inset-0 z-[200] h-screen w-full overflow-hidden bg-black"
+      onClick={() => {
+        if (lockRef.current) return;
+        if (!enteredRef.current && !fadedRef.current) {
+          triggerZoomIn();
+        } else if (enteredRef.current && !fadedRef.current) {
+          // If already zooming/entered, click smoothly fades out
+          if (fadeTimerRef.current) window.clearTimeout(fadeTimerRef.current);
+          fadedRef.current = true;
+          setFaded(true);
+        }
+      }}
+    >
         {/* ===================================================
             VIDEO BOX
-
             INITIAL:
-            520px × 300px
-
+            480px × 480px
             SCROLL:
-            520px × 300px
-                  ↓
+            480px × 480px
+                 ↓
             100vw × 100vh
         =================================================== */}
-
         <motion.div
           initial={{
             width: INITIAL_VIDEO_WIDTH,
@@ -281,29 +273,24 @@ export default function KPNEntryHero() {
             width: entered
               ? "100vw"
               : INITIAL_VIDEO_WIDTH,
-
             height: entered
               ? "100vh"
               : INITIAL_VIDEO_HEIGHT,
-
             left: entered
               ? "50%"
               : PORTAL_X,
-
             top: entered
               ? "50%"
               : PORTAL_Y,
-
             x: "-50%",
             y: "-50%",
-
             borderRadius: entered
               ? "0px"
               : "18px",
           }}
           transition={{
             duration: 1.6,
-            ease: [0.16, 1, 0.3, 1],
+            ease: [0.16, 0.9, 0.3, 1],
           }}
           style={{
             position: "absolute",
@@ -322,11 +309,14 @@ export default function KPNEntryHero() {
           "
         >
           <video
+            ref={videoRef}
             autoPlay
             loop
             muted
             playsInline
             preload="auto"
+            disablePictureInPicture
+            controls={false}
             className="
               absolute
               inset-0
@@ -336,6 +326,7 @@ export default function KPNEntryHero() {
               object-cover
             "
             style={{
+              transform: "translateZ(0)",
               backfaceVisibility: "hidden",
               WebkitBackfaceVisibility: "hidden",
             }}
@@ -346,11 +337,9 @@ export default function KPNEntryHero() {
             />
           </video>
         </motion.div>
-
         {/* ===================================================
-            BLACK OVERLAY
+            BLACK OVERLAY (Disabled so video is vividly visible)
         =================================================== */}
-
         <motion.div
           initial={{
             opacity: 0.35,
@@ -365,61 +354,89 @@ export default function KPNEntryHero() {
           className="
             pointer-events-none
             absolute
+            hidden
             inset-0
             z-10
             bg-black
           "
         />
-
         {/* ===================================================
             PORTAL IMAGE
-
-            If this image contains your circular portal,
-            it stays above the video during the initial state.
+            IMPORTANT FIX:
+            The portal image NEVER fades while zooming.
+            OLD:
+              opacity: entered ? 0 : 1
+            NEW:
+              opacity: 1
+            This keeps the original portal colors during
+            the entire zoom animation.
         =================================================== */}
-
         <motion.div
           initial={{
             scale: 1,
             opacity: 1,
           }}
           animate={{
-            scale: entered ? 5 : 1,
-            opacity: entered ? 0 : 1,
+            scale: entered ? 9 : 1,
+            // IMPORTANT:
+            // Never fade the portal while zooming.
+            opacity: 1,
           }}
           transition={{
-            duration: 1.45,
-            ease: [0.22, 1, 0.36, 1],
+            scale: {
+              duration: 1.6,
+              ease: [0.16, 0.9, 0.3, 1],
+            },
+            opacity: {
+              duration: 0,
+            },
           }}
           style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 30,
             transformOrigin: `${PORTAL_X} ${PORTAL_Y}`,
+            // Prevent color fading
+            filter: "none",
+            opacity: 1,
+            mixBlendMode: "normal",
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+            willChange: "transform",
+            pointerEvents: "none",
           }}
           className="
-            pointer-events-none
             absolute
             inset-0
             z-30
             h-full
             w-full
-            will-change-transform
+            pointer-events-none
           "
         >
           <img
-            src="/entry/entryentry_portal.png"
+            src="/entry/entryportal.original.png"
             alt="KPN Architecture Portal"
             draggable={false}
             className="
+              block
               h-full
               w-full
               object-cover
             "
+            style={{
+              // Keep original image colors
+              filter: "none",
+              opacity: 1,
+              mixBlendMode: "normal",
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden",
+            }}
           />
         </motion.div>
-
         {/* ===================================================
             KPN LOGO
         =================================================== */}
-
         <motion.div
           initial={{
             opacity: 1,
@@ -467,11 +484,10 @@ export default function KPNEntryHero() {
             />
           </div>
         </motion.div>
-
         {/* ===================================================
             LEFT TEXT
         =================================================== */}
-
+{/* 
         <motion.div
           initial={{
             x: 0,
@@ -494,7 +510,6 @@ export default function KPNEntryHero() {
           "
         >
           <div className="flex flex-col">
-
             <span
               className="
                 text-[4vw]
@@ -508,7 +523,6 @@ export default function KPNEntryHero() {
             >
               We
             </span>
-
             <span
               className="
                 text-[7vw]
@@ -523,14 +537,12 @@ export default function KPNEntryHero() {
             >
               BUILD
             </span>
-
           </div>
-        </motion.div>
-
+        </motion.div> */}
         {/* ===================================================
             RIGHT TEXT
         =================================================== */}
-
+{/* 
         <motion.div
           initial={{
             x: 0,
@@ -554,7 +566,6 @@ export default function KPNEntryHero() {
           "
         >
           <div className="flex flex-col">
-
             <span
               className="
                 text-[4vw]
@@ -568,7 +579,6 @@ export default function KPNEntryHero() {
             >
               Your
             </span>
-
             <span
               className="
                 text-[7vw]
@@ -582,78 +592,9 @@ export default function KPNEntryHero() {
             >
               Future
             </span>
-
           </div>
-        </motion.div>
+        </motion.div> */}
 
-        {/* ===================================================
-            CENTER WORDS
-        =================================================== */}
-
-        <AnimatePresence mode="wait">
-
-          <motion.div
-            key={wordIndex}
-            initial={{
-              opacity: 0,
-              y: 10,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            exit={{
-              opacity: 0,
-              y: -10,
-            }}
-            transition={{
-              duration: 0.45,
-              ease: [0.22, 1, 0.36, 1],
-            }}
-            style={{
-              left: PORTAL_X,
-              top: PORTAL_Y,
-            }}
-            className="
-              absolute
-              z-40
-              w-[62vw]
-              max-w-[310px]
-              -translate-x-1/2
-              -translate-y-1/2
-              text-center
-              sm:w-[48vw]
-              md:w-[30vw]
-              md:max-w-[300px]
-              lg:w-[20vw]
-              lg:max-w-[330px]
-            "
-          >
-
-            <div
-              className="
-                whitespace-nowrap
-                text-[2.8vw]
-                font-semibold
-                uppercase
-                leading-none
-                tracking-[0.055em]
-                text-white
-                drop-shadow-[0_4px_18px_rgba(0,0,0,0.6)]
-                sm:text-[2.3vw]
-                md:text-[1.8vw]
-                lg:text-[1.45vw]
-              "
-            >
-              {words[wordIndex]}
-            </div>
-
-          </motion.div>
-
-        </AnimatePresence>
-
-      </section>
-
-    </main>
+      </motion.div>
   );
 }
