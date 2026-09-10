@@ -92,7 +92,7 @@ export const SidebarProvider = React.forwardRef<
       <SidebarContext.Provider value={contextValue}>
         <TooltipProvider delayDuration={100}>
           <div
-            className={cn('flex min-h-screen w-full bg-slate-50/50', className)}
+            className={cn('flex h-screen w-full overflow-hidden bg-slate-50/50', className)}
             ref={ref}
             {...props}
           >
@@ -130,7 +130,7 @@ export const Sidebar = React.forwardRef<
       ref={ref}
       data-state={state}
       className={cn(
-        'sticky top-0 z-30 hidden h-screen shrink-0 border-r border-slate-200 bg-white transition-[width] duration-300 ease-in-out md:flex md:flex-col shadow-xs',
+        'hidden h-full shrink-0 border-r border-slate-200 bg-white transition-[width] duration-300 ease-in-out md:flex md:flex-col shadow-xs select-none',
         isCollapsed ? 'w-16' : 'w-64',
         className
       )}
@@ -175,7 +175,7 @@ export const SidebarInset = React.forwardRef<
     <main
       ref={ref}
       className={cn(
-        'flex flex-1 flex-col min-w-0 bg-[#f8fafc] overflow-y-auto',
+        'flex flex-1 flex-col min-w-0 h-full bg-[#f8fafc] overflow-y-auto overflow-x-hidden',
         className
       )}
       {...props}

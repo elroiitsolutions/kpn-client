@@ -788,34 +788,42 @@ export default function Navbar({
               </nav>
 
 
-              {/* MOBILE CONTACT AREA */}
-
-              <div
-                className="
-                  mt-4
-                  border-t
-                  border-gray-100
-                  pt-4
-                "
-              >
-                <div
-                  className="
-                    mb-3
-                    flex
-                    items-center
-                    gap-2
-                    text-sm
-                    font-bold
-                  "
+              {/* MOBILE WISHLIST & COMPARE */}
+              <div className="mt-2 grid grid-cols-2 gap-2 border-t border-gray-100 pt-3">
+                <Link
+                  href="/wishlist"
+                  onClick={closeMobileMenu}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-slate-50 py-2.5 text-xs font-bold text-slate-700 hover:bg-red-50 hover:text-[#f12131] transition-colors"
                 >
-                  <span className="text-[#29247c]">
-                    Call Us:
-                  </span>
+                  <Heart className="h-4 w-4 text-[#f12131]" />
+                  <span>Wishlist</span>
+                  {wishlistIds.length > 0 && (
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#f12131] text-[10px] font-black text-white">
+                      {wishlistIds.length}
+                    </span>
+                  )}
+                </Link>
 
-                  <a
-                    href="tel:+917338834233"
-                    className="text-[#f12131]"
-                  >
+                <Link
+                  href="/compare"
+                  onClick={closeMobileMenu}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-slate-50 py-2.5 text-xs font-bold text-slate-700 hover:bg-red-50 hover:text-[#f12131] transition-colors"
+                >
+                  <Scale className="h-4 w-4 text-[#29247c]" />
+                  <span>Compare</span>
+                  {compareIds.length > 0 && (
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#29247c] text-[10px] font-black text-white">
+                      {compareIds.length}
+                    </span>
+                  )}
+                </Link>
+              </div>
+
+              {/* MOBILE CONTACT AREA */}
+              <div className="mt-3 border-t border-gray-100 pt-3">
+                <div className="mb-3 flex items-center gap-2 text-sm font-bold">
+                  <span className="text-[#29247c]">Call Us:</span>
+                  <a href="tel:+917338834233" className="text-[#f12131]">
                     +91 7338834233
                   </a>
                 </div>
@@ -823,19 +831,7 @@ export default function Navbar({
                 <Link
                   href="/contact-us"
                   onClick={closeMobileMenu}
-                  className="
-                    flex
-                    w-full
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-[#f12131]
-                    px-5
-                    py-3.5
-                    text-sm
-                    font-bold
-                    text-white
-                  "
+                  className="flex w-full items-center justify-center rounded-full bg-[#f12131] px-5 py-3.5 text-sm font-bold text-white shadow-md hover:bg-[#d91d2c] transition-colors"
                 >
                   Get In Touch
                 </Link>

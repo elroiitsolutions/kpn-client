@@ -17,7 +17,7 @@ export default function AdminLayout({
   return (
     <AuthProvider>
       <BreadcrumbProvider>
-        <div className="font-sans antialiased text-slate-800 bg-[#f8fafc] min-h-screen">
+        <div className="font-sans antialiased text-slate-800 bg-[#f8fafc] h-screen overflow-hidden">
           <AdminShell>{children}</AdminShell>
         </div>
       </BreadcrumbProvider>

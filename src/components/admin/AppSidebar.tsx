@@ -83,8 +83,14 @@ const navigationItems = [
 export function AppSidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const isCollapsed = state === 'collapsed';
+
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   const isActive = (url: string) => {
     if (url === '/admin') return pathname === '/admin';
@@ -97,6 +103,7 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-slate-100 pb-3 pt-4 px-4">
         <Link
           href="/admin"
+          onClick={handleLinkClick}
           className={`flex items-center gap-3 px-1 py-1 rounded-xl hover:bg-slate-50 transition-colors ${
             isCollapsed ? 'justify-center' : ''
           }`}
@@ -140,7 +147,11 @@ export function AppSidebar() {
                         isActive={active}
                         tooltip={item.title}
                       >
-                        <Link href={item.url} className="flex items-center gap-2.5">
+                        <Link
+                          href={item.url}
+                          onClick={handleLinkClick}
+                          className="flex items-center gap-2.5"
+                        >
                           <Icon className={`h-4 w-4 shrink-0 transition-colors ${active ? 'text-[#f12131]' : 'text-slate-400 group-hover:text-[#29247c]'}`} />
                           {!isCollapsed && (
                             <span className={`truncate text-xs ${active ? 'font-black text-[#29247c] font-heading' : 'font-semibold text-slate-600'}`}>
@@ -183,7 +194,10 @@ export function AppSidebar() {
 
           {!isCollapsed && (
             <button
-              onClick={logout}
+              onClick={() => {
+                handleLinkClick();
+                logout();
+              }}
               title="Logout"
               className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-[#f12131] transition-colors"
             >
