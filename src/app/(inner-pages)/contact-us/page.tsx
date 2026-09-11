@@ -28,7 +28,7 @@ export default function ContactPage() {
     const cleaned = cleanName(val);
     setFormData((prev) => ({ ...prev, firstName: cleaned }));
     if (errors.firstName) {
-      setErrors((prev) => ({ ...prev, firstName: validateName(cleaned).error }));
+      setErrors((prev) => ({ ...prev, firstName: validateName(cleaned, 'First name').error }));
     }
   };
 
@@ -36,7 +36,7 @@ export default function ContactPage() {
     const cleaned = cleanName(val);
     setFormData((prev) => ({ ...prev, lastName: cleaned }));
     if (errors.lastName && cleaned) {
-      setErrors((prev) => ({ ...prev, lastName: validateName(cleaned).error }));
+      setErrors((prev) => ({ ...prev, lastName: validateName(cleaned, 'Last name').error }));
     }
   };
 
@@ -58,8 +58,8 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const firstNameRes = validateName(formData.firstName);
-    const lastNameRes = formData.lastName.trim() ? validateName(formData.lastName) : { isValid: true, error: '' };
+    const firstNameRes = validateName(formData.firstName, 'First name');
+    const lastNameRes = formData.lastName.trim() ? validateName(formData.lastName, 'Last name') : { isValid: true, error: '' };
     const emailRes = validateEmail(formData.email, true);
     const phoneRes = validatePhone(formData.phone, selectedCountry, true);
 
@@ -111,7 +111,7 @@ export default function ContactPage() {
         title="Contact Us"
         breadcrumb="Contact Us"
         description="Our global real estate experts are here to help you in this ever-changing market."
-        image="/images/projects/project_8.jpg"
+        image="/images/projects/apt_dgm_monica.jpg"
       />
       {/* =========================================================
           2. THREE CONTACT CARDS
@@ -234,6 +234,8 @@ export default function ContactPage() {
               {/* Form */}
               <form
                 onSubmit={handleSubmit}
+                noValidate
+                suppressHydrationWarning
                 className="space-y-6"
               >
 
@@ -246,6 +248,12 @@ export default function ContactPage() {
                       placeholder="First Name*"
                       value={formData.firstName}
                       onChange={(e) => handleFirstNameChange(e.target.value)}
+                      onBlur={() => {
+                        setErrors((prev) => ({
+                          ...prev,
+                          firstName: validateName(formData.firstName, 'First name').error,
+                        }));
+                      }}
                       suppressHydrationWarning
                       className={`h-[54px] w-full rounded-full border px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-500 transition ${
                         errors.firstName
@@ -266,6 +274,14 @@ export default function ContactPage() {
                       placeholder="Last Name"
                       value={formData.lastName}
                       onChange={(e) => handleLastNameChange(e.target.value)}
+                      onBlur={() => {
+                        if (formData.lastName.trim()) {
+                          setErrors((prev) => ({
+                            ...prev,
+                            lastName: validateName(formData.lastName, 'Last name').error,
+                          }));
+                        }
+                      }}
                       suppressHydrationWarning
                       className={`h-[54px] w-full rounded-full border px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-500 transition ${
                         errors.lastName
@@ -301,12 +317,10 @@ export default function ContactPage() {
                       error={errors.phone}
                       required
                       onBlur={() => {
-                        if (formData.phone) {
-                          setErrors((prev) => ({
-                            ...prev,
-                            phone: validatePhone(formData.phone, selectedCountry, true).error,
-                          }));
-                        }
+                        setErrors((prev) => ({
+                          ...prev,
+                          phone: validatePhone(formData.phone, selectedCountry, true).error,
+                        }));
                       }}
                     />
                   </div>
@@ -319,12 +333,10 @@ export default function ContactPage() {
                       value={formData.email}
                       onChange={(e) => handleEmailChange(e.target.value)}
                       onBlur={() => {
-                        if (formData.email) {
-                          setErrors((prev) => ({
-                            ...prev,
-                            email: validateEmail(formData.email, true).error,
-                          }));
-                        }
+                        setErrors((prev) => ({
+                          ...prev,
+                          email: validateEmail(formData.email, true).error,
+                        }));
                       }}
                       pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.com"
                       title="Email must include '@' and end with '.com' (e.g. name@gmail.com)"
@@ -343,10 +355,9 @@ export default function ContactPage() {
                   </div>
                 </div>
 
-                {/* Message */}
+                {/* Message Textarea */}
                 <textarea
-                  required
-                  rows={6}
+                  rows={4}
                   placeholder="Message..."
                   value={formData.message}
                   onChange={(e) =>
@@ -355,6 +366,7 @@ export default function ContactPage() {
                       message: e.target.value,
                     }))
                   }
+                  suppressHydrationWarning
                   className="
                     min-h-[170px]
                     w-full
@@ -378,6 +390,8 @@ export default function ContactPage() {
                 {/* Submit Button */}
                 <button
                   type="submit"
+                  disabled={isSubmitting}
+                  suppressHydrationWarning
                   className="
                     group
                     flex
@@ -397,9 +411,10 @@ export default function ContactPage() {
                     transition-all
                     hover:shadow-md
                     active:scale-98
+                    disabled:opacity-50
                   "
                 >
-                  <span>Submit</span>
+                  <span>{isSubmitting ? 'Submitting...' : 'Submit'}</span>
 
                   <span
                     className="

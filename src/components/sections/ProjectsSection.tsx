@@ -53,22 +53,25 @@ export default function ProjectsSection() {
     offset: ['start start', 'end end'],
   });
 
-  // Phase transitions for 4 projects
+  // Slowed-down phase transitions with deliberate delay (hold time) on each card before peeling
+  // Phase 1: Card 1 holds in place from 0 -> 0.16 (delay), then slowly peels up to -100% by 0.333
   const y1 = useTransform(
     scrollYProgress,
-    [0, 0.08, 0.333, 1],
+    [0, 0.16, 0.333, 1],
     ['0%', '0%', '-100%', '-100%']
   );
 
+  // Phase 2: Card 2 holds in place from 0.333 -> 0.493 (delay), then slowly peels up to -100% by 0.666
   const y2 = useTransform(
     scrollYProgress,
-    [0, 0.333, 0.413, 0.666, 1],
+    [0, 0.333, 0.493, 0.666, 1],
     ['0%', '0%', '0%', '-100%', '-100%']
   );
 
+  // Phase 3: Card 3 holds in place from 0.666 -> 0.826 (delay), then slowly peels up to -100% by 1.000
   const y3 = useTransform(
     scrollYProgress,
-    [0, 0.666, 0.746, 1],
+    [0, 0.666, 0.826, 1],
     ['0%', '0%', '0%', '-100%']
   );
 
@@ -80,7 +83,7 @@ export default function ProjectsSection() {
       ref={containerRef}
       id="projects"
       className="relative w-full bg-black"
-      style={{ height: '350vh' }}
+      style={{ height: '600vh' }}
     >
       {/* Sticky Screen Viewport (100vh) */}
       <div className="sticky top-0 h-screen w-full overflow-hidden bg-black">
@@ -90,7 +93,7 @@ export default function ProjectsSection() {
 
           return (
             <motion.div
-              key={project.id}
+              key={project.id || index}
               style={y ? { y, zIndex } : { zIndex }}
               className="absolute inset-0 h-full w-full bg-black overflow-hidden shadow-2xl border-t border-neutral-900/60"
             >
