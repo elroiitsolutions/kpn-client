@@ -220,6 +220,7 @@ export default function AssociatePageTemplate({
 
             <form
               onSubmit={handleSubmit}
+              noValidate
               className="space-y-7"
             >
 
@@ -231,6 +232,12 @@ export default function AssociatePageTemplate({
                   placeholder="Name*"
                   value={formData.name}
                   onChange={(e) => handleNameChange(e.target.value)}
+                  onBlur={() => {
+                    setErrors((prev) => ({
+                      ...prev,
+                      name: validateName(formData.name).error,
+                    }));
+                  }}
                   suppressHydrationWarning
                   className={`h-14 w-full rounded-full border px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-500 transition ${
                     errors.name
@@ -269,12 +276,10 @@ export default function AssociatePageTemplate({
                   value={formData.email}
                   onChange={(e) => handleEmailChange(e.target.value)}
                   onBlur={() => {
-                    if (formData.email) {
-                      setErrors((prev) => ({
-                        ...prev,
-                        email: validateEmail(formData.email, true).error,
-                      }));
-                    }
+                    setErrors((prev) => ({
+                      ...prev,
+                      email: validateEmail(formData.email, true).error,
+                    }));
                   }}
                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.com"
                   title="Email must include '@' and end with '.com' (e.g. name@gmail.com)"
@@ -311,12 +316,10 @@ export default function AssociatePageTemplate({
                   error={errors.phone}
                   required
                   onBlur={() => {
-                    if (formData.phone) {
-                      setErrors((prev) => ({
-                        ...prev,
-                        phone: validatePhone(formData.phone, selectedCountry, true).error,
-                      }));
-                    }
+                    setErrors((prev) => ({
+                      ...prev,
+                      phone: validatePhone(formData.phone, selectedCountry, true).error,
+                    }));
                   }}
                 />
               </div>
@@ -334,6 +337,12 @@ export default function AssociatePageTemplate({
                       city: e.target.value,
                     })
                   }
+                  onBlur={() => {
+                    setErrors((prev) => ({
+                      ...prev,
+                      city: formData.city.trim() ? '' : 'City is required',
+                    }));
+                  }}
                   suppressHydrationWarning
                   className={`h-14 w-full rounded-full border px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-500 transition ${
                     errors.city
@@ -394,6 +403,7 @@ export default function AssociatePageTemplate({
               <button
                 type="submit"
                 disabled={isSubmitting}
+                suppressHydrationWarning
                 className="rounded-full bg-[#ff202d] px-8 py-4 text-sm font-bold text-white transition-all hover:bg-[#d81928] active:scale-95 disabled:opacity-60 cursor-pointer"
               >
                 {isSubmitting ? 'Submitting Details...' : 'Submit Application'}
