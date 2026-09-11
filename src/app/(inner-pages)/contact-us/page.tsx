@@ -111,7 +111,7 @@ export default function ContactPage() {
         title="Contact Us"
         breadcrumb="Contact Us"
         description="Our global real estate experts are here to help you in this ever-changing market."
-        image="/images/projects/project_8.jpg"
+        image="/images/projects/apt_dgm_monica.jpg"
       />
       {/* =========================================================
           2. THREE CONTACT CARDS

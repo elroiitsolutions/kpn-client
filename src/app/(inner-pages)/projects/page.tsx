@@ -107,7 +107,7 @@ export default function ProjectsPage() {
         title="Our Projects"
         breadcrumb="Projects"
         description="Explore landmark real estate developments engineered for modern luxury living and lasting value."
-        image="/images/projects/project_6.jpg"
+        image="/images/projects/apt_royal_oak.jpg"
       />
 
       <section className="bg-white px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
