@@ -460,7 +460,7 @@ export default function KpnChatbot() {
                       Drop your phone number to receive project details and schedule your visit.
                     </p>
 
-                    <form onSubmit={handleLeadSubmit} className="space-y-2.5">
+                    <form onSubmit={handleLeadSubmit} noValidate className="space-y-2.5">
                       <div>
                         <input
                           type="text"
@@ -471,6 +471,11 @@ export default function KpnChatbot() {
                             setLeadName(cleaned);
                             if (leadErrors.name) {
                               setLeadErrors((prev) => ({ ...prev, name: validateName(cleaned).error }));
+                            }
+                          }}
+                          onBlur={() => {
+                            if (leadName.trim()) {
+                              setLeadErrors((prev) => ({ ...prev, name: validateName(leadName).error }));
                             }
                           }}
                           suppressHydrationWarning
@@ -512,12 +517,10 @@ export default function KpnChatbot() {
                           error={leadErrors.phone}
                           required
                           onBlur={() => {
-                            if (leadPhone) {
-                              setLeadErrors((prev) => ({
-                                ...prev,
-                                phone: validatePhone(leadPhone, leadCountry, true).error,
-                              }));
-                            }
+                            setLeadErrors((prev) => ({
+                              ...prev,
+                              phone: validatePhone(leadPhone, leadCountry, true).error,
+                            }));
                           }}
                         />
                       </div>

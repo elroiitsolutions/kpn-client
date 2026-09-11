@@ -131,7 +131,7 @@ export default function ContactFormSection() {
                   </h2>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} noValidate className="space-y-6">
                   {/* Row 1: Name and Email */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
@@ -141,6 +141,12 @@ export default function ContactFormSection() {
                         placeholder="Your Name*"
                         value={formData.name}
                         onChange={(e) => handleNameChange(e.target.value)}
+                        onBlur={() => {
+                          setErrors((prev) => ({
+                            ...prev,
+                            name: validateName(formData.name).error,
+                          }));
+                        }}
                         suppressHydrationWarning
                         className={`w-full h-14 rounded-full border px-6 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 transition-all ${
                           errors.name
@@ -163,12 +169,10 @@ export default function ContactFormSection() {
                         value={formData.email}
                         onChange={(e) => handleEmailChange(e.target.value)}
                         onBlur={() => {
-                          if (formData.email) {
-                            setErrors((prev) => ({
-                              ...prev,
-                              email: validateEmail(formData.email, true).error,
-                            }));
-                          }
+                          setErrors((prev) => ({
+                            ...prev,
+                            email: validateEmail(formData.email, true).error,
+                          }));
                         }}
                         pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.com"
                         title="Email must include '@' and end with '.com' (e.g. name@gmail.com)"
@@ -207,12 +211,10 @@ export default function ContactFormSection() {
                         error={errors.phone}
                         required
                         onBlur={() => {
-                          if (formData.phone) {
-                            setErrors((prev) => ({
-                              ...prev,
-                              phone: validatePhone(formData.phone, selectedCountry, true).error,
-                            }));
-                          }
+                          setErrors((prev) => ({
+                            ...prev,
+                            phone: validatePhone(formData.phone, selectedCountry, true).error,
+                          }));
                         }}
                       />
                     </div>

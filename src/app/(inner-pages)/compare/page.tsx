@@ -118,7 +118,7 @@ export default function ComparePage() {
         title="Compare Projects"
         breadcrumb="Compare"
         description="Side-by-side analysis of key specifications, pricing, amenities, and location details to help you choose your ideal home."
-        image="/images/projects/project_1.jpg"
+        image="/images/projects/apt_sp2k_serenity.jpg"
       />
 
       <section className="bg-slate-50 min-h-screen px-4 py-16 sm:px-6 lg:px-10 lg:py-24 font-sans">
