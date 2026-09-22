@@ -8,6 +8,7 @@ import { submitEnquiry } from '@/lib/cmsClient';
 import PhoneInputWithCountry from '@/components/ui/PhoneInputWithCountry';
 import { Country, DEFAULT_COUNTRY } from '@/lib/countryCodes';
 import { cleanName, validateName, cleanEmail, validateEmail, validatePhone } from '@/lib/formValidation';
+import JointDevelopmentForm from '@/components/forms/JointDevelopmentForm';
 
 interface AssociatePageProps {
   title: string;
@@ -217,199 +218,202 @@ export default function AssociatePageTemplate({
               FORM (SLIDES IN FROM LEFT)
           ----------------------------------------------------- */}
           <FadeIn direction="left" distance={40} duration={0.8}>
+            {title === 'Joint Development' ? (
+              <JointDevelopmentForm />
+            ) : (
+              <form
+                onSubmit={handleSubmit}
+                noValidate
+                className="space-y-7"
+              >
 
-            <form
-              onSubmit={handleSubmit}
-              noValidate
-              className="space-y-7"
-            >
-
-              {/* Name */}
-              <div>
-                <input
-                  type="text"
-                  required
-                  placeholder="Name*"
-                  value={formData.name}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  onBlur={() => {
-                    setErrors((prev) => ({
-                      ...prev,
-                      name: validateName(formData.name).error,
-                    }));
-                  }}
-                  suppressHydrationWarning
-                  className={`h-14 w-full rounded-full border px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-500 transition ${
-                    errors.name
-                      ? 'border-red-400 bg-red-50/40 focus:ring-2 focus:ring-red-400/30'
-                      : 'border-0 bg-slate-100 focus:ring-2 focus:ring-rose-500'
-                  }`}
-                />
-                {errors.name && (
-                  <p className="mt-1.5 px-4 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
-                    {errors.name}
-                  </p>
-                )}
-              </div>
-
-              {/* Company */}
-              <input
-                type="text"
-                placeholder="Company Name"
-                value={formData.companyName}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    companyName: e.target.value,
-                  })
-                }
-                suppressHydrationWarning
-                className="h-14 w-full rounded-full border-0 bg-slate-100 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-rose-500"
-              />
-
-              {/* Email */}
-              <div>
-                <input
-                  type="email"
-                  required
-                  placeholder="E-mail* (e.g. name@gmail.com)"
-                  value={formData.email}
-                  onChange={(e) => handleEmailChange(e.target.value)}
-                  onBlur={() => {
-                    setErrors((prev) => ({
-                      ...prev,
-                      email: validateEmail(formData.email, true).error,
-                    }));
-                  }}
-                  pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.com"
-                  title="Email must include '@' and end with '.com' (e.g. name@gmail.com)"
-                  suppressHydrationWarning
-                  className={`h-14 w-full rounded-full border px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-500 transition ${
-                    errors.email
-                      ? 'border-red-400 bg-red-50/40 focus:ring-2 focus:ring-red-400/30'
-                      : 'border-0 bg-slate-100 focus:ring-2 focus:ring-rose-500'
-                  }`}
-                />
-                {errors.email && (
-                  <p className="mt-1.5 px-4 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
-                    {errors.email}
-                  </p>
-                )}
-              </div>
-
-              {/* Phone */}
-              <div>
-                <PhoneInputWithCountry
-                  variant="pill"
-                  phone={formData.phone}
-                  selectedCountry={selectedCountry}
-                  onPhoneChange={handlePhoneChange}
-                  onCountryChange={(c) => {
-                    setSelectedCountry(c);
-                    if (formData.phone) {
+                {/* Name */}
+                <div>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Name*"
+                    value={formData.name}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    onBlur={() => {
                       setErrors((prev) => ({
                         ...prev,
-                        phone: validatePhone(formData.phone, c, true).error,
+                        name: validateName(formData.name).error,
                       }));
-                    }
-                  }}
-                  error={errors.phone}
-                  required
-                  onBlur={() => {
-                    setErrors((prev) => ({
-                      ...prev,
-                      phone: validatePhone(formData.phone, selectedCountry, true).error,
-                    }));
-                  }}
-                />
-              </div>
+                    }}
+                    suppressHydrationWarning
+                    className={`h-14 w-full rounded-full border px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-500 transition ${
+                      errors.name
+                        ? 'border-red-400 bg-red-50/40 focus:ring-2 focus:ring-red-400/30'
+                        : 'border-0 bg-slate-100 focus:ring-2 focus:ring-rose-500'
+                    }`}
+                  />
+                  {errors.name && (
+                    <p className="mt-1.5 px-4 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
+                      {errors.name}
+                    </p>
+                  )}
+                </div>
 
-              {/* City */}
-              <div>
+                {/* Company */}
                 <input
                   type="text"
-                  required
-                  placeholder="City*"
-                  value={formData.city}
+                  placeholder="Company Name"
+                  value={formData.companyName}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      city: e.target.value,
+                      companyName: e.target.value,
                     })
                   }
-                  onBlur={() => {
-                    setErrors((prev) => ({
-                      ...prev,
-                      city: formData.city.trim() ? '' : 'City is required',
-                    }));
-                  }}
                   suppressHydrationWarning
-                  className={`h-14 w-full rounded-full border px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-500 transition ${
-                    errors.city
-                      ? 'border-red-400 bg-red-50/40 focus:ring-2 focus:ring-red-400/30'
-                      : 'border-0 bg-slate-100 focus:ring-2 focus:ring-rose-500'
-                  }`}
+                  className="h-14 w-full rounded-full border-0 bg-slate-100 px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-rose-500"
                 />
-                {errors.city && (
-                  <p className="mt-1.5 px-4 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
-                    {errors.city}
-                  </p>
-                )}
-              </div>
+
+                {/* Email */}
+                <div>
+                  <input
+                    type="email"
+                    required
+                    placeholder="E-mail* (e.g. name@gmail.com)"
+                    value={formData.email}
+                    onChange={(e) => handleEmailChange(e.target.value)}
+                    onBlur={() => {
+                      setErrors((prev) => ({
+                        ...prev,
+                        email: validateEmail(formData.email, true).error,
+                      }));
+                    }}
+                    pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.com"
+                    title="Email must include '@' and end with '.com' (e.g. name@gmail.com)"
+                    suppressHydrationWarning
+                    className={`h-14 w-full rounded-full border px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-500 transition ${
+                      errors.email
+                        ? 'border-red-400 bg-red-50/40 focus:ring-2 focus:ring-red-400/30'
+                        : 'border-0 bg-slate-100 focus:ring-2 focus:ring-rose-500'
+                    }`}
+                  />
+                  {errors.email && (
+                    <p className="mt-1.5 px-4 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
+                      {errors.email}
+                    </p>
+                  )}
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <PhoneInputWithCountry
+                    variant="pill"
+                    phone={formData.phone}
+                    selectedCountry={selectedCountry}
+                    onPhoneChange={handlePhoneChange}
+                    onCountryChange={(c) => {
+                      setSelectedCountry(c);
+                      if (formData.phone) {
+                        setErrors((prev) => ({
+                          ...prev,
+                          phone: validatePhone(formData.phone, c, true).error,
+                        }));
+                      }
+                    }}
+                    error={errors.phone}
+                    required
+                    onBlur={() => {
+                      setErrors((prev) => ({
+                        ...prev,
+                        phone: validatePhone(formData.phone, selectedCountry, true).error,
+                      }));
+                    }}
+                  />
+                </div>
+
+                {/* City */}
+                <div>
+                  <input
+                    type="text"
+                    required
+                    placeholder="City*"
+                    value={formData.city}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        city: e.target.value,
+                      })
+                    }
+                    onBlur={() => {
+                      setErrors((prev) => ({
+                        ...prev,
+                        city: formData.city.trim() ? '' : 'City is required',
+                      }));
+                    }}
+                    suppressHydrationWarning
+                    className={`h-14 w-full rounded-full border px-7 text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-500 transition ${
+                      errors.city
+                        ? 'border-red-400 bg-red-50/40 focus:ring-2 focus:ring-red-400/30'
+                        : 'border-0 bg-slate-100 focus:ring-2 focus:ring-rose-500'
+                    }`}
+                  />
+                  {errors.city && (
+                    <p className="mt-1.5 px-4 text-xs font-semibold text-red-600 animate-in fade-in duration-200">
+                      {errors.city}
+                    </p>
+                  )}
+                </div>
 
 
-              {/* Message */}
-              <textarea
-                required
-                rows={5}
-                placeholder="Message*"
-                value={formData.message}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    message: e.target.value,
-                  })
-                }
-                className="w-full resize-none rounded-[28px] border-0 bg-slate-100 px-7 py-6 text-sm text-slate-800 outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-rose-500"
-              />
-
-
-              {/* Consent */}
-              <div className="flex items-start gap-3">
-
-                <input
-                  type="checkbox"
+                {/* Message */}
+                <textarea
                   required
-                  checked={formData.consent}
+                  rows={5}
+                  placeholder="Message"
+                  value={formData.message}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      consent: e.target.checked,
+                      message: e.target.value,
                     })
                   }
-                  className="mt-1 h-4 w-4 accent-rose-600"
+                  className="w-full resize-none rounded-[28px] border-0 bg-slate-100 px-7 py-6 text-sm text-slate-800 outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-rose-500"
                 />
 
-                <label className="text-xs leading-relaxed text-slate-600">
-                  I authorise KPN Promoters Pvt Ltd and its representatives
-                  to contact me with updates and notifications via Email /
-                  SMS / WhatsApp / Call. This will override on DND/NDNC.
-                </label>
 
-              </div>
+                {/* Consent */}
+                <div className="flex items-start gap-3">
+
+                  <input
+                    type="checkbox"
+                    required
+                    checked={formData.consent}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        consent: e.target.checked,
+                      })
+                    }
+                    className="mt-1 h-4 w-4 accent-rose-600"
+                  />
+
+                  <label className="text-xs leading-relaxed text-slate-600">
+                    I authorise KPN Promoters Pvt Ltd and its representatives
+                    to contact me with updates and notifications via Email /
+                    SMS / WhatsApp / Call. This will override on DND/NDNC.
+                  </label>
+
+                </div>
 
 
-              {/* Submit */}
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                suppressHydrationWarning
-                className="rounded-full bg-[#ff202d] px-8 py-4 text-sm font-bold text-white transition-all hover:bg-[#d81928] active:scale-95 disabled:opacity-60 cursor-pointer"
-              >
-                {isSubmitting ? 'Submitting Details...' : 'Submit Application'}
-              </button>
+                {/* Submit */}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  suppressHydrationWarning
+                  className="rounded-full bg-[#ff202d] px-8 py-4 text-sm font-bold text-white transition-all hover:bg-[#d81928] active:scale-95 disabled:opacity-60 cursor-pointer"
+                >
+                  {isSubmitting ? 'Submitting Details...' : 'Submit Application'}
+                </button>
 
-            </form>
+              </form>
+            )}
 
           </FadeIn>
 
@@ -421,7 +425,7 @@ export default function AssociatePageTemplate({
 
             <iframe
               title="KPN Promoters Location"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3889.7854619438317!2d80.06316277578278!3d12.857147717326888!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a52f77864f14c27%3A0x882a1708f519543e!2sUrapakkam%2C%20Chennai%2C%20Tamil%20Nadu!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1944.8927309719153!2d80.07172777610008!3d12.859373099999999!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a52f647c2f9b237%3A0xe23caa8bd97601c3!2sKPN%20Promoters%20Pvt%20Ltd!5e0!3m2!1sen!2sin!4v1710000000000!5m2!1sen!2sin"
               width="100%"
               height="100%"
               style={{ border: 0 }}
