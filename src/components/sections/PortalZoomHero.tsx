@@ -446,7 +446,7 @@ export default function KPNEntryHero() {
             "
           >
             <img
-              src="/images/kpn_logo.webp"
+              src="/images/newlogoo.jpeg"
               alt="KPN Promoters"
               draggable={false}
               className="

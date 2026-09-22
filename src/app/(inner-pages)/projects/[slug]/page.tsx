@@ -725,9 +725,10 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
             </div>
 
             {/* Centered Book Now CTA Button (Step 2: After Image & Before Project Description) */}
-            <div className="my-8 flex flex-col items-center justify-center text-center">
+            <div className="my-8 flex flex-col items-center justify-center text-center" suppressHydrationWarning>
               <button
                 type="button"
+                suppressHydrationWarning
                 onClick={() => setIsBookingModalOpen(true)}
                 className="group relative inline-flex items-center gap-3 rounded-full bg-[#f12131] px-9 py-4 text-sm sm:text-base font-black text-white shadow-xl shadow-red-500/25 hover:bg-[#d81928] hover:shadow-2xl hover:shadow-red-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 cursor-pointer"
               >
@@ -1437,8 +1438,9 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                 <iframe
                   title={`${project.name} Location Map`}
                   src={
-                    project.mapEmbedUrl ||
-                    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3889.7854619438317!2d80.06316277578278!3d12.857147717326888!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a52f77864f14c27%3A0x882a1708f519543e!2sUrapakkam%2C%20Chennai%2C%20Tamil%20Nadu!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+                    project.mapEmbedUrl && !project.mapEmbedUrl.includes('!6m8')
+                      ? project.mapEmbedUrl
+                      : "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3889.7854619438317!2d80.06316277578278!3d12.857147717326888!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a52f77864f14c27%3A0x882a1708f519543e!2sUrapakkam%2C%20Chennai%2C%20Tamil%20Nadu!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
                   }
                   width="100%"
                   height="100%"
@@ -1474,6 +1476,7 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                   </p>
                   <button
                     type="button"
+                    suppressHydrationWarning
                     onClick={() => {
                       setInquirySubmitted(false);
                       setInquiryFirstName('');
