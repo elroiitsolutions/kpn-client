@@ -79,11 +79,11 @@ export default function AdminShell({ children }: AdminShellProps) {
         <div className="flex flex-col items-center gap-4">
           <div className="flex items-center justify-center rounded-2xl bg-white px-6 py-3.5 shadow-2xl border border-white/20 animate-pulse">
             <img
-              src="/images/kpn_logo.webp"
+              src="/images/newlogoo.jpeg"
               alt="KPN Promoters"
               className="h-10 w-auto object-contain"
               onError={(e: any) => {
-                e.target.src = '/images/kpn_logo.png';
+                e.target.src = '/images/newlogoo.jpeg';
               }}
             />
           </div>
