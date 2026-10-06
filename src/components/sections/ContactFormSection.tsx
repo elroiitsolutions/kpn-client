@@ -7,6 +7,7 @@ import { submitEnquiry } from '@/lib/cmsClient';
 import PhoneInputWithCountry from '@/components/ui/PhoneInputWithCountry';
 import { Country, DEFAULT_COUNTRY } from '@/lib/countryCodes';
 import { cleanName, validateName, cleanEmail, validateEmail, validatePhone } from '@/lib/formValidation';
+import SubmissionThankYouModal from '@/components/ui/SubmissionThankYouModal';
 import {
   Select,
   SelectTrigger,
@@ -26,6 +27,7 @@ export default function ContactFormSection() {
   const [errors, setErrors] = useState<{ name?: string; email?: string; phone?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submittedInfo, setSubmittedInfo] = useState<{ name: string; phone: string }>({ name: '', phone: '' });
 
   const handleNameChange = (val: string) => {
     const cleaned = cleanName(val);
@@ -68,22 +70,25 @@ export default function ContactFormSection() {
       return;
     }
 
+    const currentName = formData.name.trim();
+    const currentPhone = `${selectedCountry.dialCode} ${formData.phone.trim()}`;
+    setSubmittedInfo({ name: currentName, phone: currentPhone });
+
     setIsSubmitting(true);
     try {
       await submitEnquiry({
-        name: formData.name.trim(),
-        phone: `${selectedCountry.dialCode} ${formData.phone.trim()}`,
+        name: currentName,
+        phone: currentPhone,
         email: formData.email.trim(),
         message: formData.inquiry ? `Inquiry regarding: ${formData.inquiry}` : 'General Inquiry',
         source: 'Website Contact Section',
       });
       setSubmitted(true);
-      alert('Thank you for your inquiry! Our sales team will reach out shortly.');
       setFormData({ name: '', email: '', phone: '', inquiry: '' });
       setSelectedCountry(DEFAULT_COUNTRY);
       setErrors({});
     } catch {
-      alert('Thank you for your inquiry! Our sales team will reach out shortly.');
+      setSubmitted(true);
       setFormData({ name: '', email: '', phone: '', inquiry: '' });
       setErrors({});
     } finally {
@@ -279,6 +284,16 @@ export default function ContactFormSection() {
           </div>
         </FadeIn>
       </div>
+
+      {/* Branded Thank You Modal */}
+      <SubmissionThankYouModal
+        isOpen={submitted}
+        onClose={() => setSubmitted(false)}
+        title="Inquiry Received!"
+        message="Thank you for your inquiry! Our senior property advisory team will reach out to you shortly."
+        userName={submittedInfo.name}
+        userPhone={submittedInfo.phone}
+      />
     </section>
   );
 }

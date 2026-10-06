@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import SubmissionThankYouModal from '@/components/ui/SubmissionThankYouModal';
 
 export default function JointDevelopmentForm() {
   const [formData, setFormData] = useState({
@@ -43,6 +44,8 @@ export default function JointDevelopmentForm() {
     propertyType?: string;
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showThankYou, setShowThankYou] = useState(false);
+  const [submittedInfo, setSubmittedInfo] = useState<{ name: string; phone: string }>({ name: '', phone: '' });
 
   const handleNameChange = (val: string) => {
     const cleaned = cleanName(val);
@@ -145,18 +148,20 @@ export default function JointDevelopmentForm() {
         .filter(Boolean)
         .join(' • ');
 
+      const currentName = formData.name.trim();
+      const currentPhone = `${selectedCountry.dialCode} ${formData.phone.trim()}`;
+      setSubmittedInfo({ name: currentName, phone: currentPhone });
+
       await submitEnquiry({
-        name: formData.name.trim(),
-        phone: `${selectedCountry.dialCode} ${formData.phone.trim()}`,
+        name: currentName,
+        phone: currentPhone,
         email: formData.email.trim(),
         projectName: 'Joint Development Program',
         message: additionalNotes,
         source: 'Joint Development Form',
       });
 
-      alert(
-        'Thank you for submitting your details for Joint Development! We have received your request and will contact you shortly.'
-      );
+      setShowThankYou(true);
 
       setFormData({
         userRole: '',
@@ -172,9 +177,7 @@ export default function JointDevelopmentForm() {
       setSelectedCountry(DEFAULT_COUNTRY);
       setErrors({});
     } catch {
-      alert(
-        'Thank you for submitting your details for Joint Development! We have received your request and will contact you shortly.'
-      );
+      setShowThankYou(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -489,6 +492,16 @@ export default function JointDevelopmentForm() {
       >
         {isSubmitting ? 'Submitting Details...' : 'Submit Application'}
       </button>
+
+      {/* Branded Thank You Modal */}
+      <SubmissionThankYouModal
+        isOpen={showThankYou}
+        onClose={() => setShowThankYou(false)}
+        title="Joint Development Request Received!"
+        message="Thank you for submitting your details for Joint Development! We have received your property information and our senior development team will contact you shortly."
+        userName={submittedInfo.name}
+        userPhone={submittedInfo.phone}
+      />
     </form>
   );
 }

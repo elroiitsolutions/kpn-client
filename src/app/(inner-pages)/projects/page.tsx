@@ -216,23 +216,34 @@ export default function ProjectsPage() {
       try {
         const params = new URLSearchParams(window.location.search);
         const urlType = params.get('type') || params.get('category');
+        const urlBudget = params.get('budget');
+        const urlLocation = params.get('location');
+        const urlStatus = params.get('status');
         const savedCategory = urlType || sessionStorage.getItem('kpn_project_category');
         const savedFiltersStr = sessionStorage.getItem('kpn_project_filters');
 
+        let restored = {
+          status: urlStatus || 'All',
+          type: savedCategory || 'All',
+          location: urlLocation || 'All',
+          budget: urlBudget || 'All',
+        };
+
+        if (savedFiltersStr && !urlBudget && !urlLocation && !urlStatus) {
+          try {
+            const parsed = JSON.parse(savedFiltersStr);
+            restored = { ...parsed, type: savedCategory || parsed.type || 'All' };
+          } catch {}
+        }
+
         if (savedCategory && savedCategory !== 'All') {
           setSelectedCategory(savedCategory);
-          let restored = { status: 'All', type: savedCategory, location: 'All', budget: 'All' };
-          if (savedFiltersStr) {
-            try {
-              const parsed = JSON.parse(savedFiltersStr);
-              restored = { ...parsed, type: savedCategory };
-            } catch {}
-          }
-          setFilters(restored);
-          setAppliedFilters(restored);
-          if (!urlType) {
-            window.history.replaceState(null, '', `/projects?type=${encodeURIComponent(savedCategory)}`);
-          }
+        }
+        setFilters(restored);
+        setAppliedFilters(restored);
+
+        if (!urlType && savedCategory && savedCategory !== 'All') {
+          window.history.replaceState(null, '', `/projects?type=${encodeURIComponent(savedCategory)}`);
         }
       } catch {}
     };

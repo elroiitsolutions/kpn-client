@@ -9,6 +9,7 @@ import PhoneInputWithCountry from '@/components/ui/PhoneInputWithCountry';
 import { Country, DEFAULT_COUNTRY } from '@/lib/countryCodes';
 import { cleanName, validateName, cleanEmail, validateEmail, validatePhone } from '@/lib/formValidation';
 import JointDevelopmentForm from '@/components/forms/JointDevelopmentForm';
+import SubmissionThankYouModal from '@/components/ui/SubmissionThankYouModal';
 
 interface AssociatePageProps {
   title: string;
@@ -31,6 +32,8 @@ export default function AssociatePageTemplate({
   const [selectedCountry, setSelectedCountry] = useState<Country>(DEFAULT_COUNTRY);
   const [errors, setErrors] = useState<{ name?: string; email?: string; phone?: string; city?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showThankYou, setShowThankYou] = useState(false);
+  const [submittedInfo, setSubmittedInfo] = useState<{ name: string; phone: string }>({ name: '', phone: '' });
 
   const handleNameChange = (val: string) => {
     const cleaned = cleanName(val);
@@ -85,16 +88,20 @@ export default function AssociatePageTemplate({
         .filter(Boolean)
         .join(' • ');
 
+      const currentName = formData.name.trim();
+      const currentPhone = `${selectedCountry.dialCode} ${formData.phone.trim()}`;
+      setSubmittedInfo({ name: currentName, phone: currentPhone });
+
       await submitEnquiry({
-        name: formData.name.trim(),
-        phone: `${selectedCountry.dialCode} ${formData.phone.trim()}`,
+        name: currentName,
+        phone: currentPhone,
         email: formData.email.trim(),
         projectName: `${title} Program`,
         message: additionalNotes || `Inquiry for ${title}`,
         source: 'Associate Page',
       });
 
-      alert(`Thank you for submitting your details for ${title}! We have received your request and will contact you shortly.`);
+      setShowThankYou(true);
       setFormData({
         name: '',
         companyName: '',
@@ -107,7 +114,7 @@ export default function AssociatePageTemplate({
       setSelectedCountry(DEFAULT_COUNTRY);
       setErrors({});
     } catch {
-      alert(`Thank you for submitting your details for ${title}! We have received your request and will contact you shortly.`);
+      setShowThankYou(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -438,6 +445,15 @@ export default function AssociatePageTemplate({
         </div>
       </section>
 
+      {/* Branded Thank You Modal */}
+      <SubmissionThankYouModal
+        isOpen={showThankYou}
+        onClose={() => setShowThankYou(false)}
+        title={`${title} Request Received!`}
+        message={`Thank you for submitting your details for ${title}! We have received your inquiry and our team will contact you shortly.`}
+        userName={submittedInfo.name}
+        userPhone={submittedInfo.phone}
+      />
     </main>
   );
 }
