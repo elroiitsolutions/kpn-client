@@ -11,6 +11,7 @@ import { submitEnquiry } from '@/lib/cmsClient';
 import PhoneInputWithCountry from '@/components/ui/PhoneInputWithCountry';
 import { Country, DEFAULT_COUNTRY } from '@/lib/countryCodes';
 import { cleanName, validateName, cleanEmail, validateEmail, validatePhone } from '@/lib/formValidation';
+import SubmissionThankYouModal from '@/components/ui/SubmissionThankYouModal';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -23,6 +24,8 @@ export default function ContactPage() {
   const [selectedCountry, setSelectedCountry] = useState<Country>(DEFAULT_COUNTRY);
   const [errors, setErrors] = useState<{ firstName?: string; lastName?: string; phone?: string; email?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showThankYou, setShowThankYou] = useState(false);
+  const [submittedInfo, setSubmittedInfo] = useState<{ name: string; phone: string }>({ name: '', phone: '' });
 
   const handleFirstNameChange = (val: string) => {
     const cleaned = cleanName(val);
@@ -75,16 +78,20 @@ export default function ContactPage() {
       return;
     }
 
+    const currentName = `${formData.firstName} ${formData.lastName}`.trim();
+    const currentPhone = `${selectedCountry.dialCode} ${formData.phone.trim()}`;
+    setSubmittedInfo({ name: currentName, phone: currentPhone });
+
     setIsSubmitting(true);
     try {
       await submitEnquiry({
-        name: `${formData.firstName} ${formData.lastName}`.trim(),
-        phone: `${selectedCountry.dialCode} ${formData.phone.trim()}`,
+        name: currentName,
+        phone: currentPhone,
         email: formData.email.trim(),
         message: formData.message.trim(),
         source: 'Contact Page',
       });
-      alert('Thank you for contacting us! We will get back to you shortly.');
+      setShowThankYou(true);
       setFormData({
         firstName: '',
         lastName: '',
@@ -95,7 +102,7 @@ export default function ContactPage() {
       setSelectedCountry(DEFAULT_COUNTRY);
       setErrors({});
     } catch {
-      alert('Thank you for contacting us! We will get back to you shortly.');
+      setShowThankYou(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -516,6 +523,16 @@ export default function ContactPage() {
           </div>
 
         </div>
+
+        {/* Branded Thank You Modal */}
+        <SubmissionThankYouModal
+          isOpen={showThankYou}
+          onClose={() => setShowThankYou(false)}
+          title="Message Received!"
+          message="Thank you for contacting KPN Promoters! Our customer advisory team will get in touch with you shortly."
+          userName={submittedInfo.name}
+          userPhone={submittedInfo.phone}
+        />
       </section>
     </>
   );
