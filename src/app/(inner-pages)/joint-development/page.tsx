@@ -15,7 +15,10 @@ export default function JointDevelopmentPage() {
         image="/images/projects/project_4.jpg"
       />
 
-      <AssociatePageTemplate title="Joint Development" />
+      <AssociatePageTemplate
+        title="Joint Development"
+        phone="+91 73580 38425 / +91 73580 38421"
+      />
 
     </>
   );

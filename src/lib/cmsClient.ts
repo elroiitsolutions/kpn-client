@@ -53,6 +53,9 @@ export async function getProjects(): Promise<ProjectItem[]> {
           availableUnits: p.availableUnits,
           commencementDate: p.commencementDate,
           handoverTimeline: p.handoverTimeline,
+          projectArea: p.projectArea,
+          plotSizes: p.plotSizes || p.projectArea,
+          pricePerSqFt: p.pricePerSqFt,
           amenities: p.amenities?.map((a: any) => (typeof a === 'string' ? a : a.name)) || [],
           details: {
             propertyType: p.propertyType || p.type,
