@@ -6,7 +6,7 @@ import Navbar from '@/components/layout/Navbar';
 import InnerPageHero from '@/components/sections/InnerPageHero';
 import { projectsData, ProjectItem } from '@/data/siteData';
 import { getProjects } from '@/lib/cmsClient';
-import { MapPin, ChevronDown, Heart, Scale, Check } from 'lucide-react';
+import { MapPin, ChevronDown, Scale, Check } from 'lucide-react';
 import FadeIn from '@/components/animation/FadeIn';
 import { useWishlistCompare } from '@/context/WishlistCompareContext';
 
@@ -180,7 +180,7 @@ function FilterDropdown({
 }
 
 export default function ProjectsPage() {
-  const { toggleWishlist, isInWishlist, toggleCompare, isInCompare } = useWishlistCompare();
+  const { toggleCompare, isInCompare } = useWishlistCompare();
   const [allProjects, setAllProjects] = useState<ProjectItem[]>(projectsData);
 
   useEffect(() => {
@@ -606,25 +606,8 @@ export default function ProjectsPage() {
                             {project.bhk}
                           </span>
 
-                          {/* Wishlist & Compare Buttons */}
+                          {/* Compare Button */}
                           <div className="flex items-center gap-1.5 z-20 shrink-0">
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                toggleWishlist(project.id);
-                              }}
-                              className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full shadow-md backdrop-blur-md transition-all duration-300 ${
-                                isInWishlist(project.id)
-                                  ? 'bg-[#f12131] text-white scale-110'
-                                  : 'bg-white/80 text-slate-800 hover:bg-white hover:text-[#f12131]'
-                              }`}
-                              title={isInWishlist(project.id) ? 'Remove from Wishlist' : 'Add to Wishlist'}
-                            >
-                              <Heart className={`h-4 w-4 ${isInWishlist(project.id) ? 'fill-white' : ''}`} />
-                            </button>
-
                             <button
                               type="button"
                               onClick={(e) => {

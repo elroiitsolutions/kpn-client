@@ -15,7 +15,11 @@ export default function InvestorsPage() {
         image="/images/projects/project_4.jpg"
       />
 
-      <AssociatePageTemplate title="Investors" />
+      <AssociatePageTemplate
+        title="Investors"
+        email="md@kpnpromoters.in"
+        phone="+91 99419 92132"
+      />
 
     </>
   );
