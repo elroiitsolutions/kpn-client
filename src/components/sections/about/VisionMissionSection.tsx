@@ -55,23 +55,26 @@ export default function VisionMissionSection() {
 
               <div className="mt-6 space-y-4 text-base font-medium leading-[1.75] text-gray-600 sm:text-lg">
                 <p>
-                  At <strong className="font-bold text-[#342987]">KPN Promoters Pvt Ltd</strong>, our vision is to be a trusted leader in the real estate industry by delivering <span className="font-semibold text-gray-900">quality-driven, future-ready spaces</span> that enhance lives & communities.
+                  The real estate sector plays a vital role in driving economic growth with its significant impact on the economy.
                 </p>
                 <p>
-                  We aspire to expand across multiple states & diversify into industries like <span className="font-semibold text-gray-900">software, online trading, food, and e-commerce</span> — all while upholding our core values of trust, transparency, & customer satisfaction. Our goal is to create not just structures, but lifestyles that inspire comfort, pride, & long-term value.
+                  At <strong className="font-bold text-[#342987]">KPN Promoters</strong>, our vision is to expand across multiple states while diversifying into <span className="font-semibold text-gray-900">software, online trading, food, and e-commerce industries</span>.
+                </p>
+                <p>
+                  We aim to provide our customers with a <span className="font-semibold text-gray-900">seamless living experience</span>, ensuring quality products, transparent transactions, and secure constructions from start to finish.
                 </p>
               </div>
 
               {/* Core Pillars */}
               <div className="mt-8 flex flex-wrap gap-2.5 pt-6 border-t border-gray-100">
                 <span className="rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
-                  Future-Ready Spaces
-                </span>
-                <span className="rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
                   Multi-State Expansion
                 </span>
                 <span className="rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
-                  Long-Term Value
+                  Seamless Living
+                </span>
+                <span className="rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
+                  Transparent Transactions
                 </span>
               </div>
             </div>
@@ -104,23 +107,23 @@ export default function VisionMissionSection() {
 
               <div className="mt-6 space-y-4 text-base font-medium leading-[1.75] text-gray-600 sm:text-lg">
                 <p>
-                  Our mission is to provide <span className="font-semibold text-gray-900">exceptional real estate solutions that exceed expectations</span> — through quality construction, clear communication, and timely delivery.
+                  Our mission is to provide <span className="font-semibold text-gray-900">top-tier real estate representation</span> for both buyers and sellers, ensuring expert guidance and advocacy at every step. As a team, we continuously learn, grow, and collaborate to enhance our skills and service quality.
                 </p>
                 <p>
-                  We are committed to guiding every customer with <span className="font-semibold text-gray-900">integrity and personalized support</span> from start to finish. By fostering innovation, continuous learning, and a customer-first culture, we strive to build lasting relationships, strong communities, and a brighter future for all.
+                  We foster a positive, results-driven environment built on <span className="font-semibold text-gray-900">trust, long-term relationships, and client success</span>. Our commitment to excellence is reflected in the results we deliver, with ethics rooted in superior customer service and unwavering integrity.
                 </p>
               </div>
 
               {/* Core Pillars */}
               <div className="mt-8 flex flex-wrap gap-2.5 pt-6 border-t border-gray-100">
                 <span className="rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
-                  Quality Construction
+                  Expert Guidance
                 </span>
                 <span className="rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
-                  Clear Communication
+                  Client Success
                 </span>
                 <span className="rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
-                  Timely Delivery
+                  Unwavering Integrity
                 </span>
               </div>
             </div>

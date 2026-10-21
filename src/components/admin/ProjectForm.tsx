@@ -390,7 +390,7 @@ export default function ProjectForm({ initialData, isEdit = false }: ProjectForm
       const projectId = initialData?._id || initialData?.id;
       const payload = {
         ...formData,
-        plotSizes: formData.projectArea || formData.plotSizes || '',
+        plotSizes: (formData as any).projectArea || (formData as any).plotSizes || '',
         version: initialData?.version || 1,
       };
       if (isEdit && projectId) {

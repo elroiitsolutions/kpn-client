@@ -5,7 +5,7 @@ import { Trophy, Calendar, Award, ZoomIn, X } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import InnerPageHero from '@/components/sections/InnerPageHero';
 import TestimonialsSection from '@/components/sections/TestimonialsSection';
-import { awardsData, AwardItem } from '@/data/siteData';
+import { AwardItem } from '@/data/siteData';
 import { getAwards } from '@/lib/cmsClient';
 import RunningPillBadge from '@/components/ui/RunningPillBadge';
 import FadeIn from '@/components/animation/FadeIn';
@@ -13,18 +13,23 @@ import StaggerContainer from '@/components/animation/StaggerContainer';
 import StaggerItem from '@/components/animation/StaggerItem';
 
 export default function OurAwardsPage() {
-  const [awards, setAwards] = useState<AwardItem[]>(awardsData);
+  const [awards, setAwards] = useState<AwardItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<{ src: string; title: string } | null>(null);
 
   useEffect(() => {
     async function loadAwards() {
+      setIsLoading(true);
+      setFetchError(null);
       try {
         const fetched = await getAwards();
-        if (fetched && fetched.length > 0) {
-          setAwards(fetched);
-        }
-      } catch (err) {
-        console.warn('Failed to fetch awards, using fallback');
+        setAwards(fetched || []);
+      } catch (err: any) {
+        console.error('Failed to load awards from backend:', err);
+        setFetchError('Unable to load awards from server.');
+      } finally {
+        setIsLoading(false);
       }
     }
     loadAwards();
@@ -97,117 +102,161 @@ export default function OurAwardsPage() {
               AWARDS SHOWCASE - DIVIDER GRID (3x3 Layout)
           ====================================================== */}
           <div className="mt-16 lg:mt-20">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-              {(awards || []).map((award, index) => {
-                const total = (awards || []).length;
-                const lastRowStartIndex = Math.floor((total - 1) / 3) * 3;
-                const showHorizontalLine = index < lastRowStartIndex;
-                
-                // Explicit desktop & tablet border right rules
-                const hasDesktopBorder = index % 3 !== 2;
-                const hasTabletBorder = index % 2 === 0;
+            {isLoading ? (
+              /* Loading Skeleton Grid */
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="flex flex-col items-center p-8 space-y-4 animate-pulse">
+                    <div className="h-[200px] w-[200px] rounded-2xl bg-slate-100" />
+                    <div className="h-4 w-16 bg-slate-100 rounded-full" />
+                    <div className="h-6 w-48 bg-slate-100 rounded-lg" />
+                    <div className="h-4 w-36 bg-slate-100 rounded-lg" />
+                    <div className="h-12 w-full max-w-[280px] bg-slate-100 rounded-lg" />
+                  </div>
+                ))}
+              </div>
+            ) : fetchError ? (
+              /* Error State */
+              <div className="py-20 text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose-50 text-rose-500 mb-4">
+                  <Award className="h-8 w-8" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-800">Connection Error</h3>
+                <p className="mt-2 text-sm text-slate-500 max-w-md mx-auto">
+                  {fetchError} Please ensure the backend server is running and try again.
+                </p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="mt-6 rounded-full bg-[#29247c] px-6 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#342987] transition-all"
+                >
+                  Retry Loading
+                </button>
+              </div>
+            ) : awards.length === 0 ? (
+              /* Empty State */
+              <div className="py-20 text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400 mb-4">
+                  <Award className="h-8 w-8" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-800">No Awards Found</h3>
+                <p className="mt-2 text-sm text-slate-500">
+                  There are currently no published awards in the database.
+                </p>
+              </div>
+            ) : (
+              /* Backend Awards Grid */
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                {awards.map((award, index) => {
+                  const total = awards.length;
+                  const lastRowStartIndex = Math.floor((total - 1) / 3) * 3;
+                  const showHorizontalLine = index < lastRowStartIndex;
+                  
+                  // Explicit desktop & tablet border right rules
+                  const hasDesktopBorder = index % 3 !== 2;
+                  const hasTabletBorder = index % 2 === 0;
 
-                return (
-                  <div
-                    key={award.id || award._id || index}
-                    className="
-                      relative
-                      flex
-                      flex-col
-                      items-center
-                      text-center
-                      justify-between
-                      p-6
-                      sm:p-8
-                      lg:p-10
-                      transition-colors
-                      duration-300
-                      hover:bg-slate-50/40
-                      group
-                    "
-                  >
-                    {/* Vertical cut divider line on the right */}
-                    {hasDesktopBorder && (
-                      <div className="hidden lg:block absolute right-0 top-10 bottom-10 w-[1px] bg-slate-200" />
-                    )}
-                    {hasTabletBorder && (
-                      <div className="hidden md:block lg:hidden absolute right-0 top-10 bottom-10 w-[1px] bg-slate-200" />
-                    )}
+                  return (
+                    <div
+                      key={award.id || award._id || index}
+                      className="
+                        relative
+                        flex
+                        flex-col
+                        items-center
+                        text-center
+                        justify-between
+                        p-6
+                        sm:p-8
+                        lg:p-10
+                        transition-colors
+                        duration-300
+                        hover:bg-slate-50/40
+                        group
+                      "
+                    >
+                      {/* Vertical cut divider line on the right */}
+                      {hasDesktopBorder && (
+                        <div className="hidden lg:block absolute right-0 top-10 bottom-10 w-[1px] bg-slate-200" />
+                      )}
+                      {hasTabletBorder && (
+                        <div className="hidden md:block lg:hidden absolute right-0 top-10 bottom-10 w-[1px] bg-slate-200" />
+                      )}
 
-                    <div className="flex flex-col items-center w-full">
-                      {/* Award Trophy / Certificate Image */}
-                      <div
-                        onClick={() => setSelectedImage({ src: award.image, title: award.title })}
-                        className="
-                          relative
-                          flex
-                          h-[220px]
-                          w-full
-                          cursor-pointer
-                          items-center
-                          justify-center
-                          transition-transform
-                          duration-500
-                          group-hover:scale-105
-                        "
-                        title="Click to view full image"
-                      >
-                        <img
-                          src={award.image}
-                          alt={award.title}
+                      <div className="flex flex-col items-center w-full">
+                        {/* Award Trophy / Certificate Image */}
+                        <div
+                          onClick={() => setSelectedImage({ src: award.image, title: award.title })}
                           className="
-                            max-h-[200px]
-                            max-w-[200px]
-                            object-contain
-                            drop-shadow-md
+                            relative
+                            flex
+                            h-[220px]
+                            w-full
+                            cursor-pointer
+                            items-center
+                            justify-center
                             transition-transform
-                            duration-300
+                            duration-500
+                            group-hover:scale-105
                           "
-                          onError={(e: any) => {
-                            e.target.src = '/images/awards/Trusted-Developer-2025.png';
-                          }}
-                        />
+                          title="Click to view full image"
+                        >
+                          <img
+                            src={award.image}
+                            alt={award.title}
+                            className="
+                              max-h-[200px]
+                              max-w-[200px]
+                              object-contain
+                              drop-shadow-md
+                              transition-transform
+                              duration-300
+                            "
+                            onError={(e: any) => {
+                              e.target.src = '/images/awards/Trusted-Developer-2025.png';
+                            }}
+                          />
 
-                        {/* Subtle zoom indicator on hover */}
-                        <div className="absolute right-2 top-2 rounded-full bg-white/90 p-1.5 text-slate-400 opacity-0 shadow-xs transition-opacity group-hover:opacity-100 hover:text-[#29247c]">
-                          <ZoomIn className="h-4 w-4" />
+                          {/* Subtle zoom indicator on hover */}
+                          <div className="absolute right-2 top-2 rounded-full bg-white/90 p-1.5 text-slate-400 opacity-0 shadow-xs transition-opacity group-hover:opacity-100 hover:text-[#29247c]">
+                            <ZoomIn className="h-4 w-4" />
+                          </div>
+                        </div>
+
+                        {/* Award Info */}
+                        <div className="mt-6 flex flex-col items-center space-y-2 max-w-[340px]">
+                          {/* Year */}
+                          <span className="text-xs sm:text-sm font-black tracking-widest text-[#29247c]/70">
+                            {award.year}
+                          </span>
+
+                          {/* Title */}
+                          <h2 className="text-xl sm:text-[22px] font-black tracking-tight text-[#29247c] leading-snug group-hover:text-[#f12131] transition-colors">
+                            {award.title}
+                          </h2>
+
+                          {/* Organization */}
+                          <p className="text-xs sm:text-sm font-semibold text-slate-500">
+                            {award.organization}
+                          </p>
+
+                          {/* Description */}
+                          <p className="pt-2 text-xs sm:text-[13px] font-medium leading-relaxed text-slate-600">
+                            {award.description || `${award.title} presented to KPN Promoters Pvt. Ltd. by ${award.organization}.`}
+                          </p>
                         </div>
                       </div>
 
-                      {/* Award Info */}
-                      <div className="mt-6 flex flex-col items-center space-y-2 max-w-[340px]">
-                        {/* Year */}
-                        <span className="text-xs sm:text-sm font-black tracking-widest text-[#29247c]/70">
-                          {award.year}
-                        </span>
-
-                        {/* Title */}
-                        <h2 className="text-xl sm:text-[22px] font-black tracking-tight text-[#29247c] leading-snug group-hover:text-[#f12131] transition-colors">
-                          {award.title}
-                        </h2>
-
-                        {/* Organization */}
-                        <p className="text-xs sm:text-sm font-semibold text-slate-500">
-                          {award.organization}
-                        </p>
-
-                        {/* Description */}
-                        <p className="pt-2 text-xs sm:text-[13px] font-medium leading-relaxed text-slate-600">
-                          {award.description || `${award.title} presented to KPN Promoters Pvt. Ltd. by ${award.organization}.`}
-                        </p>
+                      {/* Centered horizontal cut divider line under card */}
+                      <div className="w-full pt-8 sm:pt-10">
+                        {showHorizontalLine && (
+                          <div className="w-[70%] max-w-[260px] h-[1px] bg-slate-200 mx-auto" />
+                        )}
                       </div>
                     </div>
-
-                    {/* Centered horizontal cut divider line under card */}
-                    <div className="w-full pt-8 sm:pt-10">
-                      {showHorizontalLine && (
-                        <div className="w-[70%] max-w-[260px] h-[1px] bg-slate-200 mx-auto" />
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
         </div>

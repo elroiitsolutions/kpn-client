@@ -9,6 +9,42 @@ import { projectsData } from '@/data/siteData';
 import { getHomepageCMS, getProjects } from '@/lib/cmsClient';
 import RunningPillBadge from '../ui/RunningPillBadge';
 
+function ProjectCardImage({
+  src,
+  fallbackSrc,
+  alt,
+  priority,
+}: {
+  src: string;
+  fallbackSrc?: string;
+  alt: string;
+  priority?: boolean;
+}) {
+  const [imgSrc, setImgSrc] = useState(src);
+
+  useEffect(() => {
+    setImgSrc(src);
+  }, [src]);
+
+  return (
+    <Image
+      src={imgSrc || fallbackSrc || '/images/projects/project_1.jpg'}
+      alt={alt}
+      fill
+      sizes="100vw"
+      priority={priority}
+      onError={() => {
+        if (fallbackSrc && imgSrc !== fallbackSrc) {
+          setImgSrc(fallbackSrc);
+        } else if (imgSrc !== '/images/projects/project_1.jpg') {
+          setImgSrc('/images/projects/project_1.jpg');
+        }
+      }}
+      className="object-cover transition-transform duration-700 hover:scale-105"
+    />
+  );
+}
+
 export default function ProjectsSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [featuredProjects, setFeaturedProjects] = useState<any[]>(projectsData.slice(0, 4));
@@ -144,13 +180,11 @@ export default function ProjectsSection() {
                 
                 {/* IMAGE COLUMN (Top on Mobile / Right on Desktop) */}
                 <div className="order-1 lg:order-2 lg:col-span-6 h-[52vh] lg:h-full w-full relative bg-neutral-950 overflow-hidden shrink-0">
-                  <Image
+                  <ProjectCardImage
                     src={project.image}
+                    fallbackSrc={project.fallbackImage}
                     alt={project.name}
-                    fill
-                    sizes="100vw"
                     priority={index === 0}
-                    className="object-cover transition-transform duration-700 hover:scale-105"
                   />
 
                   {/* Gradient overlay for smooth transition */}

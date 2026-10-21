@@ -218,28 +218,29 @@ export async function getBlogBySlug(slug: string): Promise<BlogPostItem | null> 
 export async function getAwards(): Promise<AwardItem[]> {
   try {
     const res = await fetch(`${API_BASE_URL}/awards`, {
-      next: { revalidate: 60 },
-      signal: AbortSignal.timeout(3000),
+      cache: 'no-store',
     });
 
     if (res.ok) {
       const data = await res.json();
-      if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+      if (data.success && Array.isArray(data.data)) {
         return data.data.map((a: any) => ({
-          id: a._id,
+          id: a.id || a._id,
           title: a.title,
           organization: a.organization,
           year: a.year,
           image: a.image,
           description: a.description,
+          status: a.status,
+          order: a.order,
         }));
       }
     }
   } catch (err) {
-    console.warn('[cmsClient] Failed to fetch awards from backend, using fallback');
+    console.warn('[cmsClient] Failed to fetch awards from backend:', err);
   }
 
-  return awardsData;
+  return [];
 }
 
 /**
