@@ -164,6 +164,7 @@ export default function ProjectForm({ initialData, isEdit = false }: ProjectForm
     description: initialData?.description || '',
     handoverTimeline: initialData?.handoverTimeline || '',
     commencementDate: initialData?.commencementDate || '',
+    projectArea: initialData?.projectArea || initialData?.plotSizes || '',
 
     // Building Structure & Unit Status Breakdown
     totalBlocks: initialData?.totalBlocks || 1,
@@ -387,13 +388,15 @@ export default function ProjectForm({ initialData, isEdit = false }: ProjectForm
 
     try {
       const projectId = initialData?._id || initialData?.id;
+      const payload = {
+        ...formData,
+        plotSizes: formData.projectArea || formData.plotSizes || '',
+        version: initialData?.version || 1,
+      };
       if (isEdit && projectId) {
-        await api.put(`/projects/${projectId}`, {
-          ...formData,
-          version: initialData?.version || 1,
-        });
+        await api.put(`/projects/${projectId}`, payload);
       } else {
-        await api.post('/projects', formData);
+        await api.post('/projects', payload);
       }
       router.push('/admin/projects');
     } catch (err: any) {
@@ -646,6 +649,114 @@ export default function ProjectForm({ initialData, isEdit = false }: ProjectForm
                 placeholder="e.g. 28 Jun, 2021"
                 className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-4 text-sm font-semibold text-slate-800 outline-none focus:bg-white focus:ring-2 focus:ring-[#f12131]/20"
               />
+            </div>
+          </div>
+
+          {/* Key Stat Badges & Pricing Details */}
+          <div className="rounded-2xl border border-slate-200/80 bg-slate-50/40 p-5 space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#f12131]/10 text-[#f12131] text-xs font-black">
+                ★
+              </span>
+              <h4 className="text-xs font-black uppercase tracking-wider text-[#29247c]">
+                Key Stat Badges & Pricing (Feeds Live Project Detail Badges)
+              </h4>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {/* Stat Badge 3: Project Area / Apartment Size */}
+              <div>
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-2">
+                  {formData.propertyType === 'Apartments'
+                    ? 'Apartment Size*'
+                    : formData.propertyType === 'Plots'
+                    ? 'Project Area / Plot Extents*'
+                    : 'Project Area*'}
+                </label>
+                <input
+                  type="text"
+                  value={formData.projectArea}
+                  onChange={(e) => setFormData({ ...formData, projectArea: e.target.value })}
+                  placeholder={
+                    formData.propertyType === 'Apartments'
+                      ? 'e.g. 550 - 1200 Sq. Ft.'
+                      : formData.propertyType === 'Plots'
+                      ? 'e.g. 458 - 2171 Sq.Ft.'
+                      : 'e.g. 1200 - 3500 Sq.Ft.'
+                  }
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-[#f12131]/20"
+                />
+                <p className="mt-1 text-[11px] text-slate-400">
+                  Feeds the {formData.propertyType === 'Apartments' ? 'Apartment Size' : 'Project Area'} badge.
+                </p>
+              </div>
+
+              {/* Stat Badge 5: Price Range / Budget */}
+              <div>
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-2">
+                  Price Range / Budget*
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.budget}
+                  onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                  placeholder={
+                    formData.propertyType === 'Plots'
+                      ? 'e.g. ₹ 2799/Sq.Ft or ₹ 18L Onwards'
+                      : 'e.g. ₹ 19L Onwards or ₹ 58L Onwards'
+                  }
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-[#f12131]/20"
+                />
+                <p className="mt-1 text-[11px] text-slate-400">
+                  Feeds the Price Range badge.
+                </p>
+              </div>
+
+              {/* Configuration / BHK Tag */}
+              <div>
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-2">
+                  {formData.propertyType === 'Plots'
+                    ? 'Plot Dimensions / BHK Tag*'
+                    : formData.propertyType === 'Villas'
+                    ? 'Villa Configuration / BHK*'
+                    : 'Configuration / BHK Tag*'}
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.bhk}
+                  onChange={(e) => setFormData({ ...formData, bhk: e.target.value })}
+                  placeholder={
+                    formData.propertyType === 'Plots'
+                      ? 'e.g. 600 - 2400 Sq.Ft or Plots'
+                      : formData.propertyType === 'Villas'
+                      ? 'e.g. 2 & 3 BHK Villa'
+                      : 'e.g. 1 & 2 BHK'
+                  }
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-[#f12131]/20"
+                />
+                <p className="mt-1 text-[11px] text-slate-400">
+                  Feeds project card & specs configuration.
+                </p>
+              </div>
+
+              {/* Price per Sq.Ft (Optional) */}
+              <div>
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-2">
+                  Price per Sq.Ft (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={formData.pricePerSqFt}
+                  onChange={(e) => setFormData({ ...formData, pricePerSqFt: e.target.value })}
+                  placeholder="e.g. ₹ 2,799 / Sq.Ft"
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-[#f12131]/20"
+                />
+                <p className="mt-1 text-[11px] text-slate-400">
+                  Optional per sq.ft pricing rate.
+                </p>
+              </div>
             </div>
           </div>
         </div>

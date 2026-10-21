@@ -53,6 +53,9 @@ export async function getProjects(): Promise<ProjectItem[]> {
           availableUnits: p.availableUnits,
           commencementDate: p.commencementDate,
           handoverTimeline: p.handoverTimeline,
+          projectArea: p.projectArea,
+          plotSizes: p.plotSizes || p.projectArea,
+          pricePerSqFt: p.pricePerSqFt,
           amenities: p.amenities?.map((a: any) => (typeof a === 'string' ? a : a.name)) || [],
           details: {
             propertyType: p.propertyType || p.type,
@@ -383,7 +386,7 @@ export interface CelebrationItem {
   gallery?: string[];
   date?: string;
   year?: string;
-  category?: 'Trip' | 'Office' | 'Launch' | 'Festival' | 'Milestone' | 'General' | string;
+  category?: 'Trip' | 'Office' | 'Launch' | 'Festival' | 'Milestone' | 'Meeting' | 'General' | string;
   order?: number;
   status?: 'Draft' | 'Published';
   createdAt?: string;
@@ -454,17 +457,6 @@ export const fallbackCelebrations: CelebrationItem[] = [
     date: 'January 2024',
     category: 'Festival',
     order: 6,
-    status: 'Published',
-  },
-  {
-    title: 'Year End Meeting - 2023',
-    subheading: 'Reflecting on the journey, realigning for the future — Year End Meeting',
-    description: 'Annual corporate review meeting reviewing strategic achievements, rewarding top sales performers, and mapping out high-growth targets.',
-    image: '/images/celebrations/year_end_meeting_2023.jpeg',
-    year: '2023',
-    date: 'December 2023',
-    category: 'Milestone',
-    order: 7,
     status: 'Published',
   },
 ];

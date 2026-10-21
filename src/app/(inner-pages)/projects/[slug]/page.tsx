@@ -630,9 +630,14 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
     );
   }
 
-  // =========================================================================
-  // INDIVIDUAL PROJECT DETAIL PAGE
-  // =========================================================================
+  // Check if current project is an apartment
+  const isApartment = Boolean(
+    ((project?.propertyType || project?.type || '') as string)
+      .toLowerCase()
+      .trim()
+      .includes('apartment')
+  );
+
   return (
     <>
       <Navbar variant="hero" />
@@ -678,7 +683,7 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                 </div>
                 <div>
                   <p className="text-[11px] font-medium text-slate-400">Project Type</p>
-                  <p className="text-sm font-bold text-[#29247c]">{project.type}</p>
+                  <p className="text-sm font-bold text-[#29247c]">{project.propertyType || project.type}</p>
                 </div>
               </div>
 
@@ -687,8 +692,12 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                   <Maximize className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-medium text-slate-400">Project Area</p>
-                  <p className="text-sm font-bold text-[#29247c]">550 - 1200 Sq. Ft.</p>
+                  <p className="text-[11px] font-medium text-slate-400">
+                    {isApartment ? 'Apartment Size' : 'Project Area'}
+                  </p>
+                  <p className="text-sm font-bold text-[#29247c]">
+                    {project.projectArea || project.plotSizes || (project as any).area || (project as any).apartmentSize || (isApartment ? '550 - 1200 Sq. Ft.' : '458 - 2171 Sq.Ft.')}
+                  </p>
                 </div>
               </div>
 
@@ -698,7 +707,9 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                 </div>
                 <div>
                   <p className="text-[11px] font-medium text-slate-400">Commencement date</p>
-                  <p className="text-sm font-bold text-[#29247c]">28 Jun, 2021</p>
+                  <p className="text-sm font-bold text-[#29247c]">
+                    {project.commencementDate || '28 Jun, 2021'}
+                  </p>
                 </div>
               </div>
 
@@ -709,7 +720,9 @@ export default function ProjectCategoryOrDetailPage({ params }: PageProps) {
                 <div>
                   <p className="text-[11px] font-medium text-slate-400">Price Range</p>
                   <p className="text-sm font-bold text-[#29247c]">
-                    {project.budget.includes('₹') ? project.budget : `₹ ${project.budget}`}
+                    {project.budget
+                      ? (project.budget.includes('₹') ? project.budget : `₹ ${project.budget}`)
+                      : 'Price on Request'}
                   </p>
                 </div>
               </div>

@@ -54,7 +54,6 @@ export default function SmartSearchModal({
   const sitePages = useMemo(() => {
     const list: { label: string; href: string; group: string; description: string }[] = [
       { label: 'Home Page', href: '/', group: 'Pages', description: 'KPN Promoters Official Real Estate Portal' },
-      { label: 'Wishlist & Shortlist', href: '/wishlist', group: 'Pages', description: 'Your saved favorite properties' },
       { label: 'Project Comparison Matrix', href: '/compare', group: 'Pages', description: 'Side-by-side analysis of key property features' },
     ];
 

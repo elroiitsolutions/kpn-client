@@ -10,7 +10,6 @@ import { useWishlistCompare } from '@/context/WishlistCompareContext';
 import {
   Scale,
   Trash2,
-  Heart,
   ArrowRight,
   CheckCircle,
   Building,
@@ -24,8 +23,7 @@ import {
 import FadeIn from '@/components/animation/FadeIn';
 
 export default function ComparePage() {
-  const { compareIds, toggleCompare, clearCompare, toggleWishlist, isInWishlist } =
-    useWishlistCompare();
+  const { compareIds, toggleCompare, clearCompare } = useWishlistCompare();
 
   const [allProjects, setAllProjects] = useState<ProjectItem[]>(projectsData);
   const [isLoading, setIsLoading] = useState(true);
@@ -97,18 +95,6 @@ export default function ComparePage() {
     } else {
       toggleCompare(project.id);
     }
-  };
-
-  const isProjectInWishlist = (project: any) => {
-    return (
-      isInWishlist(project.id) ||
-      (project._id && isInWishlist(project._id)) ||
-      (project.slug && isInWishlist(project.slug))
-    );
-  };
-
-  const handleToggleWishlist = (project: any) => {
-    toggleWishlist(project.id || project._id || project.slug);
   };
 
   return (
@@ -233,25 +219,13 @@ export default function ComparePage() {
                             <MapPin className="h-3.5 w-3.5 text-[#f12131] shrink-0" /> {project.location}
                           </p>
 
-                          <div className="mt-4 flex items-center gap-2">
+                          <div className="mt-4">
                             <Link
                               href={`/projects/${project.slug}`}
-                              className="flex-1 rounded-full bg-[#f12131] py-2.5 text-center text-xs font-extrabold text-white hover:bg-[#d91d2c] transition-all shadow-sm"
+                              className="block w-full rounded-full bg-[#f12131] py-2.5 text-center text-xs font-extrabold text-white hover:bg-[#d91d2c] transition-all shadow-sm"
                             >
                               View Details
                             </Link>
-                            <button
-                              type="button"
-                              onClick={() => handleToggleWishlist(project)}
-                              className={`flex h-9 w-9 items-center justify-center rounded-full border transition-all cursor-pointer ${
-                                isProjectInWishlist(project)
-                                  ? 'bg-[#f12131] border-[#f12131] text-white'
-                                  : 'border-slate-200 text-slate-700 hover:bg-red-50 hover:text-[#f12131]'
-                              }`}
-                              title="Wishlist"
-                            >
-                              <Heart className={`h-4 w-4 ${isProjectInWishlist(project) ? 'fill-white' : ''}`} />
-                            </button>
                           </div>
                         </th>
                       ))}

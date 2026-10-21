@@ -221,7 +221,7 @@ export default function InnerFooter() {
                   <>
                     <span>·</span>
                     <Link href={data.socialLinks?.linkedin || (data.socialLinks as any)?.twitter} target="_blank" rel="noopener noreferrer" className="hover:text-rose-600 transition-colors">
-                      Twitter
+                      LinkedIn
                     </Link>
                   </>
                 )}

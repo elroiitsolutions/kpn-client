@@ -15,11 +15,25 @@ interface AssociatePageProps {
   title: string;
   tagline?: string;
   heroImage?: string;
+  email?: string;
+  phone?: string;
 }
 
 export default function AssociatePageTemplate({
   title,
+  email,
+  phone,
 }: AssociatePageProps) {
+  const isInvestors = title?.toLowerCase() === 'investors';
+  const isJointDevelopment = title?.toLowerCase() === 'joint development';
+  const displayEmail = email || (isInvestors ? 'md@kpnpromoters.in' : 'kpnsalesteam@gmail.com');
+  const displayPhone =
+    phone ||
+    (isInvestors
+      ? '+91 99419 92132'
+      : isJointDevelopment
+      ? '+91 73580 38425 / +91 73580 38421'
+      : '+91 7338834233');
   const [formData, setFormData] = useState({
     name: '',
     companyName: '',
@@ -141,12 +155,12 @@ export default function AssociatePageTemplate({
                 </h3>
 
                 <p className="mt-2 text-sm text-slate-800">
-                  kpnsalesteam@gmail.com
+                  {displayEmail}
                 </p>
               </div>
 
               <a
-                href="mailto:kpnsalesteam@gmail.com"
+                href={`mailto:${displayEmail}`}
                 className="flex h-12 items-center justify-center rounded-full bg-[#ff202d] text-sm font-bold text-black transition-all hover:scale-[1.02] hover:bg-[#ed1c2a] active:scale-98"
               >
                 Email Us
@@ -166,12 +180,27 @@ export default function AssociatePageTemplate({
                 </h3>
 
                 <p className="mt-2 text-sm text-slate-800">
-                  +91 7338834233
+                  {displayPhone.includes('/') ? (
+                    displayPhone.split('/').map((num, i, arr) => {
+                      const trimmed = num.trim();
+                      const cleanTel = trimmed.replace(/[^0-9+]/g, '');
+                      return (
+                        <span key={i}>
+                          <a href={`tel:${cleanTel}`} className="hover:text-rose-600 transition-colors">
+                            {trimmed}
+                          </a>
+                          {i < arr.length - 1 ? ' / ' : ''}
+                        </span>
+                      );
+                    })
+                  ) : (
+                    displayPhone
+                  )}
                 </p>
               </div>
 
               <a
-                href="tel:+917338834233"
+                href={`tel:${(displayPhone.split('/')[0] || '').replace(/[^0-9+]/g, '')}`}
                 className="flex h-12 items-center justify-center rounded-full bg-[#ff202d] text-sm font-bold text-black transition-all hover:scale-[1.02] hover:bg-[#ed1c2a] active:scale-98"
               >
                 Call Us
