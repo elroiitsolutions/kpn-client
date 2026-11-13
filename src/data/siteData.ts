@@ -881,7 +881,7 @@ export const teamData = [
   {
     name: 'Mr.Amarnath',
     role: 'Director',
-    image: '/team/amarnath.jpg',
+    image: '/team/amarnath.jpeg',
   },
   {
     name: 'Leslie Alexander',

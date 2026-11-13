@@ -112,7 +112,7 @@ export default function AssociatePageTemplate({
         email: formData.email.trim(),
         projectName: `${title} Program`,
         message: additionalNotes || `Inquiry for ${title}`,
-        source: 'Associate Page',
+        source: `${title} Form`,
       });
 
       setShowThankYou(true);
